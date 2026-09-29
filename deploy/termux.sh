@@ -77,32 +77,9 @@ if [ -n "$CLIENT_ID" ]; then
     setenv SPOTIFY_CLIENT_SECRET "$CLIENT_SECRET"
 fi
 
-cat > "$BIN" <<'EOF'
-#!/data/data/com.termux/files/usr/bin/bash
-DIR="$HOME/blindtest"
-cd "$DIR" || exit 1
-termux-wake-lock 2>/dev/null || true
-git pull --ff-only --quiet 2>/dev/null && npm ci --omit=dev --no-audit --no-fund >/dev/null 2>&1 || true
-URL=$(node scripts/lan-url.js)
-ROOM=$(grep -E '^BLINDTEST_HOME_ROOM=' .env | cut -d= -f2)
-ROOM="${ROOM:-MAISON}"
-PIN=$(grep -E '^BLINDTEST_HOST_PIN=' .env | cut -d= -f2)
-clear
-echo "🎧 Blind Test — ce téléphone est le serveur"
-echo
-echo "  Salle        : $URL/r/$ROOM"
-echo "  Écran TV     : $URL/r/$ROOM/tv"
-echo "  Code hôte    : $PIN"
-echo
-echo "Autres adresses possibles :"
-node scripts/lan-url.js --all | sed 's/^/  /'
-echo
-node scripts/qr-terminal.js "$URL/r/$ROOM"
-echo
-echo "Laisse cette fenêtre ouverte. Ctrl+C pour arrêter."
-exec env BLINDTEST_PUBLIC_URL="$URL" node index.js
-EOF
+printf '#!/data/data/com.termux/files/usr/bin/bash\nexec bash "$HOME/blindtest/deploy/launch.sh"\n' > "$BIN"
 chmod +x "$BIN"
+chmod +x "$DIR/deploy/launch.sh"
 
 mkdir -p "$HOME/.shortcuts"
 printf '#!/data/data/com.termux/files/usr/bin/bash\nblindtest\n' > "$HOME/.shortcuts/Blind Test"
@@ -110,5 +87,5 @@ chmod +x "$HOME/.shortcuts/Blind Test"
 rm -f "$TOKEN_FILE"
 
 echo
-echo "✅ Installé. Pour lancer une soirée : tape  blindtest  dans Termux (ou le widget « Blind Test » avec l'appli Termux:Widget)."
+echo "✅ Installé. Pour lancer une soirée : le widget « Blind Test » sur l'écran d'accueil (appli Termux:Widget), ou tape  blindtest  dans Termux."
 echo "Pense à désactiver l'optimisation de batterie pour Termux (Paramètres → Applications → Termux → Batterie → Non restreinte)."

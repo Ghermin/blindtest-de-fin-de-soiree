@@ -1,6 +1,0 @@
-[Unit]
-Description=Mise à jour automatique du blind test
-
-[Service]
-Type=oneshot
-ExecStart=/opt/blindtest/deploy/update.sh

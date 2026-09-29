@@ -39,7 +39,6 @@
     let source = null;
     let sourceToken = null;
     let lastMessage = 0;
-    let castContext = null;
     let playerSrc = '';
     const seen = new Map();
     const player = new Audio();
@@ -366,6 +365,12 @@
         try {
             const status = await post(`${api}/host/status`, null, 'GET');
             $('host-key').textContent = `Clé hôte de la salle ${room} : ${status.key}`;
+            const account = status.spotify || {};
+            $('host-spotify').hidden = !account.configured;
+            $('host-spotify-actions').hidden = !account.configured;
+            $('host-spotify').textContent = account.connected ? `🎧 Spotify : ${account.account ? account.account.name : 'compte connecté'}` : '🎧 Spotify : compte non connecté (liens de playlists publiques seulement)';
+            $('host-connect').textContent = account.connected ? '🎧 Changer de compte Spotify' : '🎧 Connecter mon compte Spotify';
+            $('host-playlists').hidden = !account.connected;
             const container = $('host-presets');
             container.innerHTML = '';
             container.hidden = !status.presets.length;
@@ -379,30 +384,6 @@
         } catch (error) {
             hostFeedback('⚠ ' + error.message);
         }
-    }
-
-    function setupCast(appId) {
-        const framework = window.cast && window.cast.framework;
-        if (!framework || !window.chrome || !window.chrome.cast) return;
-        castContext = framework.CastContext.getInstance();
-        castContext.setOptions({ receiverApplicationId: appId, autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED });
-        castContext.addEventListener(framework.CastContextEventType.SESSION_STATE_CHANGED, (event) => {
-            const session = castContext.getCurrentSession();
-            const started = event.sessionState === framework.SessionState.SESSION_STARTED || event.sessionState === framework.SessionState.SESSION_RESUMED;
-            if (started && session) session.sendMessage('urn:x-cast:fr.blindtest', { room });
-            $('host-cast').textContent = session ? '📺 Arrêter la diffusion TV' : '📺 Caster sur la TV';
-        });
-        $('host-cast').hidden = false;
-    }
-
-    function loadCast(appId) {
-        if (!appId || !room || /iPhone|iPad|iPod/.test(navigator.userAgent)) return;
-        window.__onGCastApiAvailable = (available) => {
-            if (available) setupCast(appId);
-        };
-        const script = document.createElement('script');
-        script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
-        document.head.appendChild(script);
     }
 
     async function initHome(message) {
@@ -424,7 +405,6 @@
             return initHome(error.message === 'Salle introuvable' ? `La salle ${room} n'existe plus : crée-en une nouvelle ou entre un autre code.` : error.message);
         }
         post('/api/info', null, 'GET').then((info) => {
-            loadCast(info.cast);
             if (!info.spotify) $('playlist-url').placeholder = 'Lien de playlist Deezer';
         }).catch(() => null);
         $('join-room').textContent = `Salle ${room}`;
@@ -523,18 +503,30 @@
     $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
     $('host-close').addEventListener('click', () => toggleHostPanel(false));
     $('host-speaker').addEventListener('click', () => setSpeaker(!speaker));
-    $('host-cast').addEventListener('click', async () => {
-        if (!castContext) return;
+    $('host-connect').addEventListener('click', () => {
+        location.href = `/auth/spotify?room=${encodeURIComponent(room)}&key=${encodeURIComponent(hostKey)}&back=${encodeURIComponent(location.origin)}`;
+    });
+    $('host-playlists').addEventListener('click', async () => {
+        const list = $('host-playlist-list');
         try {
-            if (castContext.getCurrentSession()) {
-                castContext.endCurrentSession(true);
-                return;
+            hostFeedback('…');
+            const { playlists } = await post(`${api}/host/playlists`, null, 'GET');
+            list.innerHTML = '';
+            for (const playlist of playlists) {
+                const item = document.createElement('li');
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = `${playlist.name} (${playlist.total})`;
+                button.addEventListener('click', () => {
+                    list.innerHTML = '';
+                    hostAction(`${api}/host/playlist`, { url: `spotify:playlist:${playlist.id}` });
+                });
+                item.appendChild(button);
+                list.appendChild(item);
             }
-            hostFeedback('Choisis la TV dans la fenêtre…');
-            await castContext.requestSession();
-            hostFeedback('');
-        } catch (_error) {
-            hostFeedback('');
+            hostFeedback(playlists.length ? '' : 'Aucune playlist sur ce compte');
+        } catch (error) {
+            hostFeedback('⚠ ' + error.message);
         }
     });
 
