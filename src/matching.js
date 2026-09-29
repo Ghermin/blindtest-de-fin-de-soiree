@@ -92,4 +92,4 @@ function distance(guess, target) {
     return levenshtein(a, b) / Math.max(a.length, b.length);
 }
 
-module.exports = { normalize, levenshtein, matchesTitle, matchesArtist, matchesWords, distance };
+module.exports = { normalize, levenshtein, close, matchesTitle, matchesArtist, matchesWords, distance };

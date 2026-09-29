@@ -14,14 +14,13 @@ module.exports = {
     host: process.env.BLINDTEST_HOST || '0.0.0.0',
     hostPin: process.env.BLINDTEST_HOST_PIN || '',
     publicUrl: (process.env.BLINDTEST_PUBLIC_URL || '').replace(/\/+$/, ''),
-    homeRoom: (process.env.BLINDTEST_HOME_ROOM || 'MAISON').toUpperCase(),
+    homeRoom: (process.env.BLINDTEST_HOME_ROOM === undefined ? 'MAISON' : process.env.BLINDTEST_HOME_ROOM).toUpperCase(),
     trustProxy: process.env.BLINDTEST_TRUST_PROXY === '1',
     dataDir: process.env.BLINDTEST_DATA_DIR || path.join(__dirname, '..', 'data'),
     castAppId: process.env.BLINDTEST_CAST_APP_ID || '',
+    country: (process.env.BLINDTEST_COUNTRY || 'FR').toUpperCase(),
     spotify: {
         clientId: process.env.SPOTIFY_CLIENT_ID || '',
-        clientSecret: process.env.SPOTIFY_CLIENT_SECRET || '',
-        refreshToken: process.env.SPOTIFY_REFRESH_TOKEN || '',
-        deviceName: process.env.SPOTIFY_DEVICE_NAME || ''
+        clientSecret: process.env.SPOTIFY_CLIENT_SECRET || ''
     }
 };

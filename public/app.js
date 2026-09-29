@@ -26,6 +26,7 @@
     let myTeam = storage.get('bt_team');
     let hostKey = room ? storage.get(`bt_hostkey_${room}`) : '';
     let isHost = room ? storage.get(`bt_host_${room}`) === '1' : false;
+    let speaker = room ? storage.get(`bt_speaker_${room}`) === '1' : false;
     let state = null;
     let offset = 0;
     let lastRound = 0;
@@ -39,7 +40,10 @@
     let sourceToken = null;
     let lastMessage = 0;
     let castContext = null;
+    let playerSrc = '';
     const seen = new Map();
+    const player = new Audio();
+    player.preload = 'auto';
 
     if (room && location.hash.startsWith('#host=')) {
         hostKey = decodeURIComponent(location.hash.slice(6));
@@ -57,7 +61,7 @@
         });
         const payload = await response.json().catch(() => ({}));
         if (response.status === 403 && route.includes('/host/')) {
-            const entered = (prompt('Clé hôte ? (6 chiffres pour la salle de la maison, ou la clé reçue à la création de la salle)') || '').trim();
+            const entered = (prompt('Clé hôte ? (le code hôte de la salle de la maison, ou la clé reçue à la création de la salle)') || '').trim();
             if (entered && entered !== hostKey) {
                 hostKey = entered;
                 storage.set(`bt_hostkey_${room}`, hostKey);
@@ -85,6 +89,50 @@
         }
     }
 
+    function syncAudio() {
+        const audio = state && state.audio;
+        const active = speaker && audio && audio.url && ['countdown', 'guess', 'reveal'].includes(state.phase);
+        if (!active) {
+            if (!player.paused) player.pause();
+            return;
+        }
+        if (playerSrc !== audio.url) {
+            playerSrc = audio.url;
+            player.src = audio.url;
+            player.load();
+        }
+        if (!audio.startedAt) {
+            if (!player.paused) player.pause();
+            return;
+        }
+        const position = (now() - audio.startedAt) / 1000;
+        if (position > 45) {
+            if (!player.paused) player.pause();
+            return;
+        }
+        const seek = () => {
+            const target = Math.max(0, (now() - audio.startedAt) / 1000);
+            if (Math.abs(player.currentTime - target) > 1.5) player.currentTime = target;
+        };
+        if (player.readyState >= 1) seek();
+        else player.addEventListener('loadedmetadata', seek, { once: true });
+        if (player.paused) {
+            player.play().then(() => {
+                $('sound-help').hidden = true;
+            }).catch(() => {
+                $('sound-help').hidden = false;
+            });
+        }
+    }
+
+    function setSpeaker(value) {
+        speaker = value;
+        storage.set(`bt_speaker_${room}`, speaker ? '1' : '0');
+        $('host-speaker').textContent = `🔈 Son sur ce téléphone : ${speaker ? 'oui' : 'non'}`;
+        if (!speaker) $('sound-help').hidden = true;
+        syncAudio();
+    }
+
     function spaced(pattern) {
         return pattern.split(' ').map((word) => word.split('').join(' ')).join('   ');
     }
@@ -97,24 +145,32 @@
         return lines.join('\n');
     }
 
+    function playlistLabel(playlist, long) {
+        if (!playlist) return long ? 'Aucune playlist chargée' : '';
+        const base = `📀 ${playlist.name}`;
+        if (!playlist.ready) return `${base} · recherche des extraits ${playlist.resolved}/${playlist.total}…`;
+        const missing = playlist.missing ? `, ${playlist.missing} sans extrait` : '';
+        return long ? `${base} · ${playlist.resolved} extraits prêts${missing}` : `${base} · ${playlist.resolved} titres`;
+    }
+
     function renderPlayers(list, element, withGains) {
         element.innerHTML = '';
-        for (const player of list) {
+        for (const entry of list) {
             const item = document.createElement('li');
-            const key = `${element.id}:${player.name}`;
+            const key = `${element.id}:${entry.name}`;
             if (!seen.has(key)) item.classList.add('fresh');
-            else if (seen.get(key) < player.score) item.classList.add('bump');
-            seen.set(key, player.score);
-            const found = [player.found.title ? '🎵' : '', player.found.artist ? '🎤' : ''].join('');
-            const gained = withGains && player.gained ? ` +${player.gained}` : '';
-            const team = player.team ? ` [${player.team}]` : '';
-            const offline = player.online === false;
-            item.textContent = `${player.name}${team} — ${player.score}${gained} ${found}${offline ? ' 💤' : ''}`;
+            else if (seen.get(key) < entry.score) item.classList.add('bump');
+            seen.set(key, entry.score);
+            const found = [entry.found.title ? '🎵' : '', entry.found.artist ? '🎤' : ''].join('');
+            const gained = withGains && entry.gained ? ` +${entry.gained}` : '';
+            const team = entry.team ? ` [${entry.team}]` : '';
+            const offline = entry.online === false;
+            item.textContent = `${entry.name}${team} — ${entry.score}${gained} ${found}${offline ? ' 💤' : ''}`;
             item.classList.toggle('offline', offline);
-            if (player.lastGuess) {
+            if (entry.lastGuess) {
                 const guess = document.createElement('span');
                 guess.className = 'last-guess';
-                guess.textContent = `« ${player.lastGuess} »`;
+                guess.textContent = `« ${entry.lastGuess} »`;
                 item.appendChild(guess);
             }
             element.appendChild(item);
@@ -135,7 +191,6 @@
     function renderGuess() {
         $('countdown-big').hidden = state.phase !== 'countdown';
         $('guess-zone').hidden = state.phase !== 'guess';
-        $('stalled-zone').hidden = state.phase !== 'stalled';
         $('round-label').textContent = `Manche ${state.round}/${state.rounds}`;
         $('mode-label').textContent = { both: '🎵 titre + 🎤 artiste', title: '🎵 titre', artist: '🎤 artiste' }[state.mode];
 
@@ -184,11 +239,6 @@
             };
             animate();
         }
-
-        if (state.phase === 'stalled') {
-            $('stalled-message').textContent = state.notice || 'Lecture Spotify impossible';
-            $('stalled-retry').hidden = !isHost;
-        }
     }
 
     function renderReveal() {
@@ -206,11 +256,11 @@
         renderTeams(state.teams, $('podium-teams'));
         const list = $('podium-list');
         list.innerHTML = '';
-        state.players.forEach((player, index) => {
+        state.players.forEach((entry, index) => {
             const item = document.createElement('li');
             const score = document.createElement('b');
-            score.textContent = player.score;
-            item.append(`${medals[index] || '•'} ${player.name}${player.team ? ` [${player.team}]` : ''} — `, score, ' pts');
+            score.textContent = entry.score;
+            item.append(`${medals[index] || '•'} ${entry.name}${entry.team ? ` [${entry.team}]` : ''} — `, score, ' pts');
             list.appendChild(item);
         });
         const stats = state.stats || {};
@@ -241,21 +291,19 @@
 
         $('host-toggle').hidden = !isHost;
         document.body.classList.toggle('is-host', isHost);
-        $('host-retry').hidden = state.phase !== 'stalled';
-        $('host-playlist-info').textContent = state.playlist
-            ? `📀 ${state.playlist.name} (${state.playlist.total} titres)` : 'Aucune playlist chargée';
+        $('host-playlist-info').textContent = playlistLabel(state.playlist, true);
 
-        if (!token) return show('join');
-        if (state.phase === 'lobby') {
+        if (!token) {
+            show('join');
+        } else if (state.phase === 'lobby') {
             show('lobby');
-            $('lobby-playlist').textContent = state.playlist ? `📀 ${state.playlist.name}` : '';
+            $('lobby-playlist').textContent = playlistLabel(state.playlist, false);
             $('lobby-notice').textContent = state.notice || '';
             $('lobby-notice').hidden = !state.notice;
             $('lobby-url').textContent = state.joinUrl || '';
-            $('lobby-spotify').hidden = state.spotify !== false;
             renderTeams(state.teams, $('lobby-teams'));
             renderPlayers(state.players, $('lobby-players'), false);
-        } else if (state.phase === 'countdown' || state.phase === 'guess' || state.phase === 'stalled') {
+        } else if (state.phase === 'countdown' || state.phase === 'guess') {
             show('game');
             renderGuess();
             if (state.phase === 'guess' && lastPhase !== 'guess') $('guess-input').focus({ preventScroll: true });
@@ -267,6 +315,7 @@
             renderPodium();
         }
         lastPhase = state.phase;
+        syncAudio();
     }
 
     function connect() {
@@ -316,27 +365,19 @@
     async function refreshHost() {
         try {
             const status = await post(`${api}/host/status`, null, 'GET');
-            const account = status.spotify.account;
             $('host-key').textContent = `Clé hôte de la salle ${room} : ${status.key}`;
-            $('host-spotify').textContent = status.spotify.connected
-                ? `🎧 Spotify : ${account ? account.name : 'connecté'}${account && account.premium === false ? ' (pas Premium : la lecture échouera)' : ''}`
-                : '🎧 Spotify : non connecté';
-            $('host-connect').hidden = !status.auth;
-            $('host-connect').textContent = status.spotify.connected ? '🎧 Changer de compte Spotify' : '🎧 Connecter Spotify';
-            $('host-playlists').hidden = !status.spotify.connected;
+            const container = $('host-presets');
+            container.innerHTML = '';
+            container.hidden = !status.presets.length;
+            for (const preset of status.presets) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = `📀 ${preset.name}`;
+                button.addEventListener('click', () => hostAction(`${api}/host/playlist`, { url: preset.url }));
+                container.appendChild(button);
+            }
         } catch (error) {
             hostFeedback('⚠ ' + error.message);
-        }
-        const { presets } = await post('/api/presets', null, 'GET').catch(() => ({ presets: [] }));
-        const container = $('host-presets');
-        container.innerHTML = '';
-        container.hidden = !presets.length;
-        for (const preset of presets) {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.textContent = `📀 ${preset.name}`;
-            button.addEventListener('click', () => hostAction(`${api}/host/playlist`, { url: preset.url }));
-            container.appendChild(button);
         }
     }
 
@@ -382,11 +423,15 @@
         } catch (error) {
             return initHome(error.message === 'Salle introuvable' ? `La salle ${room} n'existe plus : crée-en une nouvelle ou entre un autre code.` : error.message);
         }
-        post('/api/info', null, 'GET').then((info) => loadCast(info.cast)).catch(() => null);
+        post('/api/info', null, 'GET').then((info) => {
+            loadCast(info.cast);
+            if (!info.spotify) $('playlist-url').placeholder = 'Lien de playlist Deezer';
+        }).catch(() => null);
         $('join-room').textContent = `Salle ${room}`;
         if (myName) $('join-name').value = myName;
         if (myTeam) $('join-team').value = myTeam;
         if (isHost) $('become-host').textContent = 'Hôte activé ✔ (re-clique pour désactiver)';
+        $('host-speaker').textContent = `🔈 Son sur ce téléphone : ${speaker ? 'oui' : 'non'}`;
         show('join');
         connect();
     }
@@ -464,7 +509,7 @@
 
     $('become-host').addEventListener('click', () => {
         if (!isHost && !hostKey) {
-            const entered = (prompt('Clé hôte ? (6 chiffres pour la salle de la maison, ou la clé reçue à la création de la salle)') || '').trim();
+            const entered = (prompt('Clé hôte ? (le code hôte de la salle de la maison, ou la clé reçue à la création de la salle)') || '').trim();
             if (!entered) return;
             hostKey = entered;
             storage.set(`bt_hostkey_${room}`, hostKey);
@@ -477,10 +522,7 @@
 
     $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
     $('host-close').addEventListener('click', () => toggleHostPanel(false));
-    $('host-connect').addEventListener('click', () => {
-        location.href = `/auth/spotify?room=${encodeURIComponent(room)}&key=${encodeURIComponent(hostKey)}`;
-    });
-
+    $('host-speaker').addEventListener('click', () => setSpeaker(!speaker));
     $('host-cast').addEventListener('click', async () => {
         if (!castContext) return;
         try {
@@ -493,30 +535,6 @@
             hostFeedback('');
         } catch {
             hostFeedback('');
-        }
-    });
-
-    $('host-playlists').addEventListener('click', async () => {
-        const list = $('host-playlist-list');
-        try {
-            hostFeedback('…');
-            const { playlists } = await post(`${api}/host/playlists`, null, 'GET');
-            list.innerHTML = '';
-            for (const playlist of playlists) {
-                const item = document.createElement('li');
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.textContent = `${playlist.name} (${playlist.total})`;
-                button.addEventListener('click', () => {
-                    list.innerHTML = '';
-                    hostAction(`${api}/host/playlist`, { url: `spotify:playlist:${playlist.id}` });
-                });
-                item.appendChild(button);
-                list.appendChild(item);
-            }
-            hostFeedback(playlists.length ? '' : 'Aucune playlist sur ce compte');
-        } catch (error) {
-            hostFeedback('⚠ ' + error.message);
         }
     });
 
@@ -534,33 +552,16 @@
         toggleHostPanel(false);
     });
     $('host-skip').addEventListener('click', () => hostAction(`${api}/host/skip`));
-    $('host-retry').addEventListener('click', () => hostAction(`${api}/host/retry`));
-    $('stalled-retry').addEventListener('click', () => hostAction(`${api}/host/retry`));
     $('host-stop').addEventListener('click', () => hostAction(`${api}/host/stop`));
     $('host-lobby').addEventListener('click', () => hostAction(`${api}/host/lobby`));
 
-    $('host-devices-refresh').addEventListener('click', async () => {
-        try {
-            const result = await post(`${api}/host/devices`, null, 'GET');
-            const list = $('host-devices');
-            list.innerHTML = '';
-            for (const device of result.devices) {
-                const item = document.createElement('li');
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.textContent = `${device.is_active ? '🔊 ' : ''}${device.name} (${device.type})`;
-                button.addEventListener('click', () => hostAction(`${api}/host/device`, { id: device.id }));
-                item.appendChild(button);
-                list.appendChild(item);
-            }
-            if (!result.devices.length) hostFeedback('Aucun appareil : ouvre Spotify sur ton tel ou caste sur la TV');
-        } catch (error) {
-            hostFeedback('⚠ ' + error.message);
-        }
-    });
+    document.addEventListener('pointerdown', () => {
+        if (speaker && !$('sound-help').hidden) syncAudio();
+    }, { passive: true });
 
     setInterval(() => {
         if (source && Date.now() - lastMessage > 40000) connect();
+        syncAudio();
     }, 5000);
 
     document.addEventListener('visibilitychange', () => {

@@ -695,3 +695,24 @@ form.stack > button {
 #host-presets {
     flex-wrap: wrap;
 }
+
+.sound-help {
+    position: fixed;
+    top: 12px;
+    left: 16px;
+    right: 16px;
+    z-index: 3;
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--card);
+    text-align: center;
+    font-weight: 700;
+    color: var(--accent2);
+}
+
+.credit {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--muted);
+}

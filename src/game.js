@@ -2,11 +2,14 @@ const { EventEmitter } = require('node:events');
 const { randomUUID } = require('node:crypto');
 const matching = require('./matching.js');
 const { hints } = require('./hints.js');
-const { parsePlaylistId } = require('./spotify.js');
+const sources = require('./sources.js');
+const previews = require('./previews.js');
 
 const DEFAULTS = { rounds: 10, guessMs: 30000, countdownMs: 3000, revealMs: 8000, mode: 'both', hints: true };
 const POINTS = { find: 500, both: 200, first: 100, minSpeed: 0.3 };
 const MAX_PLAYERS = 60;
+const PREVIEW_MS = 30000;
+const DEFAULT_SOURCES = { loadPlaylist: sources.loadPlaylist, resolveAll: previews.resolveAll, freshUrl: previews.freshUrl };
 
 function shuffle(list) {
     const result = [...list];
@@ -37,7 +40,7 @@ function freshPlayer(base) {
 class Game extends EventEmitter {
     constructor(options = {}) {
         super();
-        this.spotify = options.spotify;
+        this.sources = options.sources || DEFAULT_SOURCES;
         this.code = options.code || '';
         this.timings = options.timings || {};
         this.players = new Map();
@@ -49,6 +52,7 @@ class Game extends EventEmitter {
         this.phase = 'lobby';
         this.roundIndex = 0;
         this.track = null;
+        this.audio = null;
         this.phaseEndsAt = 0;
         this.guessStartedAt = 0;
         this.firstTitle = null;
@@ -56,6 +60,7 @@ class Game extends EventEmitter {
         this.notice = null;
         this.timer = null;
         this.generation = 0;
+        this.resolveGeneration = 0;
         this.hint = null;
         this.hintTimers = [];
         this.wildest = null;
@@ -93,7 +98,6 @@ class Game extends EventEmitter {
         const player = freshPlayer({ name: this.uniqueName(cleaned), team: cleanedTeam });
         this.players.set(player.token, player);
         this.log(`Joueur : ${player.name}${player.team ? ` (équipe ${player.team})` : ''}`);
-        this.notice = null;
         this.changed();
         return player;
     }
@@ -129,34 +133,54 @@ class Game extends EventEmitter {
 
     async setPlaylist(input) {
         if (this.phase !== 'lobby' && this.phase !== 'podium') throw new Error('Partie en cours');
-        const id = parsePlaylistId(input);
-        if (!id) throw new Error('Lien de playlist invalide');
-        let data;
-        try {
-            data = await this.spotify.playlist(id);
-        } catch (error) {
-            if (error.status === 404) {
-                throw new Error('Playlist introuvable. Les playlists créées par Spotify (Top 50, Années 80…) ne sont pas accessibles : utilise une playlist perso ou celle d\'un autre utilisateur');
-            }
-            throw error;
-        }
-        if (data.tracks.length < 3) throw new Error('Playlist trop courte ou titres indisponibles');
-        this.playlist = { id, name: data.name, image: data.image, total: data.tracks.length };
-        this.allTracks = data.tracks;
+        const data = await this.sources.loadPlaylist(input);
+        if (data.tracks.length < 3) throw new Error('Playlist trop courte');
+        this.resolveGeneration++;
+        const generation = this.resolveGeneration;
+        this.allTracks = data.tracks.map((track) => ({ ...track }));
+        this.playlist = { id: data.id, source: data.source, name: data.name, image: data.image, total: this.allTracks.length, resolved: 0, missing: 0, ready: false };
         this.played.clear();
         this.phase = 'lobby';
         this.notice = null;
-        this.log(`Playlist : ${data.name} (${data.tracks.length} titres jouables)`);
+        this.log(`Playlist ${data.source} : ${data.name} (${this.allTracks.length} titres)`);
         this.changed();
+        this.resolvePreviews(generation);
         return this.playlist;
     }
 
+    async resolvePreviews(generation) {
+        let lastEmit = 0;
+        await this.sources.resolveAll(this.allTracks, {
+            cancelled: () => generation !== this.resolveGeneration,
+            onProgress: (track, match) => {
+                if (match) this.playlist.resolved++;
+                else this.playlist.missing++;
+                if (Date.now() - lastEmit > 800) {
+                    lastEmit = Date.now();
+                    this.changed();
+                }
+            }
+        });
+        if (generation !== this.resolveGeneration) return;
+        this.playlist.ready = true;
+        this.log(`Extraits : ${this.playlist.resolved} trouvés, ${this.playlist.missing} manquants`);
+        this.changed();
+    }
+
+    playable() {
+        return this.allTracks.filter((track) => track.match);
+    }
+
     start(options = {}) {
-        if (!this.spotify.connected()) throw new Error('Connecte Spotify avant de lancer');
-        if (!this.allTracks.length) throw new Error('Choisis une playlist d\'abord');
+        if (!this.playlist) throw new Error('Choisis une playlist d\'abord');
         if (!this.players.size) throw new Error('Aucun joueur');
-        const rounds = Math.max(1, Math.min(Number(options.rounds) || DEFAULTS.rounds, this.allTracks.length, 50));
-        const guessSeconds = Math.max(10, Math.min(Number(options.guessSeconds) || 30, 90));
+        const playable = this.playable();
+        if (playable.length < 3) {
+            if (!this.playlist.ready) throw new Error(`Recherche des extraits en cours (${this.playlist.resolved}/${this.playlist.total}), patiente quelques secondes`);
+            throw new Error('Pas assez d\'extraits trouvés pour cette playlist, essaie-en une autre');
+        }
+        const rounds = Math.max(1, Math.min(Number(options.rounds) || DEFAULTS.rounds, playable.length, 50));
+        const guessSeconds = Math.max(10, Math.min(Number(options.guessSeconds) || 30, 30));
         const mode = ['title', 'artist', 'both'].includes(options.mode) ? options.mode : 'both';
         this.settings = {
             ...DEFAULTS,
@@ -166,9 +190,9 @@ class Game extends EventEmitter {
             mode,
             hints: options.hints !== false
         };
-        const fresh = this.allTracks.filter((track) => !this.played.has(track.uri));
+        const fresh = playable.filter((track) => !this.played.has(track.uri));
         if (fresh.length < rounds) this.played.clear();
-        this.queue = shuffle(fresh.length >= rounds ? fresh : this.allTracks).slice(0, rounds);
+        this.queue = shuffle(fresh.length >= rounds ? fresh : playable).slice(0, rounds);
         for (const track of this.queue) this.played.add(track.uri);
         for (const player of this.players.values()) {
             Object.assign(player, { score: 0, gained: 0, found: { title: false, artist: false }, lastGuess: '', firsts: 0, fastestMs: 0, fastestTrack: '' });
@@ -182,19 +206,44 @@ class Game extends EventEmitter {
         this.nextRound();
     }
 
-    nextRound() {
+    async nextRound() {
+        const generation = this.generation;
+        this.clearHints();
+        this.audio = null;
         this.roundIndex++;
-        this.track = this.queue[this.roundIndex - 1];
+        let track = this.queue[this.roundIndex - 1];
+        let url = null;
+        while (track && !url) {
+            url = await this.sources.freshUrl(track.match).catch(() => null);
+            if (generation !== this.generation) return;
+            if (!url) {
+                this.log(`Extrait indisponible, titre écarté : ${track.name}`);
+                this.queue.splice(this.roundIndex - 1, 1);
+                track = this.queue[this.roundIndex - 1];
+            }
+        }
+        if (!track) {
+            if (this.roundIndex === 1) {
+                this.roundIndex = 0;
+                this.phase = 'lobby';
+                this.notice = 'Aucun extrait lisible pour cette playlist, essaie-en une autre';
+                this.changed();
+            } else {
+                this.roundIndex--;
+                this.podium();
+            }
+            return;
+        }
+        this.track = track;
+        this.audio = { url, startedAt: 0, durationMs: PREVIEW_MS };
         this.firstTitle = null;
         this.firstArtist = null;
-        this.clearHints();
-        this.spotify.pause().catch(() => {});
         for (const player of this.players.values()) {
             player.gained = 0;
             player.found = { title: false, artist: false };
             player.lastGuess = '';
         }
-        this.log(`Manche ${this.roundIndex}/${this.settings.rounds} : ${this.track.name} — ${this.track.artists.join(', ')}`);
+        this.log(`Manche ${this.roundIndex}/${this.queue.length} : ${track.name} — ${track.artists.join(', ')}`);
         this.phase = 'countdown';
         this.phaseEndsAt = Date.now() + this.settings.countdownMs;
         this.notice = null;
@@ -202,26 +251,9 @@ class Game extends EventEmitter {
         this.schedule(this.settings.countdownMs, () => this.beginGuess());
     }
 
-    async beginGuess() {
-        const generation = this.generation;
-        const track = this.track;
-        const position = track.durationMs > this.settings.guessMs + 20000
-            ? Math.floor(track.durationMs / 2) - Math.floor(this.settings.guessMs / 2)
-            : 0;
-        try {
-            await this.spotify.ensurePlay(track.uri, Math.max(0, position));
-            const playing = await this.spotify.confirmPlaying(track.uri);
-            if (!playing) throw new Error('Spotify n\'a pas confirmé la lecture : vérifie l\'appareil de sortie puis relance');
-        } catch (error) {
-            if (generation !== this.generation || this.track !== track) return;
-            this.log(`Lecture impossible : ${error.message}`);
-            this.phase = 'stalled';
-            this.notice = error.message;
-            this.changed();
-            return;
-        }
-        if (generation !== this.generation || this.track !== track) return;
+    beginGuess() {
         this.guessStartedAt = Date.now();
+        this.audio = { ...this.audio, startedAt: this.guessStartedAt };
         this.phase = 'guess';
         this.phaseEndsAt = this.guessStartedAt + this.settings.guessMs;
         this.changed();
@@ -254,11 +286,6 @@ class Game extends EventEmitter {
         this.hint = null;
     }
 
-    retry() {
-        if (this.phase !== 'stalled') throw new Error('Rien à relancer');
-        this.beginGuess();
-    }
-
     endGuess() {
         this.clearHints();
         this.recordWildest();
@@ -283,7 +310,7 @@ class Game extends EventEmitter {
     }
 
     finishOrNext() {
-        if (this.roundIndex >= this.settings.rounds || this.roundIndex >= this.queue.length) {
+        if (this.roundIndex >= this.queue.length) {
             this.podium();
         } else {
             this.nextRound();
@@ -291,7 +318,7 @@ class Game extends EventEmitter {
     }
 
     podium() {
-        this.spotify.pause().catch(() => {});
+        this.audio = null;
         this.phase = 'podium';
         this.phaseEndsAt = 0;
         this.stats = this.computeStats();
@@ -312,7 +339,7 @@ class Game extends EventEmitter {
     }
 
     skip() {
-        if (this.phase === 'guess' || this.phase === 'stalled' || this.phase === 'countdown') {
+        if (this.phase === 'guess' || this.phase === 'countdown') {
             this.endGuess();
         } else if (this.phase === 'reveal') {
             clearTimeout(this.timer);
@@ -326,7 +353,7 @@ class Game extends EventEmitter {
         this.generation++;
         clearTimeout(this.timer);
         this.clearHints();
-        this.spotify.pause().catch(() => {});
+        this.audio = null;
         this.log('Partie arrêtée par l\'hôte');
         if (this.roundIndex > 0) {
             this.podium();
@@ -341,6 +368,7 @@ class Game extends EventEmitter {
         this.generation++;
         clearTimeout(this.timer);
         this.clearHints();
+        this.audio = null;
         this.phase = 'lobby';
         this.roundIndex = 0;
         this.track = null;
@@ -432,13 +460,13 @@ class Game extends EventEmitter {
             serverNow: Date.now(),
             phaseEndsAt: this.phaseEndsAt,
             round: this.roundIndex,
-            rounds: this.settings.rounds,
+            rounds: this.queue.length || this.settings.rounds,
             mode: this.settings.mode,
             guessMs: this.settings.guessMs,
             notice: this.notice,
             hint: this.phase === 'guess' ? this.hint : null,
+            audio: this.audio,
             playlist: this.playlist,
-            spotify: this.spotify.connected(),
             players: players.map((player) => ({
                 name: player.name,
                 team: player.team,
@@ -474,8 +502,9 @@ class Game extends EventEmitter {
     restore(data) {
         if (!data) return;
         this.settings = { ...DEFAULTS, ...(data.settings || {}) };
-        this.playlist = data.playlist || null;
         this.allTracks = data.allTracks || [];
+        const playable = this.playable().length;
+        this.playlist = data.playlist ? { ...data.playlist, resolved: playable, missing: this.allTracks.length - playable, ready: true } : null;
         this.played = new Set(data.played || []);
         this.stats = data.stats || null;
         for (const entry of data.players || []) {

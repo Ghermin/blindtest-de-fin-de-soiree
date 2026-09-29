@@ -2,7 +2,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { randomBytes, randomInt } = require('node:crypto');
 const config = require('./config.js');
-const spotify = require('./spotify.js');
 const { Game } = require('./game.js');
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -42,11 +41,9 @@ function create(options = {}) {
         home: false,
         createdAt: Date.now(),
         lastActivity: Date.now(),
-        pendingAuth: null,
         clients: new Set()
     };
-    room.spotify = spotify.createClient(options.spotify || {});
-    room.game = new Game({ spotify: room.spotify, code });
+    room.game = new Game({ code });
     room.game.on('update', () => {
         room.lastActivity = Date.now();
         scheduleSave();
@@ -69,15 +66,12 @@ function busy() {
 }
 
 function ensureHome() {
-    if (!config.spotify.refreshToken) return null;
-    const options = { refreshToken: config.spotify.refreshToken, deviceName: config.spotify.deviceName };
+    if (!config.homeRoom) return null;
     let room = get(config.homeRoom);
     if (!room) {
-        room = create({ code: config.homeRoom, hostKey: config.hostPin || pin(), spotify: options });
-    } else {
-        if (config.hostPin) room.hostKey = config.hostPin;
-        room.spotify = spotify.createClient({ ...room.spotify.toJSON(), ...options });
-        room.game.spotify = room.spotify;
+        room = create({ code: config.homeRoom, hostKey: config.hostPin || pin() });
+    } else if (config.hostPin) {
+        room.hostKey = config.hostPin;
     }
     room.home = true;
     scheduleSave();
@@ -100,7 +94,6 @@ function save() {
             home: room.home,
             createdAt: room.createdAt,
             lastActivity: room.lastActivity,
-            spotify: room.spotify.toJSON(),
             game: room.game.toJSON()
         }));
         const target = file();
@@ -123,7 +116,7 @@ function load() {
     for (const entry of entries) {
         if (!entry || !entry.code || rooms.has(entry.code)) continue;
         if (!entry.home && Date.now() - (entry.lastActivity || 0) > IDLE_MS) continue;
-        const room = create({ code: entry.code, hostKey: entry.hostKey, spotify: entry.spotify });
+        const room = create({ code: entry.code, hostKey: entry.hostKey });
         room.home = Boolean(entry.home);
         room.createdAt = entry.createdAt || room.createdAt;
         room.lastActivity = entry.lastActivity || room.lastActivity;
