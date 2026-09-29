@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export GIT_TERMINAL_PROMPT=0
 
 REPO="${BLINDTEST_REPO:-https://github.com/Ghermin/blindtest-de-fin-de-soiree.git}"
 BRANCH="${BLINDTEST_BRANCH:-main}"
@@ -7,6 +8,23 @@ DIR=/opt/blindtest
 
 if [ "$(id -u)" -ne 0 ]; then
     echo "À lancer en root : sudo $0" >&2
+    exit 1
+fi
+
+command -v git >/dev/null 2>&1 || apt-get install -y git
+
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    git config --global credential.helper store
+    touch /root/.git-credentials
+    chmod 600 /root/.git-credentials
+    sed -i '/@github\.com/d' /root/.git-credentials
+    echo "https://x-access-token:${GITHUB_TOKEN}@github.com" >> /root/.git-credentials
+fi
+
+if ! git ls-remote --exit-code --heads "$REPO" "$BRANCH" >/dev/null 2>&1; then
+    echo "Impossible d'accéder au dépôt $REPO (branche $BRANCH)." >&2
+    echo "S'il est privé, relance avec un jeton GitHub en lecture seule :" >&2
+    echo "  sudo GITHUB_TOKEN=github_pat_xxx bash $0" >&2
     exit 1
 fi
 
