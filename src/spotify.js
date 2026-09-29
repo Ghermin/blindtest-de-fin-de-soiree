@@ -120,13 +120,21 @@ function status() {
     return { configured: configured(), connected: Boolean(data && data.refreshToken), account: data ? data.account : null };
 }
 
+const OWN_ONLY = 'Spotify refuse les titres de cette playlist : une app en mode développement ne lit que les playlists que tu possèdes. Dans Spotify, ouvre la playlist → ⋮ → Ajouter à une playlist → Nouvelle playlist, puis charge cette copie. Ou utilise une playlist Deezer.';
+
 async function playlist(id) {
     const asUser = Boolean(loadUser());
     const meta = await api(`/playlists/${id}?fields=name,images,tracks.total`, asUser);
     const tracks = [];
     let route = `/playlists/${id}/tracks?limit=100&fields=next,items(is_local,track(uri,name,duration_ms,artists(name),album(images)))`;
     while (route) {
-        const page = await api(route, asUser);
+        let page;
+        try {
+            page = await api(route, asUser);
+        } catch (error) {
+            if (error.status === 403) throw new Error(OWN_ONLY);
+            throw error;
+        }
         for (const item of page.items || []) {
             const track = item.track;
             if (!track || item.is_local || !track.uri || !track.uri.startsWith('spotify:track:')) continue;
@@ -149,18 +157,20 @@ async function playlist(id) {
 }
 
 async function myPlaylists() {
-    if (!loadUser()) throw new Error('Connecte ton compte Spotify d\'abord');
+    const data = loadUser();
+    if (!data) throw new Error('Connecte ton compte Spotify d\'abord');
+    const me = data.account ? data.account.id : '';
     const result = [];
     let route = '/me/playlists?limit=50';
     while (route && result.length < 200) {
         const page = await api(route, true);
         for (const item of page.items || []) {
             if (!item || !item.id) continue;
-            result.push({ id: item.id, name: item.name, total: item.tracks ? item.tracks.total : 0 });
+            result.push({ id: item.id, name: item.name, total: item.tracks ? item.tracks.total : 0, mine: Boolean(item.owner && item.owner.id === me) });
         }
         route = page.next ? page.next.replace(API, '') : null;
     }
-    return result;
+    return result.sort((a, b) => Number(b.mine) - Number(a.mine));
 }
 
 module.exports = { configured, playlist, myPlaylists, authorizeUrl, connect, forgetUser, status };

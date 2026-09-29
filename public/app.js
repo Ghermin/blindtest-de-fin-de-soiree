@@ -512,11 +512,19 @@
             hostFeedback('…');
             const { playlists } = await post(`${api}/host/playlists`, null, 'GET');
             list.innerHTML = '';
+            const mine = playlists.filter((playlist) => playlist.mine);
+            if (!mine.length) {
+                const hint = document.createElement('li');
+                hint.className = 'host-hint';
+                hint.textContent = 'Spotify ne laisse lire que tes propres playlists. Dans Spotify : playlist → ⋮ → Ajouter à une playlist → Nouvelle playlist, puis reviens ici.';
+                list.appendChild(hint);
+            }
             for (const playlist of playlists) {
                 const item = document.createElement('li');
                 const button = document.createElement('button');
                 button.type = 'button';
-                button.textContent = playlist.total ? `${playlist.name} (${playlist.total})` : playlist.name;
+                button.textContent = (playlist.total ? `${playlist.name} (${playlist.total})` : playlist.name) + (playlist.mine ? '' : ' · suivie, à copier');
+                button.classList.toggle('ghost', !playlist.mine);
                 button.addEventListener('click', () => {
                     list.innerHTML = '';
                     hostAction(`${api}/host/playlist`, { url: `spotify:playlist:${playlist.id}` });
