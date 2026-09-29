@@ -516,7 +516,7 @@
                 const item = document.createElement('li');
                 const button = document.createElement('button');
                 button.type = 'button';
-                button.textContent = `${playlist.name} (${playlist.total})`;
+                button.textContent = playlist.total ? `${playlist.name} (${playlist.total})` : playlist.name;
                 button.addEventListener('click', () => {
                     list.innerHTML = '';
                     hostAction(`${api}/host/playlist`, { url: `spotify:playlist:${playlist.id}` });
