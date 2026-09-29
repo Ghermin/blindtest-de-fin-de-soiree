@@ -16,6 +16,22 @@ echo "🎧 Blind Test — installation sur ce téléphone (Termux)"
 pkg update -y >/dev/null
 pkg install -y nodejs-lts git termux-tools >/dev/null
 
+TOKEN_FILE="$HOME/storage/downloads/github-token.txt"
+if [ -z "${GITHUB_TOKEN:-}" ] && [ ! -d "$HOME/storage/downloads" ]; then
+    termux-setup-storage >/dev/null 2>&1 || true
+    echo "→ Autorise l'accès au stockage dans la fenêtre Android (pour lire le jeton déposé dans Téléchargements)…"
+    for _ in $(seq 1 90); do
+        [ -d "$HOME/storage/downloads" ] && break
+        sleep 1
+    done
+fi
+if [ -z "${GITHUB_TOKEN:-}" ] && [ -f "$TOKEN_FILE" ]; then
+    GITHUB_TOKEN=$(tr -d '[:space:]' < "$TOKEN_FILE")
+fi
+if [ -z "${GITHUB_TOKEN:-}" ]; then
+    read -r -p "Jeton GitHub (github_pat_…, lecture seule sur le dépôt) : " GITHUB_TOKEN
+fi
+
 if [ -n "${GITHUB_TOKEN:-}" ]; then
     git config --global credential.helper store
     touch "$HOME/.git-credentials"
@@ -87,6 +103,7 @@ chmod +x "$BIN"
 mkdir -p "$HOME/.shortcuts"
 printf '#!/data/data/com.termux/files/usr/bin/bash\nblindtest\n' > "$HOME/.shortcuts/Blind Test"
 chmod +x "$HOME/.shortcuts/Blind Test"
+rm -f "$TOKEN_FILE"
 
 echo
 echo "✅ Installé. Pour lancer une soirée : tape  blindtest  dans Termux (ou le widget « Blind Test » avec l'appli Termux:Widget)."
