@@ -122,6 +122,24 @@ saisies de l'hôte n'y apparaît. Trois façons de le mettre sur la TV :
   lobby. Une salle inactive depuis 6 h disparaît. Les appariements d'extraits
   sont mis en cache dans `data/previews.json`.
 
+## Le téléphone comme serveur (Android, pour jouer n'importe où)
+
+Sur un téléphone Android, le jeu tourne dans [Termux](https://f-droid.org/packages/com.termux/)
+et devient un boîtier portable : les invités et la TV se connectent à
+l'adresse locale du téléphone, sur le Wi-Fi de la maison visitée ou sur le
+**partage de connexion** du téléphone lui-même (les extraits passent alors par
+la 4G). Rien d'autre à installer nulle part.
+
+```bash
+pkg install -y curl && T=github_pat_xxx
+curl -fsSL -H "Authorization: token $T" https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/termux.sh -o termux.sh && GITHUB_TOKEN=$T bash termux.sh
+```
+
+Une fois installé, la commande `blindtest` (ou le widget « Blind Test » avec
+l'appli Termux:Widget) affiche l'adresse de la salle, le code hôte et le QR
+code, puis démarre le serveur. Laisse Termux ouvert en arrière-plan et
+désactive l'optimisation de batterie pour lui. iPhone : pas possible.
+
 ## Héberger le jeu en ligne (le plus simple pour jouer ailleurs)
 
 Plutôt que d'exposer le Pi, le serveur tient sur une petite machine gratuite
