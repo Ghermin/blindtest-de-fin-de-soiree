@@ -146,7 +146,7 @@
 
     function playlistLabel(playlist, long) {
         if (!playlist) return long ? 'Aucune playlist chargée' : '';
-        const base = `📀 ${playlist.name}`;
+        const base = `📀 ${playlist.name}${playlist.partial ? ' (100 premiers titres)' : ''}`;
         if (!playlist.ready) return `${base} · recherche des extraits ${playlist.resolved}/${playlist.total}…`;
         const missing = playlist.missing ? `, ${playlist.missing} sans extrait` : '';
         return long ? `${base} · ${playlist.resolved} extraits prêts${missing}` : `${base} · ${playlist.resolved} titres`;
@@ -368,7 +368,7 @@
             const account = status.spotify || {};
             $('host-spotify').hidden = !account.configured;
             $('host-spotify-actions').hidden = !account.configured;
-            $('host-spotify').textContent = account.connected ? `🎧 Spotify : ${account.account ? account.account.name : 'compte connecté'}` : '🎧 Spotify : compte non connecté (nécessaire pour lire une playlist Spotify)';
+            $('host-spotify').textContent = account.connected ? `🎧 Spotify : ${account.account ? account.account.name : 'compte connecté'}` : '🎧 Spotify : compte non connecté (liens publics OK ; connecte-le pour tes playlists privées)';
             $('host-connect').textContent = account.connected ? '🎧 Changer de compte Spotify' : '🎧 Connecter mon compte Spotify';
             $('host-playlists').hidden = !account.connected;
             const container = $('host-presets');
@@ -405,7 +405,7 @@
             return initHome(error.message === 'Salle introuvable' ? `La salle ${room} n'existe plus : crée-en une nouvelle ou entre un autre code.` : error.message);
         }
         post('/api/info', null, 'GET').then((info) => {
-            if (!info.spotify) $('playlist-url').placeholder = 'Lien de playlist Deezer';
+            $('playlist-search').hidden = !info.spotify;
         }).catch(() => null);
         $('join-room').textContent = `Salle ${room}`;
         if (myName) $('join-name').value = myName;
@@ -506,33 +506,45 @@
     $('host-connect').addEventListener('click', () => {
         location.href = `/auth/spotify?room=${encodeURIComponent(room)}&key=${encodeURIComponent(hostKey)}&back=${encodeURIComponent(location.origin)}`;
     });
-    $('host-playlists').addEventListener('click', async () => {
+    function renderPlaylists(playlists, emptyMessage) {
         const list = $('host-playlist-list');
+        list.innerHTML = '';
+        for (const playlist of playlists) {
+            const item = document.createElement('li');
+            const button = document.createElement('button');
+            button.type = 'button';
+            const parts = [playlist.total ? `${playlist.name} (${playlist.total})` : playlist.name];
+            if (playlist.owner) parts.push(playlist.owner);
+            if (!playlist.mine && playlist.total > 100) parts.push('100 premiers titres');
+            button.textContent = parts.join(' · ');
+            button.addEventListener('click', () => {
+                list.innerHTML = '';
+                hostAction(`${api}/host/playlist`, { url: `spotify:playlist:${playlist.id}` });
+            });
+            item.appendChild(button);
+            list.appendChild(item);
+        }
+        hostFeedback(playlists.length ? '' : emptyMessage);
+    }
+
+    $('host-playlists').addEventListener('click', async () => {
         try {
             hostFeedback('…');
             const { playlists } = await post(`${api}/host/playlists`, null, 'GET');
-            list.innerHTML = '';
-            const mine = playlists.filter((playlist) => playlist.mine);
-            if (!mine.length) {
-                const hint = document.createElement('li');
-                hint.className = 'host-hint';
-                hint.textContent = 'Spotify ne laisse lire que tes propres playlists (ou collaboratives). Dans Spotify : playlist → ⋮ → Ajouter à une playlist → Nouvelle playlist, puis reviens ici.';
-                list.appendChild(hint);
-            }
-            for (const playlist of playlists) {
-                const item = document.createElement('li');
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.textContent = (playlist.total ? `${playlist.name} (${playlist.total})` : playlist.name) + (playlist.mine ? '' : ' · suivie, à copier');
-                button.classList.toggle('ghost', !playlist.mine);
-                button.addEventListener('click', () => {
-                    list.innerHTML = '';
-                    hostAction(`${api}/host/playlist`, { url: `spotify:playlist:${playlist.id}` });
-                });
-                item.appendChild(button);
-                list.appendChild(item);
-            }
-            hostFeedback(playlists.length ? '' : 'Aucune playlist sur ce compte');
+            renderPlaylists(playlists, 'Aucune playlist sur ce compte');
+        } catch (error) {
+            hostFeedback('⚠ ' + error.message);
+        }
+    });
+
+    $('playlist-search').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const q = $('playlist-query').value.trim();
+        if (!q) return;
+        try {
+            hostFeedback('…');
+            const { playlists } = await post(`${api}/host/search`, { q });
+            renderPlaylists(playlists, 'Aucune playlist trouvée');
         } catch (error) {
             hostFeedback('⚠ ' + error.message);
         }

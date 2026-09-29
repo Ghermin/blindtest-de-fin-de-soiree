@@ -10,6 +10,7 @@ const OWN_ONLY = 'Spotify refuse les titres de cette playlist : depuis mars 2026
 const NEED_ACCOUNT = 'Spotify ne livre plus les titres d\'une playlist sans compte connecté : connecte ton compte Spotify dans le panneau hôte et charge une de tes playlists, ou utilise une playlist Deezer.';
 const ENTRY_FIELDS = 'uri,name,duration_ms,artists(name),album(images)';
 let user;
+let app = { token: '', expiresAt: 0 };
 
 function configured() {
     return Boolean(config.spotify.clientId && config.spotify.clientSecret);
@@ -47,7 +48,7 @@ function forgetUser() {
 
 async function tokenRequest(params) {
     if (!configured()) {
-        throw new Error('Playlists Spotify indisponibles : renseigne SPOTIFY_CLIENT_ID et SPOTIFY_CLIENT_SECRET, ou colle un lien de playlist Deezer');
+        throw new Error('Identifiants Spotify absents : renseigne SPOTIFY_CLIENT_ID et SPOTIFY_CLIENT_SECRET (bash ~/blindtest/deploy/termux.sh)');
     }
     const response = await http.request(`${ACCOUNTS}/api/token`, {
         method: 'POST',
@@ -88,10 +89,17 @@ async function userToken() {
     return data.accessToken;
 }
 
-async function api(route) {
-    const token = await userToken();
-    if (!token) throw new Error(NEED_ACCOUNT);
-    const response = await http.request(API + route, { headers: { Authorization: `Bearer ${token}` } });
+async function appToken() {
+    if (app.token && Date.now() < app.expiresAt) return app.token;
+    const data = await tokenRequest({ grant_type: 'client_credentials' });
+    app = { token: data.access_token, expiresAt: Date.now() + (data.expires_in - 60) * 1000 };
+    return app.token;
+}
+
+async function api(route, token) {
+    const bearer = token || await userToken();
+    if (!bearer) throw new Error(NEED_ACCOUNT);
+    const response = await http.request(API + route, { headers: { Authorization: `Bearer ${bearer}` } });
     if (response.status >= 400) {
         const reason = response.json && response.json.error ? response.json.error.message : `HTTP ${response.status}`;
         const error = new Error(`Spotify ${response.status} : ${reason}`);
@@ -181,4 +189,25 @@ async function myPlaylists() {
     return result.sort((a, b) => Number(b.mine) - Number(a.mine));
 }
 
-module.exports = { configured, playlist, myPlaylists, authorizeUrl, connect, forgetUser, status };
+async function searchPlaylists(query) {
+    const text = String(query || '').trim().slice(0, 80);
+    if (!text) return [];
+    const token = (await userToken()) || await appToken();
+    const params = new URLSearchParams({ q: text, type: 'playlist', limit: '10', market: config.country });
+    const page = await api(`/search?${params}`, token);
+    const items = page.playlists && Array.isArray(page.playlists.items) ? page.playlists.items : [];
+    const me = user && user.account ? user.account.id : '';
+    return items.filter((item) => item && item.id).map((item) => {
+        const count = item.items || item.tracks;
+        return {
+            id: item.id,
+            name: item.name,
+            owner: item.owner ? item.owner.display_name || item.owner.id : '',
+            total: count ? count.total : 0,
+            image: item.images && item.images[0] ? item.images[0].url : null,
+            mine: Boolean(me && item.owner && item.owner.id === me)
+        };
+    });
+}
+
+module.exports = { configured, playlist, myPlaylists, searchPlaylists, authorizeUrl, connect, forgetUser, status };

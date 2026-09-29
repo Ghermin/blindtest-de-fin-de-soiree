@@ -1,5 +1,6 @@
 const spotify = require('./spotify.js');
 const deezer = require('./deezer.js');
+const embed = require('./embed.js');
 
 function parseLink(input) {
     const text = String(input || '').trim();
@@ -24,11 +25,8 @@ async function loadPlaylist(input) {
     let data;
     try {
         data = await spotify.playlist(link.id);
-    } catch (error) {
-        if (error.status === 404) {
-            throw new Error('Playlist introuvable. Les playlists créées par Spotify (Top 50, Années 80…) ne sont pas accessibles : choisis une de tes playlists dans « Mes playlists », ou une playlist Deezer', { cause: error });
-        }
-        throw error;
+    } catch (_official) {
+        data = await embed.playlist(link.id);
     }
     return { ...data, id: link.id, source: 'spotify' };
 }

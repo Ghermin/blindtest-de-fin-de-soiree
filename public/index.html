@@ -57,7 +57,7 @@
                 <p id="lobby-url" class="join-url"></p>
             </div>
             <p class="hint">L'hôte choisit la playlist et lance la partie. Le son sort de l'écran TV ou du téléphone de l'hôte.</p>
-            <p class="credit">Extraits musicaux : Deezer · Apple Music</p>
+            <p class="credit">Extraits musicaux : Spotify · Deezer · Apple Music</p>
         </section>
 
         <section id="screen-game" hidden>
@@ -112,6 +112,10 @@
             <button id="host-connect" type="button">🎧 Connecter mon compte Spotify</button>
             <button id="host-playlists" type="button" hidden>📚 Mes playlists</button>
         </div>
+        <form id="playlist-search" class="host-search" hidden>
+            <input id="playlist-query" type="search" placeholder="Chercher une playlist Spotify (années 80, rap français…)" aria-label="Chercher une playlist Spotify" autocomplete="off">
+            <button type="submit" aria-label="Rechercher">🔍</button>
+        </form>
         <ul id="host-playlist-list" class="host-list"></ul>
         <form id="playlist-form">
             <input id="playlist-url" type="text" inputmode="url" placeholder="Lien de playlist Spotify ou Deezer" aria-label="Lien de playlist Spotify ou Deezer" autocomplete="off">

@@ -26,7 +26,7 @@ const HEADERS = {
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'no-referrer',
     'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://i.scdn.co https://mosaic.scdn.co https://image-cdn-ak.spotifycdn.com https://image-cdn-fa.spotifycdn.com https://*.dzcdn.net; media-src 'self' https://*.dzcdn.net https://audio-ssl.itunes.apple.com https://*.mzstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+    'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://i.scdn.co https://mosaic.scdn.co https://image-cdn-ak.spotifycdn.com https://image-cdn-fa.spotifycdn.com https://*.dzcdn.net; media-src 'self' https://*.dzcdn.net https://audio-ssl.itunes.apple.com https://*.mzstatic.com https://p.scdn.co; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
     'Cache-Control': 'no-store'
 };
 
@@ -148,6 +148,7 @@ async function handleHost(request, response, room, action, body) {
     }
     if (action === '/host/playlist' && post) return send(response, 200, { playlist: await game.setPlaylist(body.url) });
     if (action === '/host/playlists') return send(response, 200, { playlists: await spotify.myPlaylists() });
+    if (action === '/host/search' && post) return send(response, 200, { playlists: await spotify.searchPlaylists(body.q) });
     if (action === '/host/spotify/forget' && post) {
         spotify.forgetUser();
         return send(response, 200, { ok: true });
@@ -324,5 +325,5 @@ server.listen(config.port, config.host, () => {
     console.log(`Blind test prêt : ${baseUrl()} (LAN : ${lanUrl()}, local : http://localhost:${config.port})`);
     if (restored) console.log(`${restored} salle(s) restaurée(s) depuis ${config.dataDir}`);
     if (home) console.log(`Salle de la maison : ${joinUrl(home)} — clé hôte : ${home.hostKey}`);
-    if (!spotify.configured()) console.log('ℹ Sans SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET, seules les playlists Deezer sont acceptées');
+    if (!spotify.configured()) console.log('ℹ Sans SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET : liens Spotify publics et Deezer OK, mais pas de recherche Spotify ni de playlists privées');
 });

@@ -138,7 +138,7 @@ class Game extends EventEmitter {
         this.resolveGeneration++;
         const generation = this.resolveGeneration;
         this.allTracks = data.tracks.map((track) => ({ ...track }));
-        this.playlist = { id: data.id, source: data.source, name: data.name, image: data.image, total: this.allTracks.length, resolved: 0, missing: 0, ready: false };
+        this.playlist = { id: data.id, source: data.source, name: data.name, image: data.image, total: this.allTracks.length, partial: Boolean(data.partial), resolved: 0, missing: 0, ready: false };
         this.played.clear();
         this.phase = 'lobby';
         this.notice = null;
@@ -481,7 +481,7 @@ class Game extends EventEmitter {
             track: showTrack && this.track ? {
                 name: this.track.name,
                 artists: this.track.artists,
-                image: this.track.image
+                image: this.track.image || (this.playlist ? this.playlist.image : null)
             } : null
         };
     }
