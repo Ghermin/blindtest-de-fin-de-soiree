@@ -122,7 +122,7 @@ saisies de l'hôte n'y apparaît. Trois façons de le mettre sur la TV :
   lobby. Une salle inactive depuis 6 h disparaît. Les appariements d'extraits
   sont mis en cache dans `data/previews.json`.
 
-## Le téléphone comme serveur (Android, pour jouer n'importe où)
+## Le téléphone comme serveur (Android, recommandé pour jouer n'importe où)
 
 Sur un téléphone Android, le jeu tourne dans [Termux](https://f-droid.org/packages/com.termux/)
 et devient un boîtier portable : les invités et la TV se connectent à
