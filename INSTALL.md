@@ -59,9 +59,12 @@ et une enceinte Bluetooth sur ton téléphone.
 
 ## 3. Spotify (optionnel, 5 min, une seule fois)
 
-Les playlists Deezer marchent sans rien. Spotify, lui, ne livre plus les titres
-d'une playlist qu'à son propriétaire, via un compte connecté : ça sert donc à
-jouer **tes** playlists Spotify depuis le bouton **Mes playlists**.
+Sans rien configurer, tu peux coller le lien de n'importe quelle playlist
+Spotify **publique** (éditoriales comprises) ou Deezer. Pour Spotify, le jeu lit
+la page publique du lecteur intégré : elle donne les **100 premiers titres** et
+leurs extraits. Les identifiants d'une app Spotify ajoutent la **recherche de
+playlists** dans le panneau hôte et, avec ton compte connecté, **Mes
+playlists** (privées comprises, en entier si tu les possèdes).
 
 1. https://developer.spotify.com/dashboard → **Create app** : nom `Blind Test`,
    description `blind test maison`, **Redirect URIs** :
@@ -78,12 +81,13 @@ Seul ton téléphone peut connecter le compte (l'adresse de retour est locale).
 Les invités n'ont rien à faire. L'autorisation dure 6 mois, puis le panneau
 hôte te redemande de connecter le compte.
 
-**Limite imposée par Spotify (mars 2026)** : une app en mode développement ne
-lit que les titres des playlists **que tu possèdes** ou auxquelles tu
-collabores. Une playlist que tu suis, même publique, est refusée. Le
-contournement prend deux touches dans Spotify : ouvre la playlist → ⋮ →
-**Ajouter à une playlist** → **Nouvelle playlist**. La copie t'appartient et se
-charge normalement. Les playlists Deezer publiques, elles, passent toutes.
+**Règle Spotify (mars 2026)** : l'API officielle ne livre les titres complets
+que des playlists **que tu possèdes** ou auxquelles tu collabores. Pour les
+autres, le jeu passe par la page publique du lecteur intégré, limitée aux 100
+premiers titres et susceptible de changer sans préavis. Si une playlist suivie
+de plus de 100 titres te manque, copie-la dans Spotify (⋮ → **Ajouter à une
+playlist** → **Nouvelle playlist**) et charge la copie. Les playlists Deezer
+publiques passent toutes, en entier.
 
 ## Si ça coince
 
@@ -95,8 +99,8 @@ charge normalement. Les playlists Deezer publiques, elles, passent toutes.
 | « Pas de mise à jour (hors ligne ou jeton expiré) » | Le jeu se lance quand même ; refais un jeton quand tu veux |
 | « Recherche des extraits en cours » | Patiente, le compteur avance dans le panneau hôte |
 | « Pas assez d'extraits trouvés » | Titres trop rares : essaie la même playlist côté Deezer |
-| « Playlist introuvable » | Playlist créée par Spotify (Top 50…) : **Mes playlists** ou Deezer |
-| « Spotify refuse les titres de cette playlist » | Playlist suivie, pas possédée : copie-la dans Spotify (⋮ → Ajouter à une playlist → Nouvelle playlist) |
+| « Playlist Spotify introuvable ou privée » | Vérifie le lien ; la playlist privée d'un autre compte est inaccessible : Deezer, ou une copie dans ton compte |
+| Une playlist Spotify s'arrête à 100 titres | Limite de la page publique : copie-la dans Spotify (⋮ → Ajouter à une playlist → Nouvelle playlist) et charge la copie avec ton compte connecté |
 | « Spotify a expiré l'autorisation » | Reconnecte ton compte dans le panneau hôte, Spotify coupe l'accès au bout de 6 mois |
 | Pas de son sur l'écran TV | **Activer le son** sur cet écran (les navigateurs exigent un geste) |
 | Deux appareils jouent le son | Désactive **Son sur ce téléphone** dans le panneau hôte |

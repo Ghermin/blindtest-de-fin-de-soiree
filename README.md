@@ -20,9 +20,9 @@ Spotify Premium.
    sur la salle.
 2. La TV ouvre l'adresse de la salle suivie de `/tv` dans son navigateur et
    valide **Activer le son**. Les invités scannent le QR code.
-3. L'hôte colle une playlist **Deezer** (rien à configurer) ou choisit une de
-   ses playlists **Spotify** (app Spotify et compte connecté : Spotify ne livre
-   que les playlists de leur propriétaire), attend « extraits prêts », lance.
+3. L'hôte colle le lien d'une playlist **Spotify** ou **Deezer** publique, ou
+   la cherche par nom (recherche Spotify avec des identifiants d'app), attend
+   « extraits prêts », lance.
 4. À chaque manche, le serveur donne à l'écran TV l'extrait et l'instant de
    départ ; sans écran, le téléphone de l'hôte peut jouer le son sur une
    enceinte. Tout est mesuré côté serveur.
@@ -70,19 +70,21 @@ Chromecast.
 | Variable | Rôle |
 |---|---|
 | `BLINDTEST_HOST_PIN` | Code hôte de la salle de la maison |
-| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | Optionnels : app Spotify pour les liens de playlists Spotify et le bouton « Mes playlists » |
+| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | Optionnels : app Spotify pour la recherche de playlists et le bouton « Mes playlists » |
 | `BLINDTEST_HOME_ROOM` | Code de la salle de la maison (`MAISON`) |
 | `BLINDTEST_PORT` | Port HTTP (3000) |
 | `BLINDTEST_COUNTRY` | Pays du catalogue Apple Music de secours (`FR`) |
 
 Préréglages de playlists : `data/presets.json` (modèle dans
-`presets.example.json`), liens Spotify ou Deezer. Côté Spotify, seules les
-playlists possédées par le compte connecté sont lisibles (règle Spotify de
-mars 2026) ; toutes les playlists Deezer publiques le sont.
+`presets.example.json`), liens Spotify ou Deezer. Une playlist Spotify publique
+se lit par la page de son lecteur intégré (100 premiers titres, extraits
+Spotify inclus) ; l'API officielle ne donne la liste complète que des playlists
+possédées par le compte connecté (règle Spotify de mars 2026). Les playlists
+Deezer publiques passent toutes, en entier.
 
 ## Les extraits
 
-Les extraits de 30 secondes sont les aperçus publics fournis par Deezer et
+Les extraits de 30 secondes sont les aperçus publics fournis par Spotify, Deezer et
 Apple Music, les mêmes que sur leurs sites. Ils sont destinés à la découverte :
 ce jeu s'en sert dans un cadre privé et affiche leur provenance. Rien n'est
 téléchargé ni conservé, seuls les identifiants des titres sont mis en cache.
