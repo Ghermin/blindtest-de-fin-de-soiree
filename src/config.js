@@ -10,10 +10,10 @@ if (fs.existsSync(envFile)) {
 }
 
 module.exports = {
-    port: Number(process.env.BLINDTEST_PORT) || 3000,
+    port: Number(process.env.BLINDTEST_PORT || process.env.PORT) || 3000,
     host: process.env.BLINDTEST_HOST || '0.0.0.0',
     hostPin: process.env.BLINDTEST_HOST_PIN || '',
-    publicUrl: (process.env.BLINDTEST_PUBLIC_URL || '').replace(/\/+$/, ''),
+    publicUrl: (process.env.BLINDTEST_PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || '').replace(/\/+$/, ''),
     homeRoom: (process.env.BLINDTEST_HOME_ROOM === undefined ? 'MAISON' : process.env.BLINDTEST_HOME_ROOM).toUpperCase(),
     trustProxy: process.env.BLINDTEST_TRUST_PROXY === '1',
     dataDir: process.env.BLINDTEST_DATA_DIR || path.join(__dirname, '..', 'data'),

@@ -122,7 +122,28 @@ saisies de l'hôte n'y apparaît. Trois façons de le mettre sur la TV :
   lobby. Une salle inactive depuis 6 h disparaît. Les appariements d'extraits
   sont mis en cache dans `data/previews.json`.
 
-## Ouvrir le jeu à la famille
+## Héberger le jeu en ligne (le plus simple pour jouer ailleurs)
+
+Plutôt que d'exposer le Pi, le serveur tient sur une petite machine gratuite
+chez Render : un lien HTTPS unique, toujours le même, chez toi comme chez la
+famille, rien à installer ni à emporter.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Ghermin/blindtest-de-fin-de-soiree)
+
+1. Compte Render (gratuit, connexion avec GitHub, autorise l'accès au dépôt).
+2. Clique le bouton ci-dessus : Render lit `render.yaml` et demande seulement
+   ton code hôte et, si tu en as, les identifiants Spotify.
+3. Deux minutes plus tard le jeu répond sur `https://blindtest-xxxx.onrender.com`.
+   La salle `MAISON` y existe avec ton code hôte ; chaque push sur `main`
+   redéploie tout seul.
+
+À savoir sur l'offre gratuite : la machine s'endort après un quart d'heure
+sans visite et met une minute à se réveiller, donc ouvre la page un peu avant
+la partie. Un redémarrage remet les salles à zéro (les codes de salle et le
+cache d'extraits sont refaits à la volée). L'adresse n'est protégée que par
+les codes de salle et la clé hôte.
+
+## Ouvrir le jeu à la famille depuis le Pi
 
 Le Pi reste chez toi, aucun port n'est ouvert sur la box : un tunnel Cloudflare
 (gratuit) donne une adresse HTTPS stable. Il faut un domaine géré par Cloudflare.

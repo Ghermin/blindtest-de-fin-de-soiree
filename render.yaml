@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: blindtest
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci --omit=dev --no-audit --no-fund
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: BLINDTEST_TRUST_PROXY
+        value: "1"
+      - key: BLINDTEST_HOME_ROOM
+        value: MAISON
+      - key: BLINDTEST_HOST_PIN
+        sync: false
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
