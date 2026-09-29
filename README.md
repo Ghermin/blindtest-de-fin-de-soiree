@@ -101,9 +101,11 @@ saisies de l'hôte n'y apparaît. Trois façons de le mettre sur la TV :
    Receiver** → URL `https://ton-domaine/cast` → l'**Application ID** va dans
    `BLINDTEST_CAST_APP_ID` → **Publish**. Pas depuis un iPhone : les navigateurs
    iOS ne savent pas caster une page.
-2. **N'importe quel autre écran** ouvre `/r/CODE/tv` : une tablette, un
-   portable avec Chrome (menu → **Caster** → cet onglet), le navigateur d'une
-   Android TV ou d'une Fire TV. Un clic sur **Activer le son** et c'est parti.
+2. **Le navigateur de la smart TV** (Samsung, LG, Android TV, Fire TV, TV de
+   2019 ou plus récente) ouvre `/r/CODE/tv`, on valide **Activer le son** avec
+   la télécommande, et c'est parti : gratuit, sans Chromecast. Une tablette ou
+   un portable font pareil, et Chrome sur un portable peut envoyer l'onglet à
+   un Chromecast (menu → **Caster** → cet onglet).
 3. **Le Pi branché en HDMI sur la TV** : `sudo /opt/blindtest/deploy/tv-setup.sh`
    lance Chromium en plein écran sur `/r/MAISON/tv` au démarrage, son par le HDMI.
 

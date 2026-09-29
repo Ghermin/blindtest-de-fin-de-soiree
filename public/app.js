@@ -10,7 +10,7 @@
     function attempt(fn, fallback) {
         try {
             return fn();
-        } catch {
+        } catch (_error) {
             return fallback;
         }
     }
@@ -84,7 +84,7 @@
         if (!('wakeLock' in navigator) || (wakeLock && !wakeLock.released)) return;
         try {
             wakeLock = await navigator.wakeLock.request('screen');
-        } catch {
+        } catch (_error) {
             wakeLock = null;
         }
     }
@@ -533,7 +533,7 @@
             hostFeedback('Choisis la TV dans la fenêtre…');
             await castContext.requestSession();
             hostFeedback('');
-        } catch {
+        } catch (_error) {
             hostFeedback('');
         }
     });

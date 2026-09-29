@@ -341,7 +341,7 @@
                     }
                 });
                 context.start(options);
-            } catch {
+            } catch (_error) {
                 $('tv-missing-message').textContent = 'Réception Cast indisponible sur cet écran';
             }
         };
