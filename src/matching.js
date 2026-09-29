@@ -85,6 +85,21 @@ function matchesArtist(guess, artists) {
     return (artists || []).some((artist) => matchesOne(guess, artist));
 }
 
+function splitGuess(guess, title, artists) {
+    const guessWords = words(String(guess || '').replace(/\s+-\s+/g, ' '));
+    const titleWords = words(title);
+    const artistWords = (artists || []).flatMap((artist) => words(artist));
+    const forTitle = [];
+    const forArtist = [];
+    for (const word of guessWords) {
+        if (titleWords.some((candidate) => close(word, candidate))) forTitle.push(word);
+        else if (artistWords.some((candidate) => close(word, candidate))) forArtist.push(word);
+        else return null;
+    }
+    if (!forTitle.length || !forArtist.length) return null;
+    return { title: forTitle.join(' '), artist: forArtist.join(' ') };
+}
+
 function distance(guess, target) {
     const a = normalize(guess);
     const b = normalize(target);
@@ -92,4 +107,4 @@ function distance(guess, target) {
     return levenshtein(a, b) / Math.max(a.length, b.length);
 }
 
-module.exports = { normalize, levenshtein, close, matchesTitle, matchesArtist, matchesWords, distance };
+module.exports = { normalize, levenshtein, close, matchesTitle, matchesArtist, matchesWords, splitGuess, distance };
