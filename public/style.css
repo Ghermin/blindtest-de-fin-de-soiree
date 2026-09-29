@@ -1,5 +1,25 @@
+[hidden] {
+    display: none !important;
+}
+
 * {
     box-sizing: border-box;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+::placeholder {
+    color: var(--muted);
+    opacity: 1;
+}
+
+:focus-visible {
+    outline: 3px solid var(--accent2);
+    outline-offset: 2px;
 }
 
 :root {
@@ -66,6 +86,11 @@ form {
     width: 100%;
 }
 
+form > button {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 input[type="text"] {
     flex: 1;
     padding: 14px 16px;
@@ -84,6 +109,7 @@ input[type="text"]:focus {
 button {
     padding: 12px 18px;
     font-size: 1rem;
+    min-height: 44px;
     border: none;
     border-radius: 14px;
     background: var(--card);
@@ -93,6 +119,7 @@ button {
 
 button.primary {
     background: linear-gradient(90deg, var(--accent), #ff6ba9);
+    color: var(--bg);
     font-weight: 700;
 }
 
@@ -188,8 +215,27 @@ button.ghost {
     50% { transform: scale(1.15); }
 }
 
-.timer {
+.timer-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     width: 100%;
+}
+
+.timer-left {
+    min-width: 2.5ch;
+    text-align: right;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent2);
+}
+
+.timer-left.urgent {
+    color: var(--ko);
+}
+
+.timer {
+    flex: 1;
     height: 10px;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 999px;
@@ -215,10 +261,15 @@ button.ghost {
     width: 100%;
 }
 
-#guess-feedback {
+#guess-feedback,
+#join-feedback {
     min-height: 1.4em;
     margin: 0;
     font-weight: 700;
+}
+
+#join-feedback {
+    color: var(--ko);
 }
 
 #guess-feedback.ok {
@@ -290,7 +341,7 @@ button.ghost {
 #host-toggle {
     position: fixed;
     right: 16px;
-    bottom: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
     font-size: 1.5rem;
     border-radius: 50%;
     width: 56px;
@@ -307,7 +358,7 @@ button.ghost {
     background: #1a0d31;
     border-top: 2px solid var(--card);
     border-radius: 20px 20px 0 0;
-    padding: 18px;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
     max-height: 75dvh;
     overflow-y: auto;
     display: flex;
@@ -317,6 +368,24 @@ button.ghost {
 
 #host-panel h3 {
     margin: 0;
+}
+
+.host-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#host-close {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 1.2rem;
+}
+
+body.is-host #app {
+    padding-bottom: 88px;
 }
 
 .host-settings {
@@ -329,12 +398,14 @@ button.ghost {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--muted);
 }
 
 select {
-    padding: 10px;
+    padding: 10px 12px;
+    min-height: 44px;
+    font-size: 1rem;
     border-radius: 10px;
     background: var(--card);
     color: var(--text);
@@ -360,4 +431,18 @@ select {
     margin: 0;
     color: var(--ko);
     min-height: 1.2em;
+}
+
+@media (max-height: 700px) {
+    .vinyl {
+        width: 110px;
+        height: 110px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spinning,
+    #countdown-big {
+        animation: none;
+    }
 }

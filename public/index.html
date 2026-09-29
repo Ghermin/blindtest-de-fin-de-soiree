@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#12081f">
+    <meta name="color-scheme" content="dark">
     <title>Blind Test de fin de soirée</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="manifest" href="/manifest.webmanifest">
@@ -17,9 +18,10 @@
                 <h1>Blind Test<span>de fin de soirée</span></h1>
             </div>
             <form id="join-form">
-                <input id="join-name" type="text" maxlength="20" placeholder="Ton pseudo" autocomplete="nickname" required>
+                <input id="join-name" type="text" maxlength="20" placeholder="Ton pseudo" aria-label="Ton pseudo" autocomplete="nickname" enterkeyhint="go" required>
                 <button type="submit" class="primary">Rejoindre 🎉</button>
             </form>
+            <p id="join-feedback" role="status"></p>
             <button id="become-host" class="ghost">Je suis l'hôte 🎛️</button>
         </section>
 
@@ -38,17 +40,20 @@
             <div id="countdown-big" hidden></div>
             <div id="guess-zone" hidden>
                 <div class="vinyl spinning"><span>?</span></div>
-                <div class="timer"><div id="timer-bar"></div></div>
-                <div id="my-found" class="chips"></div>
+                <div class="timer-row">
+                    <div class="timer" aria-hidden="true"><div id="timer-bar"></div></div>
+                    <span id="timer-left" class="timer-left"></span>
+                </div>
+                <ul id="my-found" class="chips"></ul>
                 <form id="guess-form">
-                    <input id="guess-input" type="text" maxlength="80" placeholder="Titre ou artiste…" autocomplete="off" autocapitalize="off">
-                    <button type="submit" class="primary">➤</button>
+                    <input id="guess-input" type="text" maxlength="80" placeholder="Titre ou artiste…" aria-label="Ta réponse" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send">
+                    <button type="submit" class="primary" aria-label="Envoyer">➤</button>
                 </form>
-                <p id="guess-feedback"></p>
+                <p id="guess-feedback" role="status"></p>
                 <ul id="live-scores" class="scores"></ul>
             </div>
             <div id="stalled-zone" hidden>
-                <p>⚠️ <span id="stalled-message"></span></p>
+                <p role="status">⚠️ <span id="stalled-message"></span></p>
             </div>
         </section>
 
@@ -66,11 +71,14 @@
         </section>
     </main>
 
-    <button id="host-toggle" hidden>🎛️</button>
-    <aside id="host-panel" hidden>
-        <h3>Panneau hôte</h3>
+    <button id="host-toggle" aria-label="Panneau hôte" aria-controls="host-panel" aria-expanded="false" hidden>🎛️</button>
+    <aside id="host-panel" aria-label="Panneau hôte" hidden>
+        <div class="host-header">
+            <h3>Panneau hôte</h3>
+            <button id="host-close" type="button" aria-label="Fermer le panneau">✕</button>
+        </div>
         <form id="playlist-form">
-            <input id="playlist-url" type="text" placeholder="Lien de playlist Spotify" autocomplete="off">
+            <input id="playlist-url" type="text" inputmode="url" placeholder="Lien de playlist Spotify" aria-label="Lien de playlist Spotify" autocomplete="off">
             <button type="submit">Charger</button>
         </form>
         <p id="host-playlist-info"></p>
@@ -104,7 +112,7 @@
             <button id="host-devices-refresh">🔊 Appareils Spotify</button>
             <ul id="host-devices"></ul>
         </div>
-        <p id="host-feedback"></p>
+        <p id="host-feedback" role="status"></p>
     </aside>
 
     <script src="/app.js"></script>

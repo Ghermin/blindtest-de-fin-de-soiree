@@ -14,6 +14,7 @@
     let myFound = { title: false, artist: false };
     let timerFrame = null;
     let countdownTimer = null;
+    let lastPhase = '';
 
     async function post(route, data) {
         const response = await fetch(route, {
@@ -77,12 +78,16 @@
             renderPlayers(state.players, $('live-scores'), true);
             cancelAnimationFrame(timerFrame);
             const bar = $('timer-bar');
+            const counter = $('timer-left');
             const animate = () => {
                 const total = state.guessMs;
-                const left = Math.max(0, state.phaseEndsAt - now());
-                bar.style.width = (left / total * 100) + '%';
-                bar.classList.toggle('urgent', left < 8000);
-                if (left > 0 && state.phase === 'guess') timerFrame = requestAnimationFrame(animate);
+                const remaining = Math.max(0, state.phaseEndsAt - now());
+                const seconds = String(Math.ceil(remaining / 1000));
+                bar.style.width = (remaining / total * 100) + '%';
+                bar.classList.toggle('urgent', remaining < 8000);
+                counter.classList.toggle('urgent', remaining < 8000);
+                if (counter.textContent !== seconds) counter.textContent = seconds;
+                if (remaining > 0 && state.phase === 'guess') timerFrame = requestAnimationFrame(animate);
             };
             animate();
         }
@@ -104,9 +109,15 @@
 
     function renderPodium() {
         const medals = ['🥇', '🥈', '🥉'];
-        $('podium-list').innerHTML = state.players
-            .map((player, index) => `<li>${medals[index] || '•'} ${player.name} — <b>${player.score}</b> pts</li>`)
-            .join('');
+        const list = $('podium-list');
+        list.innerHTML = '';
+        state.players.forEach((player, index) => {
+            const item = document.createElement('li');
+            const score = document.createElement('b');
+            score.textContent = player.score;
+            item.append(`${medals[index] || '•'} ${player.name} — `, score, ' pts');
+            list.appendChild(item);
+        });
     }
 
     function render() {
@@ -119,6 +130,7 @@
         }
 
         $('host-toggle').hidden = !isHost;
+        document.body.classList.toggle('is-host', isHost);
         $('host-retry').hidden = state.phase !== 'stalled';
         $('host-playlist-info').textContent = state.playlist
             ? `📀 ${state.playlist.name} (${state.playlist.total} titres)` : 'Aucune playlist chargée';
@@ -131,6 +143,7 @@
         } else if (state.phase === 'countdown' || state.phase === 'guess' || state.phase === 'stalled') {
             show('game');
             renderGuess();
+            if (state.phase === 'guess' && lastPhase !== 'guess') $('guess-input').focus({ preventScroll: true });
         } else if (state.phase === 'reveal') {
             show('reveal');
             renderReveal();
@@ -138,6 +151,7 @@
             show('podium');
             renderPodium();
         }
+        lastPhase = state.phase;
     }
 
     function connect() {
@@ -157,6 +171,7 @@
 
     $('join-form').addEventListener('submit', async (event) => {
         event.preventDefault();
+        $('join-feedback').textContent = '';
         try {
             const result = await post('/api/join', { name: $('join-name').value, token });
             token = result.token;
@@ -166,7 +181,7 @@
             state = result.state;
             render();
         } catch (error) {
-            alert(error.message);
+            $('join-feedback').textContent = error.message;
         }
     });
 
@@ -203,9 +218,13 @@
         render();
     });
 
-    $('host-toggle').addEventListener('click', () => {
-        $('host-panel').hidden = !$('host-panel').hidden;
-    });
+    function toggleHostPanel(open) {
+        $('host-panel').hidden = !open;
+        $('host-toggle').setAttribute('aria-expanded', String(open));
+    }
+
+    $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
+    $('host-close').addEventListener('click', () => toggleHostPanel(false));
 
     function hostFeedback(message) {
         $('host-feedback').textContent = message;
@@ -231,7 +250,7 @@
             mode: $('opt-mode').value,
             guessSeconds: Number($('opt-duration').value)
         });
-        $('host-panel').hidden = true;
+        toggleHostPanel(false);
     });
     $('host-skip').addEventListener('click', () => hostAction('/api/host/skip'));
     $('host-retry').addEventListener('click', () => hostAction('/api/host/retry'));
