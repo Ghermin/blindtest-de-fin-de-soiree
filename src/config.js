@@ -17,7 +17,6 @@ module.exports = {
     homeRoom: (process.env.BLINDTEST_HOME_ROOM === undefined ? 'MAISON' : process.env.BLINDTEST_HOME_ROOM).toUpperCase(),
     trustProxy: process.env.BLINDTEST_TRUST_PROXY === '1',
     dataDir: process.env.BLINDTEST_DATA_DIR || path.join(__dirname, '..', 'data'),
-    castAppId: process.env.BLINDTEST_CAST_APP_ID || '',
     country: (process.env.BLINDTEST_COUNTRY || 'FR').toUpperCase(),
     spotify: {
         clientId: process.env.SPOTIFY_CLIENT_ID || '',

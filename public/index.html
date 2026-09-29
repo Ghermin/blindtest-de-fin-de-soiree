@@ -107,6 +107,12 @@
             <h3>Panneau hôte</h3>
             <button id="host-close" type="button" aria-label="Fermer le panneau">✕</button>
         </div>
+        <p id="host-spotify" class="host-line" hidden></p>
+        <div id="host-spotify-actions" class="host-actions" hidden>
+            <button id="host-connect" type="button">🎧 Connecter mon compte Spotify</button>
+            <button id="host-playlists" type="button" hidden>📚 Mes playlists</button>
+        </div>
+        <ul id="host-playlist-list" class="host-list"></ul>
         <form id="playlist-form">
             <input id="playlist-url" type="text" inputmode="url" placeholder="Lien de playlist Spotify ou Deezer" aria-label="Lien de playlist Spotify ou Deezer" autocomplete="off">
             <button type="submit">Charger</button>
@@ -146,7 +152,6 @@
         </div>
         <div class="host-actions">
             <button id="host-speaker" type="button">🔈 Son sur ce téléphone : non</button>
-            <button id="host-cast" type="button" hidden>📺 Caster sur la TV</button>
         </div>
         <p class="hint">Le son sort de l'écran TV de la salle. Sans écran, active-le sur ce téléphone et branche une enceinte.</p>
         <p id="host-feedback" role="status"></p>
