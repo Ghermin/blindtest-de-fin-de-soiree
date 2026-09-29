@@ -1,189 +1,47 @@
 # 🎧 Blind Test de fin de soirée
 
-Blind test multijoueur hébergé sur un Raspberry Pi. L'hôte colle une playlist
-Spotify ou Deezer, chacun rejoint depuis son téléphone en scannant un QR code,
-et **l'écran TV de la salle joue lui-même un extrait de 30 secondes** tout en
-affichant le classement, le chrono et les indices. On devine le titre et/ou
-l'artiste, les plus rapides marquent le plus de points.
+Blind test multijoueur qui tourne **sur le téléphone de l'hôte**. Les invités
+rejoignent en scannant un QR code, la TV affiche le classement, le chrono, les
+indices et joue les extraits de 30 secondes, chacun répond sur son téléphone.
+Marche chez toi comme chez la famille : il suffit d'être sur le même Wi-Fi, ou
+sur le partage de connexion du téléphone.
 
-- **À la maison** : le Pi sert le jeu sur le réseau local, la salle `MAISON`
-  est prête au démarrage.
-- **Avec la famille, chacun chez soi** : le Pi est exposé en HTTPS par un
-  tunnel Cloudflare, chaque hôte crée sa salle en un clic. Aucun compte à
-  créer, pas besoin de Spotify Premium.
+Zéro dépendance runtime : Node, `node:http`, SSE et du JS vanilla. Les extraits
+viennent des catalogues publics de Deezer et d'Apple Music. Pas besoin de
+Spotify Premium.
 
-Zéro dépendance runtime : Node ≥ 20, `node:http`, SSE et du JS vanilla. Les
-extraits viennent des catalogues publics de Deezer et d'Apple Music.
-
-> 🍓 **Première installation ?** Suis le guide pas à pas : **[INSTALL.md](INSTALL.md)**.
+> 📱 **Installation et soirée pas à pas : [INSTALL.md](INSTALL.md)**.
 
 ## Comment ça marche
 
-1. L'hôte colle un lien de playlist. **Deezer** : les extraits sont déjà là.
-   **Spotify** : le serveur lit la playlist avec les identifiants de ton app
-   Spotify, puis retrouve chaque titre chez Deezer (ou Apple Music en secours)
-   par titre, artiste et durée. Quelques secondes pour une centaine de titres,
-   les titres sans extrait sont écartés et comptés.
-2. À chaque manche, le serveur donne à tous les écrans l'extrait à jouer et
-   l'instant de départ. **L'écran TV** de la salle le joue ; sans écran, l'hôte
-   active « Son sur ce téléphone » et branche une enceinte.
-3. Les joueurs répondent sur leur téléphone. Tout est mesuré côté serveur.
-
-## Installer sur le Raspberry Pi
-
-Dépôt privé : il faut un jeton GitHub en lecture seule limité à ce dépôt
-(Settings → Developer settings → Fine-grained tokens, permission Contents :
-Read-only). Le Pi le garde pour ses mises à jour automatiques.
-
-```bash
-T=github_pat_xxx
-curl -fsSL -H "Authorization: token $T" https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/install.sh -o /tmp/install.sh
-sudo GITHUB_TOKEN=$T bash /tmp/install.sh
-```
-
-Dépôt public : même chose sans le jeton ni l'en-tête.
-
-L'installation enchaîne sur un **assistant** : code hôte, identifiants Spotify
-(optionnels, seulement pour les liens Spotify), accès famille, écran TV, puis
-démarrage et QR code de ta salle dans le terminal. Relançable à tout moment :
-`sudo /opt/blindtest/deploy/setup.sh`.
-
-Une mise à jour est tirée automatiquement toutes les 30 min, jamais pendant
-une partie.
-
-## Lancer en local (développement)
-
-```bash
-cp .env.example .env
-npm start                   # http://localhost:3000
-```
+1. Sur son Android, l'hôte lance **Blind Test** (widget ou commande `blindtest`
+   dans Termux). Le téléphone devient le serveur, se met à jour depuis ce dépôt
+   s'il a Internet, affiche l'adresse de la salle et un QR code, et ouvre Chrome
+   sur la salle.
+2. La TV ouvre l'adresse de la salle suivie de `/tv` dans son navigateur et
+   valide **Activer le son**. Les invités scannent le QR code.
+3. L'hôte colle une playlist **Deezer** (rien à configurer) ou **Spotify**
+   (identifiants d'une app Spotify, et compte connectable pour lister ses
+   propres playlists), attend « extraits prêts », lance.
+4. À chaque manche, le serveur donne à l'écran TV l'extrait et l'instant de
+   départ ; sans écran, le téléphone de l'hôte peut jouer le son sur une
+   enceinte. Tout est mesuré côté serveur.
 
 ## Jouer
 
-1. Page d'accueil → **Créer une salle**, ou **Salle de la maison** sur le Pi.
-   L'hôte reçoit une clé hôte, gardée dans son navigateur.
-2. Le lobby affiche l'adresse et un QR code : chacun scanne, entre un pseudo
-   et, s'il veut, une équipe. On peut rejoindre en cours de partie.
-3. L'hôte ouvre le panneau 🎛️, colle une playlist (lien, ou préréglages),
-   attend « extraits prêts », règle manches / mode / durée / indices.
-4. **Le son** : l'écran TV ouvert sur la salle joue les extraits (bouton
-   **Activer le son** au premier affichage dans un navigateur). Sans écran :
-   **Son sur ce téléphone** dans le panneau hôte, téléphone sur une enceinte.
-5. ▶ Lancer : décompte de 3 s, extrait de 30 s, on tape ses réponses,
-   révélation (l'extrait continue, la dernière réponse de chacun s'affiche),
-   manche suivante, podium avec les statistiques de la soirée.
+- Page d'accueil → **Salle de la maison** (ou **Créer une salle** pour une
+  salle indépendante). L'hôte prend la main avec son **code hôte**.
+- Chacun entre un pseudo et, s'il veut, une équipe. On peut rejoindre en cours
+  de partie. Un téléphone qui a fermé la page apparaît en 💤 et ne bloque pas
+  la fin de manche.
+- ▶ Lancer : décompte de 3 s, extrait de 30 s, réponses, révélation (l'extrait
+  continue, la dernière réponse de chacun s'affiche), manche suivante, podium
+  avec les statistiques de la soirée.
 
 Les réponses tolèrent accents, majuscules, ponctuation, articles, « feat. »,
 « (Remastered) », une petite faute de frappe, et un mot significatif suffit
-(« billie » pour Billie Jean, « daft » pour Daft Punk).
-
-**Indices** (option hôte, activée par défaut) : nombre de lettres à mi-temps,
-première lettre dans les 10 dernières secondes.
-
-**Équipes** : si des joueurs indiquent une équipe, le total par équipe apparaît
-sur tous les écrans. Les points restent individuels.
-
-**Joueurs déconnectés** : un téléphone qui a fermé la page apparaît en 💤 et
-n'empêche pas la manche de se terminer quand tous les autres ont trouvé.
-
-## Afficher le jeu sur la TV
-
-`/r/CODE/tv` est l'écran de la salle : QR code permanent pour rejoindre,
-classement avec scores et équipes, chrono, indices, révélation avec la
-pochette, podium avec les statistiques, **et le son des extraits**. Rien des
-saisies de l'hôte n'y apparaît. Trois façons de le mettre sur la TV :
-
-1. **Caster depuis un téléphone Android** : bouton **📺 Caster sur la TV** dans
-   le panneau hôte. Le Chromecast charge lui-même la page et joue le son, le
-   téléphone reste libre pour jouer. Il faut l'accès famille (adresse HTTPS,
-   section suivante) et un récepteur Cast enregistré une fois chez Google pour
-   5 $ : https://cast.google.com/publish → **Add new application** → **Custom
-   Receiver** → URL `https://ton-domaine/cast` → l'**Application ID** va dans
-   `BLINDTEST_CAST_APP_ID` → **Publish**. Pas depuis un iPhone : les navigateurs
-   iOS ne savent pas caster une page.
-2. **Le navigateur de la smart TV** (Samsung, LG, Android TV, Fire TV, TV de
-   2019 ou plus récente) ouvre `/r/CODE/tv`, on valide **Activer le son** avec
-   la télécommande, et c'est parti : gratuit, sans Chromecast. Une tablette ou
-   un portable font pareil, et Chrome sur un portable peut envoyer l'onglet à
-   un Chromecast (menu → **Caster** → cet onglet).
-3. **Le Pi branché en HDMI sur la TV** : `sudo /opt/blindtest/deploy/tv-setup.sh`
-   lance Chromium en plein écran sur `/r/MAISON/tv` au démarrage, son par le HDMI.
-
-## Salles
-
-- Une salle a un code de 4 lettres (`/r/CODE`), son propre hôte, sa playlist,
-  son classement. Jusqu'à 50 salles et 60 joueurs par salle.
-- La **clé hôte** protège les actions de l'hôte. Elle est donnée à la création
-  de la salle et affichée dans le panneau hôte. Pour la salle de la maison
-  c'est `BLINDTEST_HOST_PIN`, sinon un code à 6 chiffres généré au premier
-  démarrage et affiché dans les logs.
-- Les salles sont **sauvegardées** dans `data/rooms.json` : un redémarrage
-  conserve joueurs, scores et playlist, et remet une partie interrompue au
-  lobby. Une salle inactive depuis 6 h disparaît. Les appariements d'extraits
-  sont mis en cache dans `data/previews.json`.
-
-## Le téléphone comme serveur (Android, recommandé pour jouer n'importe où)
-
-Sur un téléphone Android, le jeu tourne dans [Termux](https://f-droid.org/packages/com.termux/)
-et devient un boîtier portable : les invités et la TV se connectent à
-l'adresse locale du téléphone, sur le Wi-Fi de la maison visitée ou sur le
-**partage de connexion** du téléphone lui-même (les extraits passent alors par
-la 4G). Rien d'autre à installer nulle part.
-
-```bash
-pkg install -y curl && T=github_pat_xxx
-curl -fsSL -H "Authorization: token $T" https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/termux.sh -o termux.sh && GITHUB_TOKEN=$T bash termux.sh
-```
-
-Une fois installé, la commande `blindtest` (ou le widget « Blind Test » avec
-l'appli Termux:Widget) affiche l'adresse de la salle, le code hôte et le QR
-code, puis démarre le serveur. Laisse Termux ouvert en arrière-plan et
-désactive l'optimisation de batterie pour lui. iPhone : pas possible.
-
-## Héberger le jeu en ligne (le plus simple pour jouer ailleurs)
-
-Plutôt que d'exposer le Pi, le serveur tient sur une petite machine gratuite
-chez Render : un lien HTTPS unique, toujours le même, chez toi comme chez la
-famille, rien à installer ni à emporter.
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Ghermin/blindtest-de-fin-de-soiree)
-
-1. Compte Render (gratuit, connexion avec GitHub, autorise l'accès au dépôt).
-2. Clique le bouton ci-dessus : Render lit `render.yaml` et demande seulement
-   ton code hôte et, si tu en as, les identifiants Spotify.
-3. Deux minutes plus tard le jeu répond sur `https://blindtest-xxxx.onrender.com`.
-   La salle `MAISON` y existe avec ton code hôte ; chaque push sur `main`
-   redéploie tout seul.
-
-À savoir sur l'offre gratuite : la machine s'endort après un quart d'heure
-sans visite et met une minute à se réveiller, donc ouvre la page un peu avant
-la partie. Un redémarrage remet les salles à zéro (les codes de salle et le
-cache d'extraits sont refaits à la volée). L'adresse n'est protégée que par
-les codes de salle et la clé hôte.
-
-## Ouvrir le jeu à la famille depuis le Pi
-
-Le Pi reste chez toi, aucun port n'est ouvert sur la box : un tunnel Cloudflare
-(gratuit) donne une adresse HTTPS stable. Il faut un domaine géré par Cloudflare.
-
-```bash
-sudo /opt/blindtest/deploy/tunnel-setup.sh blindtest.ton-domaine.fr
-```
-
-Recommandé ensuite : réserver l'adresse à la famille avec **Cloudflare Access**
-(Zero Trust → Access → Applications → Self-hosted, politique « Allow » avec les
-e-mails de la famille). Chacun reçoit un code à usage unique par e-mail, le
-jeu n'est pas visible du reste d'Internet.
-
-Un hôte de la famille ouvre l'adresse, **Créer une salle**, colle une playlist,
-met l'écran TV sur `/r/SONCODE/tv` ou caste depuis Android, et lance. Aucun
-compte, aucune configuration chez lui.
-
-Ce que fait le serveur pour rester sain une fois exposé : HTTPS par Cloudflare,
-en-têtes stricts (CSP, pas de cadre), clé hôte comparée à temps constant,
-limites de débit par adresse, corps de requête bornés, pseudos et réponses
-tronqués, plafond de salles, de joueurs et de connexions, service systemd
-confiné, aucune donnée personnelle stockée hors pseudos et scores.
+(« billie » pour Billie Jean, « daft » pour Daft Punk). **Indices** : nombre
+de lettres à mi-temps, première lettre dans les 10 dernières secondes.
 
 ## Scoring
 
@@ -195,61 +53,48 @@ confiné, aucune donnée personnelle stockée hors pseudos et scores.
 | Premier sur le titre / l'artiste | +100 |
 
 La vitesse décroît linéairement de 1.0 (immédiat) à 0.3 (dernière seconde).
-Deux parties de suite sur la même playlist ne rejouent pas les mêmes titres
-tant qu'il en reste. Au podium : le plus rapide de la soirée, le plus souvent
-premier, et la réponse la plus hors sujet.
+Deux parties de suite sur la même playlist ne rejouent pas les mêmes titres.
+Au podium : le plus rapide, le plus souvent premier, la réponse la plus hors
+sujet.
 
-## Variables d'environnement
+## Écran TV
+
+`/r/CODE/tv` : QR code permanent, classement avec équipes, chrono, indices,
+révélation avec la pochette, podium, et le son. Rien des saisies de l'hôte.
+Le navigateur d'une smart TV de 2019 ou plus récente suffit ; sinon une
+tablette, un portable, ou un deuxième téléphone qui diffuse son écran vers un
+Chromecast.
+
+## Configuration (`.env` sur le téléphone, réglée par l'assistant)
 
 | Variable | Rôle |
 |---|---|
-| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | Optionnels : app Spotify, pour accepter les liens de playlists Spotify |
+| `BLINDTEST_HOST_PIN` | Code hôte de la salle de la maison |
+| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | Optionnels : app Spotify pour les liens de playlists Spotify et le bouton « Mes playlists » |
+| `BLINDTEST_HOME_ROOM` | Code de la salle de la maison (`MAISON`) |
 | `BLINDTEST_PORT` | Port HTTP (3000) |
-| `BLINDTEST_HOST_PIN` | Clé hôte de la salle de la maison |
-| `BLINDTEST_HOME_ROOM` | Code de la salle de la maison (`MAISON`, vide pour ne pas en créer) |
-| `BLINDTEST_PUBLIC_URL` | Adresse publique HTTPS (tunnel), sert aux QR codes et au Cast |
-| `BLINDTEST_TRUST_PROXY` | `1` derrière Cloudflare pour lire la vraie adresse des joueurs |
-| `BLINDTEST_CAST_APP_ID` | Application ID du récepteur Cast : active le bouton « Caster sur la TV » |
 | `BLINDTEST_COUNTRY` | Pays du catalogue Apple Music de secours (`FR`) |
-| `BLINDTEST_DATA_DIR` | Dossier des sauvegardes, du cache d'extraits et des préréglages (`data/`) |
 
-Préréglages de playlists : copie `presets.example.json` en `data/presets.json`
-avec des liens Spotify ou Deezer. Les playlists créées par Spotify (Top 50,
-Années 80…) ne sont pas lisibles par une app en mode développement ; les
-playlists Deezer publiques, dont celles de Deezer, le sont toutes.
-
-## Dépannage
-
-- **« Recherche des extraits en cours »** : patiente, le compteur avance dans le
-  panneau hôte. Une playlist Spotify de 100 titres prend une quinzaine de secondes.
-- **« Pas assez d'extraits trouvés »** : titres trop rares ou mal orthographiés
-  sur Spotify. Essaie la même playlist côté Deezer.
-- **« Playlist introuvable »** : playlist éditoriale Spotify, privée, ou lien
-  erroné. Utilise une playlist publique perso ou une playlist Deezer.
-- **« Playlists Spotify indisponibles »** : pas d'identifiants Spotify dans
-  `.env`. Colle un lien Deezer, ou relance l'assistant pour les renseigner.
-- **Pas de son sur l'écran TV** : clique **Activer le son** (les navigateurs
-  exigent un geste), ou vérifie que l'hôte n'a pas activé le son sur son
-  téléphone en plus.
-- **« Clé hôte incorrecte »** : la clé est dans le panneau hôte de l'appareil qui
-  a créé la salle, ou `BLINDTEST_HOST_PIN`, ou `journalctl -u blindtest -n 20`.
-- **La TV affiche le jeu depuis un Chromecast mais reste muette** : le
-  récepteur Cast joue le son du Chromecast ; monte le volume de la TV.
-- **Podium figé** : l'hôte a un bouton « ↩ Lobby » pour repartir sur une nouvelle partie.
-- **Voir ce qui se passe** : `journalctl -u blindtest -f` trace les salles,
-  playlists, manches, extraits écartés. `GET /api/health` dit si une partie est en cours.
+Préréglages de playlists : `data/presets.json` (modèle dans
+`presets.example.json`), liens Spotify ou Deezer. Les playlists créées par
+Spotify (Top 50…) ne sont pas lisibles par une app en mode développement ;
+toutes les playlists Deezer publiques le sont.
 
 ## Les extraits
 
 Les extraits de 30 secondes sont les aperçus publics fournis par Deezer et
-Apple Music, les mêmes que ceux qu'on entend en survolant un titre sur leurs
-sites. Ils sont destinés à la découverte, pas à l'écoute : ce jeu s'en sert
-dans un cadre privé et affiche leur provenance. Rien n'est téléchargé ni
-conservé sur le serveur, seuls les identifiants des titres sont mis en cache.
+Apple Music, les mêmes que sur leurs sites. Ils sont destinés à la découverte :
+ce jeu s'en sert dans un cadre privé et affiche leur provenance. Rien n'est
+téléchargé ni conservé, seuls les identifiants des titres sont mis en cache.
 
 ## Développement
 
 ```bash
+cp .env.example .env
+npm start                   # http://localhost:3000
 npm test                    # matching, indices, QR code, extraits, partie, salles
-npm run icons               # régénère les icônes PNG (écran d'accueil iOS/Android)
+npm run icons               # régénère les icônes PNG
 ```
+
+Le serveur tourne aussi sur n'importe quelle machine avec Node ≥ 20 (`npm start`),
+derrière un reverse proxy HTTPS avec `BLINDTEST_PUBLIC_URL` et `BLINDTEST_TRUST_PROXY=1`.
