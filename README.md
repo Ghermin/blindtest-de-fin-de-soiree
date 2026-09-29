@@ -8,6 +8,9 @@ rapides marquent le plus de points.
 
 Zéro dépendance runtime : Node ≥ 20, `node:http`, SSE et du JS vanilla.
 
+> 🍓 **Première installation ?** Suis le guide pas à pas : **[INSTALL.md](INSTALL.md)** —
+> chaque étape avec les commandes exactes, de la création de l'app Spotify à la première partie.
+
 ## Prérequis
 
 - Un compte **Spotify Premium** (obligatoire : l'API de contrôle de lecture est réservée au Premium)
