@@ -5,7 +5,6 @@ const os = require('node:os');
 const path = require('node:path');
 
 process.env.BLINDTEST_DATA_DIR = path.join(os.tmpdir(), `blindtest-test-${process.pid}`);
-process.env.SPOTIFY_REFRESH_TOKEN = '';
 
 const roomsPath = require.resolve('../src/rooms.js');
 

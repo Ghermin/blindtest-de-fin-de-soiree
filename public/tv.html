@@ -41,11 +41,6 @@
             <p id="tv-mode" class="muted"></p>
         </section>
 
-        <section id="tv-stalled" hidden>
-            <p class="round">⚠️ Lecture Spotify interrompue</p>
-            <p id="tv-stalled-message" class="lead"></p>
-        </section>
-
         <section id="tv-reveal" hidden>
             <p class="round">C'était…</p>
             <img id="tv-cover" alt="">
@@ -66,7 +61,7 @@
         <ul id="tv-teams" class="tv-teams" hidden></ul>
         <ol id="tv-ranking" class="ranking"></ol>
         <p id="tv-empty" class="muted">Personne n'a encore rejoint</p>
-        <button id="tv-sound" class="sound" type="button">🔊 Activer le son</button>
+        <button id="tv-sound" class="sound" type="button" hidden>🔊 Activer le son sur cet écran</button>
         <div class="join">
             <img id="tv-qr" alt="QR code pour rejoindre la partie">
             <div>
@@ -75,6 +70,7 @@
                 <p id="tv-code" class="join-code"></p>
             </div>
         </div>
+        <p class="credit">Extraits musicaux : Deezer · Apple Music</p>
     </aside>
 
     <script src="/tv.js"></script>

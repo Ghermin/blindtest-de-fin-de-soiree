@@ -10,7 +10,6 @@
     },
     "scripts": {
         "start": "node index.js",
-        "auth": "node scripts/auth.js",
         "test": "node --test",
         "icons": "node scripts/icons.js",
         "lint": "eslint ."

@@ -486,3 +486,10 @@ p {
     font-size: 0.95rem;
     color: #5b4a7a;
 }
+
+.credit {
+    margin: 0;
+    font-size: 0.8rem;
+    text-align: right;
+    color: var(--muted);
+}

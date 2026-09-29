@@ -2,7 +2,7 @@
     'use strict';
 
     const $ = (id) => document.getElementById(id);
-    const screens = ['missing', 'lobby', 'countdown', 'guess', 'stalled', 'reveal', 'podium'];
+    const screens = ['missing', 'lobby', 'countdown', 'guess', 'reveal', 'podium'];
     const medals = ['🥇', '🥈', '🥉'];
     const roomMatch = location.pathname.match(/^\/r\/([A-Za-z0-9]{3,12})\/tv$/);
     const castMode = location.pathname === '/cast';
@@ -15,7 +15,10 @@
     let lastMessage = 0;
     let lastPhase = '';
     let audio = null;
+    let playerSrc = '';
     const seen = new Map();
+    const player = new Audio();
+    player.preload = 'auto';
 
     function now() {
         return Date.now() + offset;
@@ -37,13 +40,54 @@
         return lines.join('\n');
     }
 
+    function playlistLabel(playlist) {
+        if (!playlist) return '';
+        if (!playlist.ready) return `📀 ${playlist.name} · recherche des extraits ${playlist.resolved}/${playlist.total}…`;
+        return `📀 ${playlist.name} · ${playlist.resolved} titres${playlist.missing ? `, ${playlist.missing} sans extrait` : ''}`;
+    }
+
     function enableSound() {
         const Context = window.AudioContext || window.webkitAudioContext;
-        if (!Context) return;
-        audio = audio || new Context();
-        audio.resume().catch(() => null).then(() => {
-            $('tv-sound').hidden = audio.state === 'running';
-        });
+        if (Context) {
+            audio = audio || new Context();
+            audio.resume().catch(() => null);
+        }
+        syncAudio(true);
+    }
+
+    function syncAudio(fromGesture) {
+        const clip = state && state.audio;
+        const active = clip && clip.url && ['countdown', 'guess', 'reveal'].includes(state.phase);
+        if (!active) {
+            if (!player.paused) player.pause();
+            return;
+        }
+        if (playerSrc !== clip.url) {
+            playerSrc = clip.url;
+            player.src = clip.url;
+            player.load();
+        }
+        if (!clip.startedAt) {
+            if (!player.paused) player.pause();
+            return;
+        }
+        if ((now() - clip.startedAt) / 1000 > 45) {
+            if (!player.paused) player.pause();
+            return;
+        }
+        const seek = () => {
+            const target = Math.max(0, (now() - clip.startedAt) / 1000);
+            if (Math.abs(player.currentTime - target) > 1.5) player.currentTime = target;
+        };
+        if (player.readyState >= 1) seek();
+        else player.addEventListener('loadedmetadata', seek, { once: true });
+        if (player.paused || fromGesture) {
+            player.play().then(() => {
+                $('tv-sound').hidden = true;
+            }).catch(() => {
+                $('tv-sound').hidden = false;
+            });
+        }
     }
 
     function tone(frequency, duration, type, when) {
@@ -54,7 +98,7 @@
         oscillator.type = type;
         oscillator.frequency.value = frequency;
         gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(0.2, start + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.12, start + 0.01);
         gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
         oscillator.connect(gain).connect(audio.destination);
         oscillator.start(start);
@@ -87,38 +131,38 @@
         const previous = new Map([...list.children].map((item) => [item.dataset.name, item.getBoundingClientRect().top]));
         list.innerHTML = '';
         let scored = false;
-        state.players.forEach((player, index) => {
+        state.players.forEach((entry, index) => {
             const item = document.createElement('li');
-            item.dataset.name = player.name;
-            if (seen.has(player.name) && seen.get(player.name) < player.score) {
+            item.dataset.name = entry.name;
+            if (seen.has(entry.name) && seen.get(entry.name) < entry.score) {
                 item.classList.add('bump');
                 scored = true;
             }
-            seen.set(player.name, player.score);
-            item.classList.toggle('offline', player.online === false);
+            seen.set(entry.name, entry.score);
+            item.classList.toggle('offline', entry.online === false);
             const rank = document.createElement('span');
             rank.className = 'rank';
             rank.textContent = medals[index] || String(index + 1);
             const name = document.createElement('span');
             name.className = 'name';
-            name.textContent = player.team ? `${player.name} · ${player.team}` : player.name;
+            name.textContent = entry.team ? `${entry.name} · ${entry.team}` : entry.name;
             const marks = document.createElement('span');
             marks.className = 'marks';
-            marks.textContent = [player.found.title ? '🎵' : '', player.found.artist ? '🎤' : '', player.online === false ? '💤' : ''].join('');
+            marks.textContent = [entry.found.title ? '🎵' : '', entry.found.artist ? '🎤' : '', entry.online === false ? '💤' : ''].join('');
             const score = document.createElement('span');
             score.className = 'score';
-            score.textContent = String(player.score);
+            score.textContent = String(entry.score);
             item.append(rank, name, marks, score);
-            if (player.gained) {
+            if (entry.gained) {
                 const gained = document.createElement('span');
                 gained.className = 'gained';
-                gained.textContent = `+${player.gained}`;
+                gained.textContent = `+${entry.gained}`;
                 item.appendChild(gained);
             }
-            if (player.lastGuess) {
+            if (entry.lastGuess) {
                 const guess = document.createElement('span');
                 guess.className = 'last-guess';
-                guess.textContent = `« ${player.lastGuess} »`;
+                guess.textContent = `« ${entry.lastGuess} »`;
                 item.appendChild(guess);
             }
             list.appendChild(item);
@@ -159,12 +203,12 @@
     function renderPodium() {
         const list = $('tv-podium-list');
         list.innerHTML = '';
-        state.players.slice(0, 3).forEach((player, index) => {
+        state.players.slice(0, 3).forEach((entry, index) => {
             const item = document.createElement('li');
             const name = document.createElement('span');
-            name.textContent = `${medals[index]} ${player.name}`;
+            name.textContent = `${medals[index]} ${entry.name}`;
             const score = document.createElement('b');
-            score.textContent = `${player.score} pts`;
+            score.textContent = `${entry.score} pts`;
             item.append(name, score);
             list.appendChild(item);
         });
@@ -204,7 +248,7 @@
         $('tv-url').textContent = url.replace(/^https?:\/\//, '');
         $('tv-code').textContent = `Code : ${state.room || room}`;
         $('tv-lobby-url').textContent = url;
-        $('tv-playlist').textContent = state.playlist ? `📀 ${state.playlist.name} · ${state.playlist.total} titres` : '';
+        $('tv-playlist').textContent = playlistLabel(state.playlist);
         $('tv-notice').textContent = state.notice || '';
         const round = state.round ? `Manche ${state.round}/${state.rounds}` : '';
         $('tv-round').textContent = round;
@@ -229,9 +273,6 @@
             }
             $('tv-mode').textContent = { both: 'Titre + artiste', title: 'Titre seul', artist: 'Artiste seul' }[state.mode] || '';
             loop();
-        } else if (state.phase === 'stalled') {
-            show('stalled');
-            $('tv-stalled-message').textContent = state.notice || '';
         } else if (state.phase === 'reveal') {
             show('reveal');
             const track = state.track || {};
@@ -244,6 +285,7 @@
             if (lastPhase !== 'podium') fanfare();
         }
         lastPhase = state.phase;
+        syncAudio(false);
     }
 
     function connect() {
@@ -320,8 +362,12 @@
     }
 
     $('tv-sound').addEventListener('click', enableSound);
+    document.addEventListener('pointerdown', () => {
+        if (!$('tv-sound').hidden) enableSound();
+    }, { passive: true });
     setInterval(() => {
         if (source && Date.now() - lastMessage > 40000) connect();
+        if (state) syncAudio(false);
     }, 5000);
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && source && Date.now() - lastMessage > 30000) connect();

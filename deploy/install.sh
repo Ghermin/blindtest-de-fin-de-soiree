@@ -44,8 +44,6 @@ if [ -t 0 ]; then
     exec bash deploy/setup.sh
 fi
 
-if grep -qE '^SPOTIFY_REFRESH_TOKEN=.+' .env; then
-    systemctl restart blindtest
-    echo "Blind test (re)démarré. Logs : journalctl -u blindtest -f"
-fi
+systemctl restart blindtest
+echo "Blind test (re)démarré. Logs : journalctl -u blindtest -f"
 echo "Termine l'installation avec l'assistant : sudo $DIR/deploy/setup.sh"

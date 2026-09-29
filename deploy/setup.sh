@@ -49,37 +49,31 @@ echo
 bold "🎧 Blind Test de fin de soirée — assistant d'installation"
 echo "Réponds aux questions, Entrée garde la valeur entre crochets. Tu peux relancer cet assistant à tout moment."
 
-step "1/5 Identifiants de ton app Spotify"
-echo "Ils sont sur https://developer.spotify.com/dashboard → ton app → Settings."
-CLIENT_ID=$(ask "Client ID" "$(getenv SPOTIFY_CLIENT_ID)")
-while [ -z "$CLIENT_ID" ]; do CLIENT_ID=$(ask "Client ID (obligatoire)"); done
-CURRENT_SECRET=$(getenv SPOTIFY_CLIENT_SECRET)
-if [ -n "$CURRENT_SECRET" ]; then
-    CLIENT_SECRET=$(ask_secret "Client secret (Entrée pour garder l'actuel)")
-    CLIENT_SECRET="${CLIENT_SECRET:-$CURRENT_SECRET}"
-else
-    CLIENT_SECRET=$(ask_secret "Client secret (invisible à la frappe)")
-    while [ -z "$CLIENT_SECRET" ]; do CLIENT_SECRET=$(ask_secret "Client secret (obligatoire)"); done
-fi
-setenv SPOTIFY_CLIENT_ID "$CLIENT_ID"
-setenv SPOTIFY_CLIENT_SECRET "$CLIENT_SECRET"
-
-step "2/5 Ta salle"
+step "1/4 Ta salle"
 DEFAULT_PIN=$(getenv BLINDTEST_HOST_PIN)
 DEFAULT_PIN="${DEFAULT_PIN:-$((RANDOM % 9000 + 1000))}"
 PIN=$(ask "Code hôte (les chiffres que tu taperas sur ton téléphone pour prendre la main)" "$DEFAULT_PIN")
 setenv BLINDTEST_HOST_PIN "$PIN"
-DEVICE=$(ask "Nom (même partiel) de l'enceinte ou de la TV Spotify préférée, vide pour choisir à chaque fois" "$(getenv SPOTIFY_DEVICE_NAME)")
-setenv SPOTIFY_DEVICE_NAME "$DEVICE"
 
-step "3/5 Connexion de ton compte Spotify Premium"
-if [ -n "$(getenv SPOTIFY_REFRESH_TOKEN)" ] && ! yesno "Un compte est déjà connecté. Le reconnecter ?"; then
-    echo "Compte conservé."
+step "2/4 Playlists Spotify (optionnel)"
+echo "Les playlists Deezer marchent sans rien. Pour coller aussi des liens de playlists Spotify, il faut les identifiants"
+echo "d'une app Spotify (https://developer.spotify.com/dashboard → ton app → Settings). Entrée pour passer."
+CLIENT_ID=$(ask "Client ID" "$(getenv SPOTIFY_CLIENT_ID)")
+if [ -n "$CLIENT_ID" ]; then
+    CURRENT_SECRET=$(getenv SPOTIFY_CLIENT_SECRET)
+    if [ -n "$CURRENT_SECRET" ]; then
+        CLIENT_SECRET=$(ask_secret "Client secret (Entrée pour garder l'actuel)")
+        CLIENT_SECRET="${CLIENT_SECRET:-$CURRENT_SECRET}"
+    else
+        CLIENT_SECRET=$(ask_secret "Client secret (invisible à la frappe)")
+    fi
+    setenv SPOTIFY_CLIENT_ID "$CLIENT_ID"
+    setenv SPOTIFY_CLIENT_SECRET "$CLIENT_SECRET"
 else
-    node scripts/auth.js --manual --write
+    echo "Pas de Spotify : les hôtes colleront des liens de playlists Deezer."
 fi
 
-step "4/5 Options"
+step "3/4 Options"
 if yesno "Ouvrir le jeu à la famille via un tunnel Cloudflare (il faut un domaine chez Cloudflare) ?"; then
     DOMAIN=$(ask "Nom de domaine complet à utiliser (ex. blindtest.ton-domaine.fr)" "$(getenv BLINDTEST_PUBLIC_URL | sed 's|^https://||')")
     if [ -n "$DOMAIN" ]; then
@@ -95,7 +89,7 @@ if yesno "Le Pi est-il branché en HDMI sur une TV, avec le bureau Raspberry Pi 
     bash deploy/tv-setup.sh
 fi
 
-step "5/5 Démarrage"
+step "4/4 Démarrage"
 install -d -m 700 data
 chown -R blindtest:blindtest "$DIR"
 systemctl enable blindtest >/dev/null 2>&1 || true
@@ -126,5 +120,6 @@ echo "Scanne ce QR code avec ton téléphone pour entrer dans ta salle :"
 echo
 node scripts/qr-terminal.js "$LOCAL_URL/r/$ROOM"
 echo
-echo "Ensuite : pseudo → « Je suis l'hôte » → code $PIN → manette 🎛️ → playlist → appareil → ▶ Lancer."
+echo "Ensuite : pseudo → « Je suis l'hôte » → code $PIN → manette 🎛️ → lien de playlist → ▶ Lancer."
+echo "Le son sort de l'écran TV de la salle, ou de ton téléphone si tu l'actives dans le panneau hôte."
 echo "Logs : journalctl -u blindtest -f   ·   Relancer cet assistant : sudo $DIR/deploy/setup.sh"

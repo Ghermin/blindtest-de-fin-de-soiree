@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+    <p id="sound-help" class="sound-help" role="status" hidden>🔈 Touche l'écran pour activer le son</p>
     <main id="app">
         <section id="screen-home" hidden>
             <div class="hero">
@@ -55,8 +56,8 @@
                 <img id="lobby-qr" alt="QR code pour rejoindre la partie">
                 <p id="lobby-url" class="join-url"></p>
             </div>
-            <p id="lobby-spotify" class="notice" hidden>🎧 L'hôte doit connecter Spotify avant de lancer</p>
-            <p class="hint">L'hôte choisit la playlist et lance la partie.</p>
+            <p class="hint">L'hôte choisit la playlist et lance la partie. Le son sort de l'écran TV ou du téléphone de l'hôte.</p>
+            <p class="credit">Extraits musicaux : Deezer · Apple Music</p>
         </section>
 
         <section id="screen-game" hidden>
@@ -80,10 +81,6 @@
                 <p id="guess-feedback" role="status"></p>
                 <ul id="live-teams" class="teams-bar" hidden></ul>
                 <ul id="live-scores" class="scores"></ul>
-            </div>
-            <div id="stalled-zone" hidden>
-                <p role="status">⚠️ <span id="stalled-message"></span></p>
-                <button id="stalled-retry" class="primary" hidden>🔄 Relancer la lecture</button>
             </div>
         </section>
 
@@ -110,15 +107,8 @@
             <h3>Panneau hôte</h3>
             <button id="host-close" type="button" aria-label="Fermer le panneau">✕</button>
         </div>
-        <p id="host-spotify" class="host-line"></p>
-        <div class="host-actions">
-            <button id="host-connect" type="button" hidden>🎧 Connecter Spotify</button>
-            <button id="host-playlists" type="button" hidden>📚 Mes playlists</button>
-            <button id="host-cast" type="button" hidden>📺 Caster sur la TV</button>
-        </div>
-        <ul id="host-playlist-list" class="host-list"></ul>
         <form id="playlist-form">
-            <input id="playlist-url" type="text" inputmode="url" placeholder="Lien de playlist Spotify" aria-label="Lien de playlist Spotify" autocomplete="off">
+            <input id="playlist-url" type="text" inputmode="url" placeholder="Lien de playlist Spotify ou Deezer" aria-label="Lien de playlist Spotify ou Deezer" autocomplete="off">
             <button type="submit">Charger</button>
         </form>
         <div id="host-presets" class="host-actions" hidden></div>
@@ -138,7 +128,7 @@
             </label>
             <label>Durée
                 <select id="opt-duration">
-                    <option value="20">20 s</option><option value="30" selected>30 s</option><option value="45">45 s</option>
+                    <option value="15">15 s</option><option value="20">20 s</option><option value="30" selected>30 s</option>
                 </select>
             </label>
             <label>Indices
@@ -151,14 +141,14 @@
         <div class="host-actions">
             <button id="host-start" class="primary">▶ Lancer</button>
             <button id="host-skip">⏭ Passer</button>
-            <button id="host-retry" hidden>🔄 Relancer la lecture</button>
             <button id="host-stop">⏹ Stop</button>
             <button id="host-lobby">↩ Lobby</button>
         </div>
-        <div class="host-devices">
-            <button id="host-devices-refresh">🔊 Appareils Spotify</button>
-            <ul id="host-devices"></ul>
+        <div class="host-actions">
+            <button id="host-speaker" type="button">🔈 Son sur ce téléphone : non</button>
+            <button id="host-cast" type="button" hidden>📺 Caster sur la TV</button>
         </div>
+        <p class="hint">Le son sort de l'écran TV de la salle. Sans écran, active-le sur ce téléphone et branche une enceinte.</p>
         <p id="host-feedback" role="status"></p>
         <p id="host-key" class="hint"></p>
     </aside>

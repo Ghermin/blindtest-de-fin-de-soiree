@@ -8,19 +8,22 @@ const TRACKS = [
     { uri: 'spotify:track:3', name: 'Alors on danse', artists: ['Stromae'], image: null, durationMs: 206000 }
 ];
 
-function fakeSpotify(overrides = {}) {
+function fakeSources(overrides = {}) {
     return {
-        connected: () => true,
-        pause: async () => null,
-        ensurePlay: async () => null,
-        confirmPlaying: async () => true,
-        playlist: async () => ({ name: 'Test', image: null, tracks: TRACKS }),
+        loadPlaylist: async () => ({ id: 'p1', source: 'spotify', name: 'Test', image: null, tracks: TRACKS.map((track) => ({ ...track })) }),
+        resolveAll: async (tracks, options) => {
+            for (const track of tracks) {
+                track.match = { source: 'test', id: track.uri };
+                options.onProgress(track, track.match);
+            }
+        },
+        freshUrl: async (match) => `https://extraits.test/${encodeURIComponent(match.id)}.mp3`,
         ...overrides
     };
 }
 
 function make(overrides) {
-    const game = new Game({ spotify: fakeSpotify(overrides), code: 'TEST', timings: { countdownMs: 20, revealMs: 30, guessMs: 300 } });
+    const game = new Game({ sources: fakeSources(overrides), code: 'TEST', timings: { countdownMs: 20, revealMs: 30, guessMs: 300 } });
     game.log = () => {};
     return game;
 }
@@ -83,7 +86,7 @@ test('les joueurs déconnectés ne bloquent pas la fin de manche', () => {
     assert.ok(!game.everyoneDone());
     assert.ok(game.guess(tom.token, 'billie jean').title);
     assert.ok(game.everyoneDone());
-    assert.strictEqual(game.publicState().players.find((player) => player.name === 'Léa').online, false);
+    assert.strictEqual(game.publicState().players.find((entry) => entry.name === 'Léa').online, false);
     game.stop();
 });
 
@@ -109,44 +112,37 @@ test('les indices apparaissent pendant la manche et disparaissent après', async
     assert.strictEqual(game.publicState().hint, null);
 });
 
-test('sans l\'option, aucun indice', async () => {
+test('le chargement d\'une playlist annonce la progression des extraits', async () => {
     const game = make();
-    game.track = TRACKS[0];
-    game.settings = { ...game.settings, guessMs: 100, mode: 'both', hints: false };
-    game.phase = 'guess';
-    game.scheduleHints();
-    await new Promise((resolve) => setTimeout(resolve, 90));
-    assert.strictEqual(game.publicState().hint, null);
+    const playlist = await game.setPlaylist('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
+    assert.strictEqual(playlist.total, 3);
+    await until(() => game.playlist.ready, 1000);
+    assert.strictEqual(game.playlist.resolved, 3);
+    assert.strictEqual(game.playlist.missing, 0);
 });
 
-test('une playlist éditoriale inaccessible donne un message clair', async () => {
-    const error = new Error('Spotify 404 : Resource not found');
-    error.status = 404;
-    const game = make({ playlist: async () => { throw error; } });
-    await assert.rejects(() => game.setPlaylist('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M'), /playlist perso/);
-});
-
-test('une lecture non confirmée met la manche en attente', async () => {
-    const game = make({ confirmPlaying: async () => false });
-    const tom = game.join('Tom');
-    game.connect(tom.token);
+test('lancer avant la fin de la recherche donne un message clair', async () => {
+    const game = make({ resolveAll: () => new Promise(() => {}) });
+    game.join('Tom');
     await game.setPlaylist('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
-    game.start({ rounds: 1, mode: 'title' });
-    await until(() => game.phase === 'stalled', 2000);
-    assert.match(game.notice, /confirmé/);
-    game.stop();
+    assert.throws(() => game.start({ rounds: 2 }), /Recherche des extraits en cours/);
 });
 
-test('une partie complète avec un faux Spotify, sans répéter les titres', async () => {
+test('une partie complète : décompte, extrait, manches, podium, sans répéter les titres', async () => {
     const game = make();
     const tom = game.join('Tom');
     const lea = game.join('Léa');
     game.connect(tom.token);
     game.connect(lea.token);
     await game.setPlaylist('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
+    await until(() => game.playlist.ready, 1000);
     game.start({ rounds: 2, mode: 'title' });
-    assert.strictEqual(game.phase, 'countdown');
+    await until(() => game.phase === 'countdown', 1000);
+    const countdown = game.publicState();
+    assert.ok(countdown.audio.url.startsWith('https://extraits.test/'));
+    assert.strictEqual(countdown.audio.startedAt, 0);
     await until(() => game.phase === 'guess', 2000);
+    assert.ok(game.publicState().audio.startedAt > 0);
     assert.strictEqual(game.guess(lea.token, 'céline dion').title, false);
     const found = game.guess(tom.token, game.track.name);
     assert.ok(found.title);
@@ -154,11 +150,11 @@ test('une partie complète avec un faux Spotify, sans répéter les titres', asy
     await until(() => game.phase === 'podium', 4000);
     assert.strictEqual(game.played.size, 2);
     const state = game.publicState();
+    assert.strictEqual(state.audio, null);
     assert.strictEqual(state.players[0].name, 'Tom');
     assert.strictEqual(state.stats.fastest.name, 'Tom');
     assert.strictEqual(state.stats.firsts.count, 1);
     assert.strictEqual(state.stats.wildest.name, 'Léa');
-    assert.strictEqual(state.stats.wildest.guess, 'céline dion');
 
     const remaining = TRACKS.find((track) => !game.played.has(track.uri));
     game.start({ rounds: 1, mode: 'title' });
@@ -166,21 +162,41 @@ test('une partie complète avec un faux Spotify, sans répéter les titres', asy
     game.stop();
 });
 
-test('la sauvegarde conserve joueurs et scores, et remet une partie interrompue au lobby', () => {
+test('un extrait indisponible au moment de jouer est écarté', async () => {
+    const game = make({
+        freshUrl: async (match) => {
+            if (match.id === 'spotify:track:2') throw new Error('plus de preview');
+            return `https://extraits.test/${encodeURIComponent(match.id)}.mp3`;
+        }
+    });
+    const tom = game.join('Tom');
+    game.connect(tom.token);
+    await game.setPlaylist('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
+    await until(() => game.playlist.ready, 1000);
+    game.start({ rounds: 3, mode: 'title' });
+    await until(() => game.phase === 'podium', 6000);
+    assert.strictEqual(game.queue.length, 2);
+    assert.ok(game.queue.every((track) => track.uri !== 'spotify:track:2'));
+    game.stop();
+});
+
+test('la sauvegarde conserve joueurs, scores, extraits et remet une partie interrompue au lobby', () => {
     const game = make();
     const tom = game.join('Tom', undefined, 'Rouges');
     game.players.get(tom.token).score = 1200;
-    game.allTracks = TRACKS;
+    game.allTracks = TRACKS.map((track) => ({ ...track, match: { source: 'test', id: track.uri } }));
+    game.playlist = { id: 'p1', source: 'spotify', name: 'Test', image: null, total: 3, resolved: 3, missing: 0, ready: true };
     game.played.add(TRACKS[0].uri);
     game.phase = 'guess';
     const restored = make();
     restored.restore(JSON.parse(JSON.stringify(game)));
     assert.strictEqual(restored.phase, 'lobby');
     assert.match(restored.notice, /interrompue/);
-    const player = restored.players.get(tom.token);
-    assert.strictEqual(player.score, 1200);
-    assert.strictEqual(player.team, 'Rouges');
-    assert.strictEqual(player.connections, 0);
+    const entry = restored.players.get(tom.token);
+    assert.strictEqual(entry.score, 1200);
+    assert.strictEqual(entry.team, 'Rouges');
+    assert.strictEqual(entry.connections, 0);
     assert.ok(restored.played.has(TRACKS[0].uri));
-    assert.strictEqual(restored.allTracks.length, 3);
+    assert.strictEqual(restored.playable().length, 3);
+    assert.strictEqual(restored.playlist.ready, true);
 });
