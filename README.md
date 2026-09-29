@@ -31,10 +31,17 @@ extraits viennent des catalogues publics de Deezer et d'Apple Music.
 
 ## Installer sur le Raspberry Pi
 
+Dépôt privé : il faut un jeton GitHub en lecture seule limité à ce dépôt
+(Settings → Developer settings → Fine-grained tokens, permission Contents :
+Read-only). Le Pi le garde pour ses mises à jour automatiques.
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/install.sh -o /tmp/install.sh
-sudo bash /tmp/install.sh
+T=github_pat_xxx
+curl -fsSL -H "Authorization: token $T" https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/install.sh -o /tmp/install.sh
+sudo GITHUB_TOKEN=$T bash /tmp/install.sh
 ```
+
+Dépôt public : même chose sans le jeton ni l'en-tête.
 
 L'installation enchaîne sur un **assistant** : code hôte, identifiants Spotify
 (optionnels, seulement pour les liens Spotify), accès famille, écran TV, puis

@@ -15,9 +15,27 @@ Trois blocs, dans l'ordre. Seul le premier est obligatoire.
 
 ---
 
-## Avant de rentrer (optionnel, depuis n'importe quel PC)
+## Avant de rentrer (depuis n'importe quel PC)
 
-### Si tu veux coller des playlists Spotify : une app Spotify (5 min)
+### Le jeton GitHub du dépôt privé (2 min, obligatoire)
+
+Le dépôt est privé : le Pi a besoin d'un jeton en lecture seule pour
+télécharger le jeu et se mettre à jour.
+
+1. https://github.com/settings/personal-access-tokens/new (Settings → Developer
+   settings → Fine-grained tokens → **Generate new token**).
+2. **Token name** `blindtest-pi`, **Expiration** : la durée la plus longue
+   proposée, **Repository access** : **Only select repositories** →
+   `blindtest-de-fin-de-soiree`.
+3. **Permissions** → **Repository permissions** → **Contents** : **Read-only**.
+   Rien d'autre. **Generate token**.
+4. Copie le jeton (il commence par `github_pat_`), tu ne le reverras pas.
+
+📝 Garde-le sous la main, il va dans la commande de l'étape 1. À son
+expiration, le jeu continue de tourner, seule la mise à jour automatique
+s'arrête : relance l'étape 1 avec un nouveau jeton.
+
+### Si tu veux coller des playlists Spotify : une app Spotify (5 min, optionnel)
 
 Les playlists **Deezer** marchent sans rien. Pour accepter aussi les liens de
 playlists **Spotify**, le serveur a besoin des identifiants d'une app Spotify :
@@ -57,14 +75,19 @@ ssh pi@raspberrypi.local
 > dans l'interface de ta box). Adapte aussi `pi` si ton utilisateur s'appelle
 > autrement.
 
-Sur le Pi, lance :
+Sur le Pi, lance ces deux lignes en remplaçant `github_pat_xxx` par ton jeton :
 
 ```
-curl -fsSL https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/install.sh -o /tmp/install.sh && sudo bash /tmp/install.sh
+T=github_pat_xxx
+curl -fsSL -H "Authorization: token $T" https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/install.sh -o /tmp/install.sh && sudo GITHUB_TOKEN=$T bash /tmp/install.sh
 ```
 
-Ça installe Node 22 si besoin, met le jeu dans `/opt/blindtest`, crée le
-service, puis **l'assistant démarre tout seul**.
+Ça enregistre le jeton pour les mises à jour (dans `/root/.git-credentials`,
+lisible par root seulement), installe Node 22 si besoin, met le jeu dans
+`/opt/blindtest`, crée le service, puis **l'assistant démarre tout seul**.
+
+> Si tu passes un jour le dépôt en public, la même commande marche sans le
+> jeton : `curl -fsSL <url> -o /tmp/install.sh && sudo bash /tmp/install.sh`.
 
 ### Étape 2 — Répondre à l'assistant
 
@@ -235,6 +258,8 @@ aucune installation chez lui. Une salle sans activité pendant 6 h disparaît.
 | La TV castée affiche le jeu mais reste muette | Monte le volume du Chromecast / de la TV |
 | Le bouton **📺 Caster** n'apparaît pas | Chrome sur Android ou PC, l'Application ID Cast dans l'assistant, et le bloc C |
 | « Clé hôte incorrecte » | C'est le code hôte de l'assistant, aussi dans `journalctl -u blindtest -n 20` |
+| « Impossible d'accéder au dépôt » à l'installation | Jeton absent, expiré ou sans la permission Contents : refais le jeton et relance avec `GITHUB_TOKEN=` |
+| « Mise à jour impossible : dépôt inaccessible » dans les logs | Le jeton a expiré : relance l'étape 1 avec un nouveau jeton |
 | La page ne charge pas sur un téléphone | Même WiFi que le Pi (pas la 4G, pas le réseau invité), IP plutôt que `.local` |
 | Le serveur a redémarré pendant la partie | Les scores sont conservés, la salle revient au lobby : l'hôte relance |
 | Voir ce qui se passe | `journalctl -u blindtest -f` sur le Pi |
