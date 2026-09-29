@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#12081f">
+    <title>Blind Test de fin de soirée</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <main id="app">
+        <section id="screen-join" hidden>
+            <div class="hero">
+                <div class="vinyl small spinning"></div>
+                <h1>Blind Test<span>de fin de soirée</span></h1>
+            </div>
+            <form id="join-form">
+                <input id="join-name" type="text" maxlength="20" placeholder="Ton pseudo" autocomplete="nickname" required>
+                <button type="submit" class="primary">Rejoindre 🎉</button>
+            </form>
+            <button id="become-host" class="ghost">Je suis l'hôte 🎛️</button>
+        </section>
+
+        <section id="screen-lobby" hidden>
+            <h2>En attente du lancement…</h2>
+            <p id="lobby-playlist" class="playlist-tag"></p>
+            <ul id="lobby-players" class="chips"></ul>
+            <p class="hint">L'hôte choisit la playlist et lance la partie.</p>
+        </section>
+
+        <section id="screen-game" hidden>
+            <header class="round-header">
+                <span id="round-label"></span>
+                <span id="mode-label"></span>
+            </header>
+            <div id="countdown-big" hidden></div>
+            <div id="guess-zone" hidden>
+                <div class="vinyl spinning"><span>?</span></div>
+                <div class="timer"><div id="timer-bar"></div></div>
+                <div id="my-found" class="chips"></div>
+                <form id="guess-form">
+                    <input id="guess-input" type="text" maxlength="80" placeholder="Titre ou artiste…" autocomplete="off" autocapitalize="off">
+                    <button type="submit" class="primary">➤</button>
+                </form>
+                <p id="guess-feedback"></p>
+                <ul id="live-scores" class="scores"></ul>
+            </div>
+            <div id="stalled-zone" hidden>
+                <p>⚠️ <span id="stalled-message"></span></p>
+            </div>
+        </section>
+
+        <section id="screen-reveal" hidden>
+            <h2>C'était…</h2>
+            <img id="reveal-cover" alt="">
+            <p id="reveal-title"></p>
+            <p id="reveal-artists"></p>
+            <ul id="reveal-scores" class="scores"></ul>
+        </section>
+
+        <section id="screen-podium" hidden>
+            <h2>🏆 Podium</h2>
+            <ol id="podium-list"></ol>
+        </section>
+    </main>
+
+    <button id="host-toggle" hidden>🎛️</button>
+    <aside id="host-panel" hidden>
+        <h3>Panneau hôte</h3>
+        <form id="playlist-form">
+            <input id="playlist-url" type="text" placeholder="Lien de playlist Spotify" autocomplete="off">
+            <button type="submit">Charger</button>
+        </form>
+        <p id="host-playlist-info"></p>
+        <div class="host-settings">
+            <label>Manches
+                <select id="opt-rounds">
+                    <option>5</option><option selected>10</option><option>15</option><option>20</option>
+                </select>
+            </label>
+            <label>À deviner
+                <select id="opt-mode">
+                    <option value="both" selected>Titre + artiste</option>
+                    <option value="title">Titre seul</option>
+                    <option value="artist">Artiste seul</option>
+                </select>
+            </label>
+            <label>Durée
+                <select id="opt-duration">
+                    <option value="20">20 s</option><option value="30" selected>30 s</option><option value="45">45 s</option>
+                </select>
+            </label>
+        </div>
+        <div class="host-actions">
+            <button id="host-start" class="primary">▶ Lancer</button>
+            <button id="host-skip">⏭ Passer</button>
+            <button id="host-retry" hidden>🔄 Relancer la lecture</button>
+            <button id="host-stop">⏹ Stop</button>
+            <button id="host-lobby">↩ Lobby</button>
+        </div>
+        <div class="host-devices">
+            <button id="host-devices-refresh">🔊 Appareils Spotify</button>
+            <ul id="host-devices"></ul>
+        </div>
+        <p id="host-feedback"></p>
+    </aside>
+
+    <script src="/app.js"></script>
+</body>
+</html>

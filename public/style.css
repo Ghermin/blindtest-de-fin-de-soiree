@@ -1,0 +1,363 @@
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #12081f;
+    --bg2: #1f0f38;
+    --card: #2a1650;
+    --text: #f3ecff;
+    --muted: #b9a6e0;
+    --accent: #ff3d8b;
+    --accent2: #35e0c8;
+    --ok: #4ade80;
+    --ko: #f87171;
+}
+
+body {
+    margin: 0;
+    min-height: 100dvh;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at 20% 0%, var(--bg2), var(--bg) 70%);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+}
+
+#app {
+    width: 100%;
+    max-width: 480px;
+}
+
+section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 0;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.2rem;
+    margin: 0;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+h1 span {
+    display: block;
+    font-size: 1.1rem;
+    color: var(--muted);
+    -webkit-text-fill-color: var(--muted);
+}
+
+h2 {
+    margin: 0;
+}
+
+form {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+input[type="text"] {
+    flex: 1;
+    padding: 14px 16px;
+    font-size: 1.05rem;
+    border: 2px solid var(--card);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    outline: none;
+}
+
+input[type="text"]:focus {
+    border-color: var(--accent2);
+}
+
+button {
+    padding: 12px 18px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 14px;
+    background: var(--card);
+    color: var(--text);
+    cursor: pointer;
+}
+
+button.primary {
+    background: linear-gradient(90deg, var(--accent), #ff6ba9);
+    font-weight: 700;
+}
+
+button.ghost {
+    background: transparent;
+    color: var(--muted);
+    text-decoration: underline;
+}
+
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10dvh;
+}
+
+.vinyl {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: repeating-radial-gradient(circle, #111 0 3px, #1c1c1c 3px 6px);
+    border: 4px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.vinyl::after {
+    content: "";
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+}
+
+.vinyl span {
+    position: relative;
+    z-index: 1;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #12081f;
+}
+
+.vinyl.small {
+    width: 90px;
+    height: 90px;
+}
+
+.spinning {
+    animation: spin 2.4s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.chips {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+}
+
+.chips li {
+    background: var(--card);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+}
+
+.round-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+#countdown-big {
+    font-size: 6rem;
+    font-weight: 800;
+    color: var(--accent2);
+    animation: pulse 1s ease infinite;
+}
+
+@keyframes pulse {
+    50% { transform: scale(1.15); }
+}
+
+.timer {
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+#timer-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 999px;
+}
+
+#timer-bar.urgent {
+    background: var(--ko);
+}
+
+#guess-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+}
+
+#guess-feedback {
+    min-height: 1.4em;
+    margin: 0;
+    font-weight: 700;
+}
+
+#guess-feedback.ok {
+    color: var(--ok);
+}
+
+#guess-feedback.ko {
+    color: var(--ko);
+}
+
+.scores {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.scores li {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+#reveal-cover {
+    width: 220px;
+    height: 220px;
+    border-radius: 18px;
+    object-fit: cover;
+    box-shadow: 0 10px 40px rgba(255, 61, 139, 0.35);
+}
+
+#reveal-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+#reveal-artists {
+    color: var(--muted);
+    margin: 0;
+}
+
+#podium-list {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 1.15rem;
+}
+
+#podium-list li {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 12px 16px;
+    text-align: left;
+}
+
+.hint, .playlist-tag {
+    color: var(--muted);
+    margin: 0;
+}
+
+#host-toggle {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    background: var(--card);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+#host-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #1a0d31;
+    border-top: 2px solid var(--card);
+    border-radius: 20px 20px 0 0;
+    padding: 18px;
+    max-height: 75dvh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#host-panel h3 {
+    margin: 0;
+}
+
+.host-settings {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.host-settings label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+select {
+    padding: 10px;
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--text);
+    border: none;
+}
+
+.host-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.host-devices ul {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#host-feedback {
+    margin: 0;
+    color: var(--ko);
+    min-height: 1.2em;
+}
