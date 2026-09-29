@@ -59,13 +59,15 @@ et une enceinte Bluetooth sur ton téléphone.
 
 ## 3. Spotify (optionnel, 5 min, une seule fois)
 
-Les playlists Deezer marchent sans rien. Pour coller des liens de playlists
-Spotify et lister **tes** playlists depuis le panneau hôte :
+Les playlists Deezer marchent sans rien. Spotify, lui, ne livre plus les titres
+d'une playlist qu'à son propriétaire, via un compte connecté : ça sert donc à
+jouer **tes** playlists Spotify depuis le bouton **Mes playlists**.
 
 1. https://developer.spotify.com/dashboard → **Create app** : nom `Blind Test`,
    description `blind test maison`, **Redirect URIs** :
    `http://127.0.0.1:3000/auth/spotify/callback` (clique **Add**), **Web API**
    coché, **Save**. Dans **Settings**, copie le **Client ID** et le secret.
+   Spotify exige un abonnement Premium sur le compte qui crée l'app.
 2. Dans Termux : `bash ~/blindtest/deploy/termux.sh`, Entrée sur le code hôte,
    colle le Client ID puis le secret.
 3. Dans le panneau hôte de ta salle : **🎧 Connecter mon compte Spotify** →
@@ -73,14 +75,15 @@ Spotify et lister **tes** playlists depuis le panneau hôte :
    **📚 Mes playlists** liste alors tes playlists, privées comprises.
 
 Seul ton téléphone peut connecter le compte (l'adresse de retour est locale).
-Les invités n'ont rien à faire.
+Les invités n'ont rien à faire. L'autorisation dure 6 mois, puis le panneau
+hôte te redemande de connecter le compte.
 
-**Limite imposée par Spotify** : une app en mode développement ne lit que les
-titres des playlists **que tu possèdes**. Une playlist que tu suis, créée par
-quelqu'un d'autre, est refusée. Le contournement prend deux touches dans
-Spotify : ouvre la playlist → ⋮ → **Ajouter à une playlist** → **Nouvelle
-playlist**. La copie t'appartient et se charge normalement. Les playlists
-Deezer publiques, elles, passent toutes.
+**Limite imposée par Spotify (mars 2026)** : une app en mode développement ne
+lit que les titres des playlists **que tu possèdes** ou auxquelles tu
+collabores. Une playlist que tu suis, même publique, est refusée. Le
+contournement prend deux touches dans Spotify : ouvre la playlist → ⋮ →
+**Ajouter à une playlist** → **Nouvelle playlist**. La copie t'appartient et se
+charge normalement. Les playlists Deezer publiques, elles, passent toutes.
 
 ## Si ça coince
 
@@ -92,7 +95,9 @@ Deezer publiques, elles, passent toutes.
 | « Pas de mise à jour (hors ligne ou jeton expiré) » | Le jeu se lance quand même ; refais un jeton quand tu veux |
 | « Recherche des extraits en cours » | Patiente, le compteur avance dans le panneau hôte |
 | « Pas assez d'extraits trouvés » | Titres trop rares : essaie la même playlist côté Deezer |
-| « Playlist introuvable » | Playlist créée par Spotify (Top 50…) ou privée sans compte connecté : playlist publique, Deezer, ou **Mes playlists** |
+| « Playlist introuvable » | Playlist créée par Spotify (Top 50…) : **Mes playlists** ou Deezer |
+| « Spotify refuse les titres de cette playlist » | Playlist suivie, pas possédée : copie-la dans Spotify (⋮ → Ajouter à une playlist → Nouvelle playlist) |
+| « Spotify a expiré l'autorisation » | Reconnecte ton compte dans le panneau hôte, Spotify coupe l'accès au bout de 6 mois |
 | Pas de son sur l'écran TV | **Activer le son** sur cet écran (les navigateurs exigent un geste) |
 | Deux appareils jouent le son | Désactive **Son sur ce téléphone** dans le panneau hôte |
 | « Clé hôte incorrecte » | C'est le code hôte affiché au lancement dans Termux |

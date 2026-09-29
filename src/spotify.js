@@ -6,7 +6,9 @@ const http = require('./http.js');
 const API = 'https://api.spotify.com/v1';
 const ACCOUNTS = 'https://accounts.spotify.com';
 const SCOPES = 'playlist-read-private playlist-read-collaborative';
-let app = { token: '', expiresAt: 0 };
+const OWN_ONLY = 'Spotify refuse les titres de cette playlist : depuis mars 2026, une app en mode développement ne lit que les playlists que tu possèdes (ou collaboratives). Dans Spotify, ouvre la playlist → ⋮ → Ajouter à une playlist → Nouvelle playlist, puis charge cette copie. Ou utilise une playlist Deezer.';
+const NEED_ACCOUNT = 'Spotify ne livre plus les titres d\'une playlist sans compte connecté : connecte ton compte Spotify dans le panneau hôte et charge une de tes playlists, ou utilise une playlist Deezer.';
+const ENTRY_FIELDS = 'uri,name,duration_ms,artists(name),album(images)';
 let user;
 
 function configured() {
@@ -59,23 +61,26 @@ async function tokenRequest(params) {
         const detail = response.json && (response.json.error_description || response.json.error);
         const error = new Error(`Spotify refuse (${response.status}${detail ? ` : ${detail}` : ''})`);
         error.status = response.status;
+        error.code = response.json && typeof response.json.error === 'string' ? response.json.error : '';
         throw error;
     }
     return response.json;
-}
-
-async function appToken() {
-    if (app.token && Date.now() < app.expiresAt) return app.token;
-    const data = await tokenRequest({ grant_type: 'client_credentials' });
-    app = { token: data.access_token, expiresAt: Date.now() + (data.expires_in - 60) * 1000 };
-    return app.token;
 }
 
 async function userToken() {
     const data = loadUser();
     if (!data || !data.refreshToken) return '';
     if (data.accessToken && Date.now() < data.expiresAt) return data.accessToken;
-    const fresh = await tokenRequest({ grant_type: 'refresh_token', refresh_token: data.refreshToken });
+    let fresh;
+    try {
+        fresh = await tokenRequest({ grant_type: 'refresh_token', refresh_token: data.refreshToken });
+    } catch (error) {
+        if (error.code === 'invalid_grant') {
+            forgetUser();
+            throw new Error('Spotify a expiré l\'autorisation de ton compte (elle dure 6 mois) : reconnecte-le dans le panneau hôte', { cause: error });
+        }
+        throw error;
+    }
     data.accessToken = fresh.access_token;
     data.expiresAt = Date.now() + (fresh.expires_in - 60) * 1000;
     if (fresh.refresh_token) data.refreshToken = fresh.refresh_token;
@@ -83,8 +88,9 @@ async function userToken() {
     return data.accessToken;
 }
 
-async function api(route, asUser) {
-    const token = asUser ? await userToken() : await appToken();
+async function api(route) {
+    const token = await userToken();
+    if (!token) throw new Error(NEED_ACCOUNT);
     const response = await http.request(API + route, { headers: { Authorization: `Bearer ${token}` } });
     if (response.status >= 400) {
         const reason = response.json && response.json.error ? response.json.error.message : `HTTP ${response.status}`;
@@ -109,7 +115,7 @@ async function connect(code, redirectUri) {
     const tokens = await tokenRequest({ grant_type: 'authorization_code', code, redirect_uri: redirectUri });
     const data = { refreshToken: tokens.refresh_token, accessToken: tokens.access_token, expiresAt: Date.now() + (tokens.expires_in - 60) * 1000, account: null };
     user = data;
-    const me = await api('/me', true).catch(() => null);
+    const me = await api('/me').catch(() => null);
     data.account = me ? { id: me.id, name: me.display_name || me.id } : null;
     saveUser(data);
     return data.account;
@@ -120,23 +126,24 @@ function status() {
     return { configured: configured(), connected: Boolean(data && data.refreshToken), account: data ? data.account : null };
 }
 
-const OWN_ONLY = 'Spotify refuse les titres de cette playlist : une app en mode développement ne lit que les playlists que tu possèdes. Dans Spotify, ouvre la playlist → ⋮ → Ajouter à une playlist → Nouvelle playlist, puis charge cette copie. Ou utilise une playlist Deezer.';
+async function playlistPage(route) {
+    try {
+        return await api(route);
+    } catch (error) {
+        if (error.status === 403) throw new Error(OWN_ONLY, { cause: error });
+        if (error.status === 400 && route.includes('&fields=')) return api(route.replace(/&fields=.*$/, ''));
+        throw error;
+    }
+}
 
 async function playlist(id) {
-    const asUser = Boolean(loadUser());
-    const meta = await api(`/playlists/${id}?fields=name,images,tracks.total`, asUser);
+    const meta = await api(`/playlists/${id}?fields=name,images`);
     const tracks = [];
-    let route = `/playlists/${id}/tracks?limit=100&fields=next,items(is_local,track(uri,name,duration_ms,artists(name),album(images)))`;
+    let route = `/playlists/${id}/items?limit=50&fields=next,items(is_local,item(${ENTRY_FIELDS}),track(${ENTRY_FIELDS}))`;
     while (route) {
-        let page;
-        try {
-            page = await api(route, asUser);
-        } catch (error) {
-            if (error.status === 403) throw new Error(OWN_ONLY);
-            throw error;
-        }
+        const page = await playlistPage(route);
         for (const item of page.items || []) {
-            const track = item.track;
+            const track = item.item || item.track;
             if (!track || item.is_local || !track.uri || !track.uri.startsWith('spotify:track:')) continue;
             if (!track.duration_ms || track.duration_ms < 45000) continue;
             tracks.push({
@@ -163,10 +170,11 @@ async function myPlaylists() {
     const result = [];
     let route = '/me/playlists?limit=50';
     while (route && result.length < 200) {
-        const page = await api(route, true);
+        const page = await api(route);
         for (const item of page.items || []) {
             if (!item || !item.id) continue;
-            result.push({ id: item.id, name: item.name, total: item.tracks ? item.tracks.total : 0, mine: Boolean(item.owner && item.owner.id === me) });
+            const count = item.items || item.tracks;
+            result.push({ id: item.id, name: item.name, total: count ? count.total : 0, mine: Boolean(item.owner && item.owner.id === me) });
         }
         route = page.next ? page.next.replace(API, '') : null;
     }

@@ -26,7 +26,7 @@ async function loadPlaylist(input) {
         data = await spotify.playlist(link.id);
     } catch (error) {
         if (error.status === 404) {
-            throw new Error('Playlist introuvable. Les playlists créées par Spotify (Top 50, Années 80…) et les playlists privées ne sont pas accessibles : utilise une playlist publique perso, ou une playlist Deezer');
+            throw new Error('Playlist introuvable. Les playlists créées par Spotify (Top 50, Années 80…) ne sont pas accessibles : choisis une de tes playlists dans « Mes playlists », ou une playlist Deezer', { cause: error });
         }
         throw error;
     }

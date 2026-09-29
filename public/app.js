@@ -368,7 +368,7 @@
             const account = status.spotify || {};
             $('host-spotify').hidden = !account.configured;
             $('host-spotify-actions').hidden = !account.configured;
-            $('host-spotify').textContent = account.connected ? `🎧 Spotify : ${account.account ? account.account.name : 'compte connecté'}` : '🎧 Spotify : compte non connecté (liens de playlists publiques seulement)';
+            $('host-spotify').textContent = account.connected ? `🎧 Spotify : ${account.account ? account.account.name : 'compte connecté'}` : '🎧 Spotify : compte non connecté (nécessaire pour lire une playlist Spotify)';
             $('host-connect').textContent = account.connected ? '🎧 Changer de compte Spotify' : '🎧 Connecter mon compte Spotify';
             $('host-playlists').hidden = !account.connected;
             const container = $('host-presets');
@@ -516,7 +516,7 @@
             if (!mine.length) {
                 const hint = document.createElement('li');
                 hint.className = 'host-hint';
-                hint.textContent = 'Spotify ne laisse lire que tes propres playlists. Dans Spotify : playlist → ⋮ → Ajouter à une playlist → Nouvelle playlist, puis reviens ici.';
+                hint.textContent = 'Spotify ne laisse lire que tes propres playlists (ou collaboratives). Dans Spotify : playlist → ⋮ → Ajouter à une playlist → Nouvelle playlist, puis reviens ici.';
                 list.appendChild(hint);
             }
             for (const playlist of playlists) {
