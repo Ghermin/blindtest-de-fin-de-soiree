@@ -200,3 +200,16 @@ test('la sauvegarde conserve joueurs, scores, extraits et remet une partie inter
     assert.strictEqual(restored.playable().length, 3);
     assert.strictEqual(restored.playlist.ready, true);
 });
+
+test('titre et artiste dans la même réponse rapportent les deux', () => {
+    const game = make();
+    const tom = game.join('Tom');
+    game.track = TRACKS[1];
+    game.phase = 'guess';
+    game.guessStartedAt = Date.now();
+    const result = game.guess(tom.token, 'billie jean michael jackson');
+    assert.strictEqual(result.title, true);
+    assert.strictEqual(result.artist, true);
+    assert.ok(result.gained > 0);
+    assert.strictEqual(game.guess(tom.token, 'billie jean').accepted, false);
+});

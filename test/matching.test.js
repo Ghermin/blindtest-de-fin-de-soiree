@@ -67,3 +67,12 @@ test('la distance normalisée sert à trouver la réponse la plus hors sujet', (
     assert.ok(distance('céline dion', 'Bohemian Rhapsody') > 0.7);
     assert.ok(distance('bohemian rapsody', 'Bohemian Rhapsody') < 0.1);
 });
+
+test('titre et artiste tapés dans la même réponse sont séparés', () => {
+    const { splitGuess } = require('../src/matching.js');
+    assert.deepStrictEqual(splitGuess('runaway bon jovi', 'Runaway', ['Bon Jovi']), { title: 'runaway', artist: 'bon jovi' });
+    assert.deepStrictEqual(splitGuess('Bon Jovi - Runaway', 'Runaway', ['Bon Jovi']), { title: 'runaway', artist: 'bon jovi' });
+    assert.deepStrictEqual(splitGuess('alors on danse stromae', 'Alors on danse', ['Stromae']), { title: 'alors on danse', artist: 'stromae' });
+    assert.strictEqual(splitGuess('runaway', 'Runaway', ['Bon Jovi']), null);
+    assert.strictEqual(splitGuess('runaway bon jovi live', 'Runaway', ['Bon Jovi']), null);
+});

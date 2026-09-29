@@ -397,7 +397,8 @@ class Game extends EventEmitter {
         const speed = 1 - (1 - POINTS.minSpeed) * Math.min(1, elapsed / this.settings.guessMs);
         const result = { accepted: true, title: false, artist: false, gained: 0 };
 
-        if (mode !== 'artist' && !player.found.title && matching.matchesTitle(cleaned, this.track.name)) {
+        const parts = mode === 'both' ? matching.splitGuess(cleaned, this.track.name, this.track.artists) : null;
+        if (mode !== 'artist' && !player.found.title && matching.matchesTitle(parts ? parts.title : cleaned, this.track.name)) {
             player.found.title = true;
             result.title = true;
             let points = Math.round(POINTS.find * speed);
@@ -408,7 +409,7 @@ class Game extends EventEmitter {
             }
             result.gained += points;
         }
-        if (mode !== 'title' && !player.found.artist && matching.matchesArtist(cleaned, this.track.artists)) {
+        if (mode !== 'title' && !player.found.artist && matching.matchesArtist(parts ? parts.artist : cleaned, this.track.artists)) {
             player.found.artist = true;
             result.artist = true;
             let points = Math.round(POINTS.find * speed);
