@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export GIT_TERMINAL_PROMPT=0
 
 DIR=/opt/blindtest
 BRANCH="${BLINDTEST_BRANCH:-main}"
@@ -8,7 +9,10 @@ cd "$DIR"
 PORT=$(grep -E '^BLINDTEST_PORT=' .env 2>/dev/null | cut -d= -f2 | tr -d '[:space:]')
 PORT="${PORT:-3000}"
 
-git fetch --quiet --depth 1 origin "$BRANCH"
+if ! git fetch --quiet --depth 1 origin "$BRANCH" 2>/dev/null; then
+    echo "Mise à jour impossible : dépôt inaccessible (jeton GitHub expiré ? relance deploy/install.sh avec GITHUB_TOKEN)"
+    exit 0
+fi
 current=$(git rev-parse HEAD)
 latest=$(git rev-parse "origin/$BRANCH")
 if [ "$current" = "$latest" ]; then
