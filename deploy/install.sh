@@ -40,11 +40,12 @@ systemctl daemon-reload
 systemctl enable blindtest
 systemctl enable --now blindtest-update.timer
 
-if grep -qE '^SPOTIFY_CLIENT_ID=.+' .env; then
+if [ -t 0 ]; then
+    exec bash deploy/setup.sh
+fi
+
+if grep -qE '^SPOTIFY_REFRESH_TOKEN=.+' .env; then
     systemctl restart blindtest
     echo "Blind test (re)démarré. Logs : journalctl -u blindtest -f"
-else
-    echo "Renseigne $DIR/.env (SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, puis npm run auth pour la salle de la maison) et : sudo systemctl start blindtest"
 fi
-echo "Jeu : http://$(hostname).local:${BLINDTEST_PORT:-3000} (réseau local)"
-echo "Écran TV : sudo deploy/tv-setup.sh — Accès famille : sudo deploy/tunnel-setup.sh"
+echo "Termine l'installation avec l'assistant : sudo $DIR/deploy/setup.sh"

@@ -5,7 +5,8 @@
     const screens = ['missing', 'lobby', 'countdown', 'guess', 'stalled', 'reveal', 'podium'];
     const medals = ['🥇', '🥈', '🥉'];
     const roomMatch = location.pathname.match(/^\/r\/([A-Za-z0-9]{3,12})\/tv$/);
-    const room = roomMatch ? roomMatch[1].toUpperCase() : '';
+    const castMode = location.pathname === '/cast';
+    let room = roomMatch ? roomMatch[1].toUpperCase() : '';
 
     let state = null;
     let offset = 0;
@@ -260,22 +261,62 @@
         });
     }
 
-    async function init() {
-        if (!room) {
-            show('missing');
-            $('tv-missing-message').textContent = 'Ouvre cette page depuis une salle : /r/CODE/tv';
-            return;
-        }
+    async function startRoom() {
         const response = await fetch(`/api/r/${encodeURIComponent(room)}`).catch(() => null);
         if (!response || !response.ok) {
             show('missing');
             $('tv-missing-message').textContent = `La salle ${room} n'existe pas ou plus.`;
             return;
         }
+        seen.clear();
         $('tv-qr').src = `/r/${room}/qr.svg`;
         $('tv-qr-big').src = `/r/${room}/qr.svg`;
         connect();
         enableSound();
+    }
+
+    function startCast() {
+        show('missing');
+        $('tv-missing-message').textContent = 'En attente du téléphone…';
+        const script = document.createElement('script');
+        script.src = 'https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js';
+        script.onload = () => {
+            const framework = window.cast && window.cast.framework;
+            if (!framework) {
+                $('tv-missing-message').textContent = 'Réception Cast indisponible sur cet écran';
+                return;
+            }
+            try {
+                const context = framework.CastReceiverContext.getInstance();
+                const options = new framework.CastReceiverOptions();
+                options.disableIdleTimeout = true;
+                options.customNamespaces = { 'urn:x-cast:fr.blindtest': framework.system.MessageType.JSON };
+                context.addCustomMessageListener('urn:x-cast:fr.blindtest', (event) => {
+                    const data = event.data || {};
+                    if (data.room && String(data.room).toUpperCase() !== room) {
+                        room = String(data.room).toUpperCase();
+                        startRoom();
+                    }
+                });
+                context.start(options);
+            } catch {
+                $('tv-missing-message').textContent = 'Réception Cast indisponible sur cet écran';
+            }
+        };
+        script.onerror = () => {
+            $('tv-missing-message').textContent = 'Impossible de charger le module Cast';
+        };
+        document.head.appendChild(script);
+    }
+
+    function init() {
+        if (castMode) return startCast();
+        if (!room) {
+            show('missing');
+            $('tv-missing-message').textContent = 'Ouvre cette page depuis une salle : /r/CODE/tv';
+            return;
+        }
+        return startRoom();
     }
 
     $('tv-sound').addEventListener('click', enableSound);

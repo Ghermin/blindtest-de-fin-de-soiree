@@ -26,9 +26,11 @@ const HEADERS = {
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'no-referrer',
     'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://i.scdn.co https://mosaic.scdn.co https://image-cdn-ak.spotifycdn.com https://image-cdn-fa.spotifycdn.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self'; img-src 'self' data: https://i.scdn.co https://mosaic.scdn.co https://image-cdn-ak.spotifycdn.com https://image-cdn-fa.spotifycdn.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
     'Cache-Control': 'no-store'
 };
+
+const CAST_HEADERS = Object.fromEntries(Object.entries(HEADERS).filter(([name]) => name !== 'Content-Security-Policy'));
 
 function lanUrl() {
     const entries = Object.values(os.networkInterfaces()).flat();
@@ -183,7 +185,7 @@ async function handleApi(request, response, url) {
     if (route === '/api/health') return send(response, 200, { ok: true, rooms: rooms.all().length, busy: rooms.busy() });
     if (route === '/api/info') {
         const home = rooms.get(config.homeRoom);
-        return send(response, 200, { home: home ? home.code : null, publicUrl: baseUrl() });
+        return send(response, 200, { home: home ? home.code : null, publicUrl: baseUrl(), cast: config.castAppId });
     }
     if (route === '/api/presets') return send(response, 200, { presets: await presets() });
     if (route === '/api/rooms' && post) {
@@ -295,6 +297,15 @@ const server = http.createServer(async (request, response) => {
         return;
     }
     if (route === '/' || route === '/index.html') return serveFile(response, 'index.html', 'text/html; charset=utf-8');
+    if (route === '/cast') {
+        try {
+            const content = await fs.readFile(path.join(PUBLIC, 'tv.html'));
+            response.writeHead(200, { ...CAST_HEADERS, 'Content-Type': 'text/html; charset=utf-8' });
+            return response.end(content);
+        } catch {
+            return plain(response, 500, 'Erreur');
+        }
+    }
     const page = route.match(/^\/r\/([A-Za-z0-9]{3,12})(\/tv|\/qr\.svg)?$/);
     if (page) {
         if (page[2] === '/qr.svg') {
