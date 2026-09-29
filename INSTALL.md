@@ -1,5 +1,74 @@
 # Installation pas à pas 🍓
 
+Deux façons d'héberger le jeu, au choix ou les deux :
+
+- **Le téléphone hôte** (Android) : le jeu tourne sur ton téléphone, les
+  invités et la TV s'y connectent. Marche partout, chez toi comme chez la
+  famille. C'est le **bloc T**, cinq minutes.
+- **Le Raspberry Pi** à la maison, toujours allumé : blocs A, B, C.
+
+---
+
+## Bloc T : le téléphone hôte comme serveur (Android)
+
+### Ce qu'il faut savoir
+
+- Il faut un **Android**. Un iPhone ne peut pas héberger le jeu.
+- Tout le monde doit être sur **le même réseau** : le Wi-Fi de la maison
+  visitée, ou le **partage de connexion** de ton téléphone (les invités et la
+  TV s'y connectent, les extraits passent alors par ta 4G).
+- Sur le Wi-Fi d'une box, évite le **réseau invité** : il isole souvent les
+  appareils entre eux et les invités ne verraient pas ton téléphone.
+- Ton téléphone reste allumé et connecté pendant la partie ; tu joues dessus
+  normalement, le serveur tourne en arrière-plan.
+
+### Étape T1 — Installer une fois (5 min)
+
+1. Installe **Termux** depuis F-Droid : https://f-droid.org/packages/com.termux/
+   (pas celui du Play Store, il est abandonné). Ouvre-le une première fois.
+2. Dans Termux, colle ces deux lignes en remplaçant `github_pat_xxx` par ton
+   jeton GitHub (voir « Le jeton GitHub » plus bas si tu n'en as pas) :
+
+   ```
+   T=github_pat_xxx
+   curl -fsSL -H "Authorization: token $T" https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/termux.sh -o termux.sh && GITHUB_TOKEN=$T bash termux.sh
+   ```
+
+   Le script installe Node, télécharge le jeu, demande ton **code hôte** et,
+   si tu en as, les identifiants Spotify (Entrée pour passer, les playlists
+   Deezer suffisent).
+3. Android : **Paramètres → Applications → Termux → Batterie → Non restreinte**,
+   sinon Android tue le serveur au bout de quelques minutes d'écran éteint.
+4. Optionnel : l'appli **Termux:Widget** (F-Droid) donne un bouton
+   « Blind Test » sur l'écran d'accueil.
+
+### Étape T2 — À chaque soirée (30 s)
+
+1. Connecte ton téléphone au Wi-Fi du lieu, ou active ton partage de connexion
+   et fais-y connecter la TV et les invités.
+2. Ouvre Termux et tape `blindtest` (ou le widget). L'écran affiche l'adresse
+   de la salle, le code hôte et un **QR code**. Laisse Termux ouvert, il peut
+   passer en arrière-plan.
+3. Sur la TV, ouvre le navigateur, tape l'adresse « Écran TV » affichée
+   (par exemple `http://192.168.1.23:3000/r/MAISON/tv`), valide **Activer le
+   son**. La TV affiche le jeu et joue les extraits.
+4. Les invités scannent le QR code (dans Termux ou sur la TV), entrent un
+   pseudo. Toi : la même adresse dans Chrome sur ton téléphone → **Je suis
+   l'hôte** → code hôte → playlist → **▶ Lancer**.
+
+Sans smart TV mais avec un Chromecast : ton téléphone ne peut pas y envoyer la
+page tout seul. Un autre téléphone ou une tablette, qui ne joue pas, ouvre
+l'adresse « Écran TV » et **diffuse son écran** vers le Chromecast (Google
+Home → Diffuser l'écran) : la TV montre le jeu et le son suit. Ou un portable
+avec Chrome : menu ⋮ → **Caster…** → **Caster l'onglet**.
+
+Pour arrêter : Ctrl+C dans Termux, ou ferme Termux. Le jeu se met à jour tout
+seul au lancement suivant si le téléphone a Internet.
+
+---
+
+## Le Raspberry Pi à la maison
+
 Trois blocs, dans l'ordre. Seul le premier est obligatoire.
 
 | Bloc | Quoi | Durée | Il te faut |
@@ -258,6 +327,8 @@ aucune installation chez lui. Une salle sans activité pendant 6 h disparaît.
 
 | Problème | Solution |
 |---|---|
+| Téléphone hôte : les invités ne voient pas la page | Même Wi-Fi que le téléphone, pas le réseau invité de la box ; sinon partage de connexion du téléphone |
+| Téléphone hôte : la partie se coupe écran éteint | Termux → Batterie → Non restreinte, et garde Termux ouvert en arrière-plan |
 | « Recherche des extraits en cours » | Patiente : le compteur avance dans le panneau hôte |
 | « Pas assez d'extraits trouvés » | Titres trop rares : essaie la même playlist côté Deezer |
 | « Playlist introuvable » | Playlist créée par Spotify (Top 50…) ou privée : playlist publique perso, ou Deezer |
