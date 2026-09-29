@@ -32,7 +32,7 @@ fi
 if [ -z "${GITHUB_TOKEN:-}" ] && [ -f "$TOKEN_FILE" ]; then
     GITHUB_TOKEN=$(tr -d '[:space:]' < "$TOKEN_FILE")
 fi
-if [ -z "${GITHUB_TOKEN:-}" ]; then
+if [ -z "${GITHUB_TOKEN:-}" ] && ! grep -q "@github.com" "$HOME/.git-credentials" 2>/dev/null; then
     read -r -p "Jeton GitHub (github_pat_…, lecture seule sur le dépôt) : " GITHUB_TOKEN
 fi
 
