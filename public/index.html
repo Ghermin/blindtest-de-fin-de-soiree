@@ -59,6 +59,7 @@
             <p class="hint">L'hôte choisit la playlist et lance la partie. Le son sort de l'écran TV ou du téléphone de l'hôte.</p>
             <div class="lobby-actions">
                 <button id="lobby-host" type="button" class="ghost">Je suis l'hôte 🎛️</button>
+                <button id="lobby-setup" type="button" class="ghost" hidden>⚙️ Playlist et réglages</button>
                 <button id="lobby-back" type="button" class="ghost">← Changer de pseudo</button>
             </div>
             <p class="credit">Extraits musicaux : Spotify · Deezer · Apple Music</p>
@@ -102,6 +103,11 @@
             <ul id="podium-teams" class="teams-bar" hidden></ul>
             <ol id="podium-list"></ol>
             <ul id="podium-stats" class="stats" hidden></ul>
+            <div id="podium-actions" class="lobby-actions" hidden>
+                <button id="podium-replay" type="button" class="primary">🔁 Rejouer</button>
+                <button id="podium-setup" type="button">⚙️ Modifier la partie</button>
+            </div>
+            <p id="podium-guest" class="hint">L'hôte peut relancer une partie, ou changer la playlist et les réglages, depuis son téléphone.</p>
         </section>
     </main>
 

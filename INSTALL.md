@@ -49,7 +49,11 @@ ouvre une adresse.
 4. Les invités scannent le QR code (dans Termux, dans le lobby de ton
    téléphone ou sur la TV), entrent un pseudo et une équipe s'ils veulent.
 5. Toi, dans Chrome : pseudo → **Rejoindre** → **Je suis l'hôte** → ton code →
-   manette 🎛️ → playlist → **▶ Lancer**.
+   manette 🎛️ → playlist → **▶ Lancer**. Oublié « Je suis l'hôte » ? Le lien
+   est aussi dans le lobby, à côté de « Changer de pseudo ».
+6. Sur le podium : **🔁 Rejouer** relance avec les mêmes réglages,
+   **⚙️ Modifier la partie** ramène au lobby avec le panneau ouvert (playlist,
+   manches, durée, indices).
 
 Pour tester tout de suite, une playlist Deezer publique :
 `https://www.deezer.com/fr/playlist/1743878062` (Soirée 80).

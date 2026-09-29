@@ -290,6 +290,9 @@
 
         $('host-toggle').hidden = !isHost;
         $('lobby-host').hidden = isHost;
+        $('lobby-setup').hidden = !isHost;
+        $('podium-actions').hidden = !isHost;
+        $('podium-guest').hidden = isHost;
         document.body.classList.toggle('is-host', isHost);
         $('host-playlist-info').textContent = playlistLabel(state.playlist, true);
 
@@ -351,9 +354,20 @@
             hostFeedback('…');
             await post(route, data);
             hostFeedback('');
+            return true;
         } catch (error) {
             hostFeedback('⚠ ' + error.message);
+            return false;
         }
+    }
+
+    function startOptions() {
+        return {
+            rounds: Number($('opt-rounds').value),
+            mode: $('opt-mode').value,
+            guessSeconds: Number($('opt-duration').value),
+            hints: $('opt-hints').value === 'on'
+        };
     }
 
     function toggleHostPanel(open) {
@@ -568,15 +582,18 @@
         event.preventDefault();
         hostAction(`${api}/host/playlist`, { url: $('playlist-url').value });
     });
-    $('host-start').addEventListener('click', () => {
-        hostAction(`${api}/host/start`, {
-            rounds: Number($('opt-rounds').value),
-            mode: $('opt-mode').value,
-            guessSeconds: Number($('opt-duration').value),
-            hints: $('opt-hints').value === 'on'
-        });
-        toggleHostPanel(false);
+    $('host-start').addEventListener('click', async () => {
+        if (await hostAction(`${api}/host/start`, startOptions())) toggleHostPanel(false);
     });
+    $('podium-replay').addEventListener('click', async () => {
+        toggleHostPanel(true);
+        if (await hostAction(`${api}/host/start`, startOptions())) toggleHostPanel(false);
+    });
+    $('podium-setup').addEventListener('click', async () => {
+        toggleHostPanel(true);
+        await hostAction(`${api}/host/lobby`);
+    });
+    $('lobby-setup').addEventListener('click', () => toggleHostPanel(true));
     $('host-skip').addEventListener('click', () => hostAction(`${api}/host/skip`));
     $('host-stop').addEventListener('click', () => hostAction(`${api}/host/stop`));
     $('host-lobby').addEventListener('click', () => hostAction(`${api}/host/lobby`));

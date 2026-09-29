@@ -340,6 +340,10 @@ button.ghost {
     margin: 0;
 }
 
+body.is-host {
+    padding-bottom: 96px;
+}
+
 #host-toggle {
     position: fixed;
     right: 16px;
