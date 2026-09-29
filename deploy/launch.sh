@@ -16,6 +16,12 @@ else
     echo "ℹ Pas de mise à jour (hors ligne ou jeton GitHub expiré), on continue"
 fi
 
+ICON="$HOME/.shortcuts/icons/Blind Test.png"
+if [ ! -f "$ICON" ] || [ public/shortcut-icon.png -nt "$ICON" ]; then
+    mkdir -p "$HOME/.shortcuts/icons"
+    cp public/shortcut-icon.png "$ICON" 2>/dev/null || true
+fi
+
 URL=$(node scripts/lan-url.js)
 ROOM=$(getenv BLINDTEST_HOME_ROOM)
 ROOM="${ROOM:-MAISON}"
@@ -30,6 +36,6 @@ echo "  Code hôte    : $PIN"
 echo
 node scripts/qr-terminal.js "$URL/r/$ROOM"
 echo
-echo "Chrome s'ouvre sur ta salle dans 3 s. Laisse Termux tourner en arrière-plan. Ctrl+C pour arrêter."
-( sleep 3; termux-open-url "$URL/r/$ROOM" 2>/dev/null ) &
+echo "Chrome s'ouvre sur ta salle, déjà en mode hôte, dans 3 s. Laisse Termux tourner en arrière-plan. Ctrl+C pour arrêter."
+( sleep 3; termux-open-url "$URL/r/$ROOM#host=$PIN" 2>/dev/null ) &
 exec node index.js
