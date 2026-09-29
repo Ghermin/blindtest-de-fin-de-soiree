@@ -143,13 +143,22 @@ L'écran de la salle (`/r/MAISON/tv`) affiche le QR code, le classement, le
 chrono, les indices, la révélation, le podium, **et joue les extraits**. Rien
 de tes saisies n'y apparaît. Trois façons de l'avoir sur la TV :
 
-### Méthode 1 — N'importe quel écran, sans rien enregistrer (2 min)
+### Méthode 1 — Le navigateur de la smart TV (2 min, gratuit, recommandé)
 
-Le navigateur de la TV elle-même (Android TV, Fire TV, TV connectée), une
-tablette ou un vieux portable branché à la TV ouvre
-`http://192.168.1.42:3000/r/MAISON/tv` et clique **Activer le son**. Depuis
-Chrome sur un portable, tu peux aussi envoyer l'onglet au Chromecast :
-menu ⋮ → **Caster…** → **Caster l'onglet** (le son suit).
+1. Sur la TV, ouvre le navigateur (Samsung, LG, Android TV, Fire TV…) et tape
+   `http://192.168.1.42:3000/r/MAISON/tv` (chez la famille : l'adresse HTTPS
+   de sa salle suivie de `/tv`). Mets la page en favori ou en page d'accueil.
+2. La page affiche **Activer le son sur cet écran** : pointe le bouton avec la
+   télécommande et valide. Les navigateurs exigent ce geste une fois.
+3. Passe le navigateur en plein écran si la TV le propose, et laisse la page
+   ouverte : elle suit la partie toute seule, manche après manche.
+
+Ça marche sur les TV de 2019 et après. Sur une plus ancienne, le navigateur
+peut refuser la page : une tablette, un vieux téléphone ou un portable branché
+à la TV ouvrent la même adresse. Depuis Chrome sur un portable, tu peux aussi
+envoyer l'onglet à un Chromecast : menu ⋮ → **Caster…** → **Caster l'onglet**
+(le son suit). Chez la famille avec Cloudflare Access, la TV demande une fois
+le code reçu par e-mail.
 
 ### Méthode 2 — Caster depuis ton téléphone Android (le bouton 📺)
 
