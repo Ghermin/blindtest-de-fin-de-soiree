@@ -18,7 +18,7 @@ function once(url, options) {
             response.on('data', (chunk) => chunks.push(chunk));
             response.on('end', () => {
                 const text = Buffer.concat(chunks).toString('utf8');
-                let json = null;
+                let json;
                 try {
                     json = text ? JSON.parse(text) : null;
                 } catch {

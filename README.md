@@ -20,9 +20,9 @@ Spotify Premium.
    sur la salle.
 2. La TV ouvre l'adresse de la salle suivie de `/tv` dans son navigateur et
    valide **Activer le son**. Les invités scannent le QR code.
-3. L'hôte colle une playlist **Deezer** (rien à configurer) ou **Spotify**
-   (identifiants d'une app Spotify, et compte connectable pour lister ses
-   propres playlists), attend « extraits prêts », lance.
+3. L'hôte colle une playlist **Deezer** (rien à configurer) ou choisit une de
+   ses playlists **Spotify** (app Spotify et compte connecté : Spotify ne livre
+   que les playlists de leur propriétaire), attend « extraits prêts », lance.
 4. À chaque manche, le serveur donne à l'écran TV l'extrait et l'instant de
    départ ; sans écran, le téléphone de l'hôte peut jouer le son sur une
    enceinte. Tout est mesuré côté serveur.
@@ -76,9 +76,9 @@ Chromecast.
 | `BLINDTEST_COUNTRY` | Pays du catalogue Apple Music de secours (`FR`) |
 
 Préréglages de playlists : `data/presets.json` (modèle dans
-`presets.example.json`), liens Spotify ou Deezer. Les playlists créées par
-Spotify (Top 50…) ne sont pas lisibles par une app en mode développement ;
-toutes les playlists Deezer publiques le sont.
+`presets.example.json`), liens Spotify ou Deezer. Côté Spotify, seules les
+playlists possédées par le compte connecté sont lisibles (règle Spotify de
+mars 2026) ; toutes les playlists Deezer publiques le sont.
 
 ## Les extraits
 

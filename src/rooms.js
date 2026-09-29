@@ -106,7 +106,7 @@ function save() {
 
 function load() {
     if (!fs.existsSync(file())) return 0;
-    let entries = [];
+    let entries;
     try {
         entries = JSON.parse(fs.readFileSync(file(), 'utf8'));
     } catch (error) {
