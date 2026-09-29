@@ -27,6 +27,7 @@ fi
 cd "$DIR"
 npm ci --omit=dev --no-audit --no-fund
 [ -f .env ] || cp .env.example .env
+install -d -m 700 data
 chmod +x deploy/*.sh
 chmod 600 .env
 chown -R blindtest:blindtest "$DIR"
@@ -39,10 +40,11 @@ systemctl daemon-reload
 systemctl enable blindtest
 systemctl enable --now blindtest-update.timer
 
-if grep -qE '^SPOTIFY_REFRESH_TOKEN=.+' .env; then
+if grep -qE '^SPOTIFY_CLIENT_ID=.+' .env; then
     systemctl restart blindtest
     echo "Blind test (re)démarré. Logs : journalctl -u blindtest -f"
 else
-    echo "Renseigne $DIR/.env (SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET puis npm run auth) et : sudo systemctl start blindtest"
+    echo "Renseigne $DIR/.env (SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, puis npm run auth pour la salle de la maison) et : sudo systemctl start blindtest"
 fi
 echo "Jeu : http://$(hostname).local:${BLINDTEST_PORT:-3000} (réseau local)"
+echo "Écran TV : sudo deploy/tv-setup.sh — Accès famille : sudo deploy/tunnel-setup.sh"

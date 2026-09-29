@@ -8,17 +8,37 @@
     <title>Blind Test de fin de soirée</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="BlindTest">
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <main id="app">
+        <section id="screen-home" hidden>
+            <div class="hero">
+                <div class="vinyl small spinning"></div>
+                <h1>Blind Test<span>de fin de soirée</span></h1>
+            </div>
+            <button id="home-create" class="primary">Créer une salle 🎛️</button>
+            <form id="home-join-form">
+                <input id="home-code" type="text" maxlength="12" placeholder="Code de la salle" aria-label="Code de la salle" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go" required>
+                <button type="submit">Rejoindre</button>
+            </form>
+            <button id="home-house" class="ghost" hidden>Salle de la maison 🏠</button>
+            <p id="home-feedback" class="feedback" role="status"></p>
+        </section>
+
         <section id="screen-join" hidden>
             <div class="hero">
                 <div class="vinyl small spinning"></div>
                 <h1>Blind Test<span>de fin de soirée</span></h1>
             </div>
-            <form id="join-form">
-                <input id="join-name" type="text" maxlength="20" placeholder="Ton pseudo" aria-label="Ton pseudo" autocomplete="nickname" enterkeyhint="go" required>
+            <p id="join-room" class="playlist-tag"></p>
+            <form id="join-form" class="stack">
+                <input id="join-name" type="text" maxlength="20" placeholder="Ton pseudo" aria-label="Ton pseudo" autocomplete="nickname" enterkeyhint="next" required>
+                <input id="join-team" type="text" maxlength="14" placeholder="Équipe (optionnel)" aria-label="Équipe, optionnel" autocomplete="off" enterkeyhint="go">
                 <button type="submit" class="primary">Rejoindre 🎉</button>
             </form>
             <p id="join-feedback" role="status"></p>
@@ -27,8 +47,15 @@
 
         <section id="screen-lobby" hidden>
             <h2>En attente du lancement…</h2>
+            <p id="lobby-notice" class="notice" role="status" hidden></p>
             <p id="lobby-playlist" class="playlist-tag"></p>
+            <ul id="lobby-teams" class="teams-bar" hidden></ul>
             <ul id="lobby-players" class="chips"></ul>
+            <div class="join-card">
+                <img id="lobby-qr" alt="QR code pour rejoindre la partie">
+                <p id="lobby-url" class="join-url"></p>
+            </div>
+            <p id="lobby-spotify" class="notice" hidden>🎧 L'hôte doit connecter Spotify avant de lancer</p>
             <p class="hint">L'hôte choisit la playlist et lance la partie.</p>
         </section>
 
@@ -45,15 +72,18 @@
                     <span id="timer-left" class="timer-left"></span>
                 </div>
                 <ul id="my-found" class="chips"></ul>
+                <p id="hint" class="hint-pattern" role="status"></p>
                 <form id="guess-form">
                     <input id="guess-input" type="text" maxlength="80" placeholder="Titre ou artiste…" aria-label="Ta réponse" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send">
                     <button type="submit" class="primary" aria-label="Envoyer">➤</button>
                 </form>
                 <p id="guess-feedback" role="status"></p>
+                <ul id="live-teams" class="teams-bar" hidden></ul>
                 <ul id="live-scores" class="scores"></ul>
             </div>
             <div id="stalled-zone" hidden>
                 <p role="status">⚠️ <span id="stalled-message"></span></p>
+                <button id="stalled-retry" class="primary" hidden>🔄 Relancer la lecture</button>
             </div>
         </section>
 
@@ -62,12 +92,15 @@
             <img id="reveal-cover" alt="">
             <p id="reveal-title"></p>
             <p id="reveal-artists"></p>
+            <ul id="reveal-teams" class="teams-bar" hidden></ul>
             <ul id="reveal-scores" class="scores"></ul>
         </section>
 
         <section id="screen-podium" hidden>
             <h2>🏆 Podium</h2>
+            <ul id="podium-teams" class="teams-bar" hidden></ul>
             <ol id="podium-list"></ol>
+            <ul id="podium-stats" class="stats" hidden></ul>
         </section>
     </main>
 
@@ -77,10 +110,17 @@
             <h3>Panneau hôte</h3>
             <button id="host-close" type="button" aria-label="Fermer le panneau">✕</button>
         </div>
+        <p id="host-spotify" class="host-line"></p>
+        <div class="host-actions">
+            <button id="host-connect" type="button" hidden>🎧 Connecter Spotify</button>
+            <button id="host-playlists" type="button" hidden>📚 Mes playlists</button>
+        </div>
+        <ul id="host-playlist-list" class="host-list"></ul>
         <form id="playlist-form">
             <input id="playlist-url" type="text" inputmode="url" placeholder="Lien de playlist Spotify" aria-label="Lien de playlist Spotify" autocomplete="off">
             <button type="submit">Charger</button>
         </form>
+        <div id="host-presets" class="host-actions" hidden></div>
         <p id="host-playlist-info"></p>
         <div class="host-settings">
             <label>Manches
@@ -100,6 +140,12 @@
                     <option value="20">20 s</option><option value="30" selected>30 s</option><option value="45">45 s</option>
                 </select>
             </label>
+            <label>Indices
+                <select id="opt-hints">
+                    <option value="on" selected>Oui</option>
+                    <option value="off">Non</option>
+                </select>
+            </label>
         </div>
         <div class="host-actions">
             <button id="host-start" class="primary">▶ Lancer</button>
@@ -113,6 +159,7 @@
             <ul id="host-devices"></ul>
         </div>
         <p id="host-feedback" role="status"></p>
+        <p id="host-key" class="hint"></p>
     </aside>
 
     <script src="/app.js"></script>
