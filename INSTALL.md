@@ -4,6 +4,11 @@ Tout se fait depuis ton PC (n'importe lequel, rien à installer dessus) et ton
 Raspberry Pi. Compte 15 minutes. Suis les étapes dans l'ordre, chacune te dit
 ce que tu dois voir avant de passer à la suivante.
 
+> ℹ️ Le PC ne sert que pour cette installation, **une seule fois**. Ensuite le
+> jeu tourne en permanence sur le Pi (il démarre avec lui, se met à jour tout
+> seul) et **tout se pilote depuis ton téléphone** : lancer une partie, c'est
+> ouvrir l'URL et appuyer sur ▶.
+
 **Il te faut :**
 - un Raspberry Pi allumé et branché sur ton réseau (câble ou WiFi)
 - ton compte **Spotify Premium**
@@ -143,6 +148,9 @@ http://192.168.1.42:3000
 > `http://raspberrypi.local:3000` marche aussi sur PC et iPhone, mais certains
 > Android ne connaissent pas les adresses en `.local` : donne plutôt l'IP.
 > Astuce : génère un QR code de l'URL et laisse-le sur la table. 📱
+
+Sur ton téléphone, ajoute le jeu à l'écran d'accueil pour avoir une icône
+comme une vraie app : Chrome → menu ⋮ → **Ajouter à l'écran d'accueil**.
 
 ---
 
