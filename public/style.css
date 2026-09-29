@@ -692,6 +692,12 @@ form.stack > button {
     text-align: left;
 }
 
+.host-list .host-hint {
+    padding: 8px 4px;
+    font-size: 0.9rem;
+    color: var(--accent2);
+}
+
 #host-presets {
     flex-wrap: wrap;
 }

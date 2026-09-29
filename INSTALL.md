@@ -75,6 +75,13 @@ Spotify et lister **tes** playlists depuis le panneau hôte :
 Seul ton téléphone peut connecter le compte (l'adresse de retour est locale).
 Les invités n'ont rien à faire.
 
+**Limite imposée par Spotify** : une app en mode développement ne lit que les
+titres des playlists **que tu possèdes**. Une playlist que tu suis, créée par
+quelqu'un d'autre, est refusée. Le contournement prend deux touches dans
+Spotify : ouvre la playlist → ⋮ → **Ajouter à une playlist** → **Nouvelle
+playlist**. La copie t'appartient et se charge normalement. Les playlists
+Deezer publiques, elles, passent toutes.
+
 ## Si ça coince
 
 | Problème | Solution |
