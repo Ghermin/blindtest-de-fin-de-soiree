@@ -42,15 +42,17 @@ ouvre une adresse.
    d'une box, qui isole souvent les appareils entre eux.
 2. Touche **Blind Test** (ou tape `blindtest` dans Termux). Termux se met à
    jour si besoin, affiche l'adresse de la salle, ton code hôte et un QR code,
-   puis **Chrome s'ouvre sur ta salle**. Laisse Termux en arrière-plan.
+   puis **Chrome s'ouvre sur ta salle, déjà en mode hôte** (la manette 🎛️ est
+   là). Laisse Termux en arrière-plan.
 3. Sur la TV, ouvre le navigateur, tape l'adresse « Écran TV » affichée dans
    Termux (par exemple `http://192.168.1.23:3000/r/MAISON/tv`), valide
    **Activer le son** avec la télécommande. Mets la page en favori.
 4. Les invités scannent le QR code (dans Termux, dans le lobby de ton
    téléphone ou sur la TV), entrent un pseudo et une équipe s'ils veulent.
-5. Toi, dans Chrome : pseudo → **Rejoindre** → **Je suis l'hôte** → ton code →
-   manette 🎛️ → playlist → **▶ Lancer**. Oublié « Je suis l'hôte » ? Le lien
-   est aussi dans le lobby, à côté de « Changer de pseudo ».
+5. Toi, dans Chrome : pseudo → **Rejoindre** → manette 🎛️ → playlist →
+   **▶ Lancer**. Pas de manette (autre navigateur, page ouverte depuis le QR
+   code) ? **Je suis l'hôte** → ton code, sur l'écran de connexion ou dans le
+   lobby à côté de « Changer de pseudo ».
 6. Sur le podium : **🔁 Rejouer** relance avec les mêmes réglages,
    **⚙️ Modifier la partie** ramène au lobby avec le panneau ouvert (playlist,
    manches, durée, indices).
@@ -109,5 +111,6 @@ publiques passent toutes, en entier.
 | Pas de son sur l'écran TV | **Activer le son** sur cet écran (les navigateurs exigent un geste) |
 | Deux appareils jouent le son | Désactive **Son sur ce téléphone** dans le panneau hôte |
 | « Clé hôte incorrecte » | C'est le code hôte affiché au lancement dans Termux |
+| Pas reconnu comme hôte sur mon téléphone | Ouvre la salle par le Chrome lancé automatiquement (il porte la clé), ou **Je suis l'hôte** → ton code ; l'adresse change avec le réseau, donc le navigateur oublie le statut d'un lieu à l'autre |
 | Chrome s'ouvre sur une salle vide | Rejoins avec ton pseudo, puis **Je suis l'hôte** |
 | Spotify : « INVALID_CLIENT: Invalid redirect URI » | Ajoute `http://127.0.0.1:3000/auth/spotify/callback` dans les Redirect URIs de ton app Spotify |

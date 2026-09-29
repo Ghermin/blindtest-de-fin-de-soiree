@@ -81,9 +81,10 @@ printf '#!/data/data/com.termux/files/usr/bin/bash\nexec bash "$HOME/blindtest/d
 chmod +x "$BIN"
 chmod +x "$DIR/deploy/launch.sh"
 
-mkdir -p "$HOME/.shortcuts"
+mkdir -p "$HOME/.shortcuts/icons"
 printf '#!/data/data/com.termux/files/usr/bin/bash\nblindtest\n' > "$HOME/.shortcuts/Blind Test"
 chmod +x "$HOME/.shortcuts/Blind Test"
+cp public/shortcut-icon.png "$HOME/.shortcuts/icons/Blind Test.png"
 rm -f "$TOKEN_FILE"
 
 echo
