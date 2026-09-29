@@ -2,12 +2,30 @@
     'use strict';
 
     const $ = (id) => document.getElementById(id);
-    const screens = ['join', 'lobby', 'game', 'reveal', 'podium'];
+    const screens = ['home', 'join', 'lobby', 'game', 'reveal', 'podium'];
+    const roomMatch = location.pathname.match(/^\/r\/([A-Za-z0-9]{3,12})/);
+    const room = roomMatch ? roomMatch[1].toUpperCase() : '';
+    const api = `/api/r/${room}`;
 
-    let token = localStorage.getItem('bt_token') || '';
-    let myName = localStorage.getItem('bt_name') || '';
-    let isHost = localStorage.getItem('bt_host') === '1';
-    let pin = localStorage.getItem('bt_pin') || '';
+    function attempt(fn, fallback) {
+        try {
+            return fn();
+        } catch {
+            return fallback;
+        }
+    }
+
+    const storage = {
+        get: (key) => attempt(() => localStorage.getItem(key), '') || '',
+        set: (key, value) => attempt(() => localStorage.setItem(key, value)),
+        remove: (key) => attempt(() => localStorage.removeItem(key))
+    };
+
+    let token = room ? storage.get(`bt_token_${room}`) : '';
+    let myName = storage.get('bt_name');
+    let myTeam = storage.get('bt_team');
+    let hostKey = room ? storage.get(`bt_hostkey_${room}`) : '';
+    let isHost = room ? storage.get(`bt_host_${room}`) === '1' : false;
     let state = null;
     let offset = 0;
     let lastRound = 0;
@@ -15,18 +33,35 @@
     let timerFrame = null;
     let countdownTimer = null;
     let lastPhase = '';
+    let wakeLock = null;
+    let lastChips = '';
+    let source = null;
+    let sourceToken = null;
+    let lastMessage = 0;
+    const seen = new Map();
 
-    async function post(route, data) {
+    if (room && location.hash.startsWith('#host=')) {
+        hostKey = decodeURIComponent(location.hash.slice(6));
+        storage.set(`bt_hostkey_${room}`, hostKey);
+        storage.set(`bt_host_${room}`, '1');
+        isHost = true;
+        history.replaceState(null, '', location.pathname);
+    }
+
+    async function post(route, data, method) {
         const response = await fetch(route, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Host-Pin': pin },
-            body: JSON.stringify(data || {})
+            method: method || 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Host-Key': hostKey },
+            body: method === 'GET' ? undefined : JSON.stringify(data || {})
         });
         const payload = await response.json().catch(() => ({}));
-        if (response.status === 403) {
-            pin = prompt('Code hôte ?') || '';
-            localStorage.setItem('bt_pin', pin);
-            if (pin) return post(route, data);
+        if (response.status === 403 && route.includes('/host/')) {
+            const entered = (prompt('Clé hôte ? (6 chiffres pour la salle de la maison, ou la clé reçue à la création de la salle)') || '').trim();
+            if (entered && entered !== hostKey) {
+                hostKey = entered;
+                storage.set(`bt_hostkey_${room}`, hostKey);
+                return post(route, data, method);
+            }
         }
         if (!response.ok) throw new Error(payload.error || 'Erreur réseau');
         return payload;
@@ -40,13 +75,58 @@
         return Date.now() + offset;
     }
 
+    async function keepAwake() {
+        if (!('wakeLock' in navigator) || (wakeLock && !wakeLock.released)) return;
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+        } catch {
+            wakeLock = null;
+        }
+    }
+
+    function spaced(pattern) {
+        return pattern.split(' ').map((word) => word.split('').join(' ')).join('   ');
+    }
+
+    function formatHint(hint) {
+        if (!hint) return '';
+        const lines = [];
+        if (hint.title) lines.push(`🎵 ${spaced(hint.title)}`);
+        if (hint.artist) lines.push(`🎤 ${spaced(hint.artist)}`);
+        return lines.join('\n');
+    }
+
     function renderPlayers(list, element, withGains) {
         element.innerHTML = '';
         for (const player of list) {
             const item = document.createElement('li');
+            const key = `${element.id}:${player.name}`;
+            if (!seen.has(key)) item.classList.add('fresh');
+            else if (seen.get(key) < player.score) item.classList.add('bump');
+            seen.set(key, player.score);
             const found = [player.found.title ? '🎵' : '', player.found.artist ? '🎤' : ''].join('');
             const gained = withGains && player.gained ? ` +${player.gained}` : '';
-            item.textContent = `${player.name} — ${player.score}${gained} ${found}`;
+            const team = player.team ? ` [${player.team}]` : '';
+            const offline = player.online === false;
+            item.textContent = `${player.name}${team} — ${player.score}${gained} ${found}${offline ? ' 💤' : ''}`;
+            item.classList.toggle('offline', offline);
+            if (player.lastGuess) {
+                const guess = document.createElement('span');
+                guess.className = 'last-guess';
+                guess.textContent = `« ${player.lastGuess} »`;
+                item.appendChild(guess);
+            }
+            element.appendChild(item);
+        }
+    }
+
+    function renderTeams(teams, element) {
+        const list = teams || [];
+        element.hidden = !list.length;
+        element.innerHTML = '';
+        for (const team of list) {
+            const item = document.createElement('li');
+            item.textContent = `${team.name} — ${team.score}`;
             element.appendChild(item);
         }
     }
@@ -74,7 +154,19 @@
             const chips = [];
             if (state.mode !== 'artist') chips.push(myFound.title ? '✅ Titre trouvé' : '🎵 Titre ?');
             if (state.mode !== 'title') chips.push(myFound.artist ? '✅ Artiste trouvé' : '🎤 Artiste ?');
-            $('my-found').innerHTML = chips.map((chip) => `<li>${chip}</li>`).join('');
+            const signature = chips.join('|');
+            if (signature !== lastChips) {
+                lastChips = signature;
+                $('my-found').innerHTML = chips.map((chip) => `<li${chip.startsWith('✅') ? ' class="fresh"' : ''}>${chip}</li>`).join('');
+            }
+            const hint = formatHint(state.hint);
+            if (hint !== $('hint').textContent) {
+                $('hint').textContent = hint;
+                $('hint').classList.remove('fresh');
+                void $('hint').offsetWidth;
+                if (hint) $('hint').classList.add('fresh');
+            }
+            renderTeams(state.teams, $('live-teams'));
             renderPlayers(state.players, $('live-scores'), true);
             cancelAnimationFrame(timerFrame);
             const bar = $('timer-bar');
@@ -94,7 +186,7 @@
 
         if (state.phase === 'stalled') {
             $('stalled-message').textContent = state.notice || 'Lecture Spotify impossible';
-            $('host-retry').hidden = !isHost;
+            $('stalled-retry').hidden = !isHost;
         }
     }
 
@@ -104,20 +196,35 @@
         $('reveal-cover').src = track.image || '/favicon.svg';
         $('reveal-title').textContent = track.name;
         $('reveal-artists').textContent = track.artists.join(', ');
+        renderTeams(state.teams, $('reveal-teams'));
         renderPlayers(state.players, $('reveal-scores'), true);
     }
 
     function renderPodium() {
         const medals = ['🥇', '🥈', '🥉'];
+        renderTeams(state.teams, $('podium-teams'));
         const list = $('podium-list');
         list.innerHTML = '';
         state.players.forEach((player, index) => {
             const item = document.createElement('li');
             const score = document.createElement('b');
             score.textContent = player.score;
-            item.append(`${medals[index] || '•'} ${player.name} — `, score, ' pts');
+            item.append(`${medals[index] || '•'} ${player.name}${player.team ? ` [${player.team}]` : ''} — `, score, ' pts');
             list.appendChild(item);
         });
+        const stats = state.stats || {};
+        const lines = [];
+        if (stats.fastest) lines.push(`⚡ Plus rapide : ${stats.fastest.name} en ${String(stats.fastest.seconds).replace('.', ',')} s sur « ${stats.fastest.track} »`);
+        if (stats.firsts) lines.push(`🥇 Le plus souvent premier : ${stats.firsts.name} (${stats.firsts.count}×)`);
+        if (stats.wildest) lines.push(`😅 Réponse la plus hors sujet : « ${stats.wildest.guess} » de ${stats.wildest.name} pour « ${stats.wildest.track} »`);
+        const statsList = $('podium-stats');
+        statsList.innerHTML = '';
+        for (const line of lines) {
+            const item = document.createElement('li');
+            item.textContent = line;
+            statsList.appendChild(item);
+        }
+        statsList.hidden = !lines.length;
     }
 
     function render() {
@@ -125,7 +232,9 @@
         if (state.round !== lastRound) {
             lastRound = state.round;
             myFound = { title: false, artist: false };
+            lastChips = '';
             $('guess-feedback').textContent = '';
+            $('guess-feedback').className = '';
             $('guess-input').value = '';
         }
 
@@ -139,6 +248,11 @@
         if (state.phase === 'lobby') {
             show('lobby');
             $('lobby-playlist').textContent = state.playlist ? `📀 ${state.playlist.name}` : '';
+            $('lobby-notice').textContent = state.notice || '';
+            $('lobby-notice').hidden = !state.notice;
+            $('lobby-url').textContent = state.joinUrl || '';
+            $('lobby-spotify').hidden = state.spotify !== false;
+            renderTeams(state.teams, $('lobby-teams'));
             renderPlayers(state.players, $('lobby-players'), false);
         } else if (state.phase === 'countdown' || state.phase === 'guess' || state.phase === 'stalled') {
             show('game');
@@ -155,76 +269,28 @@
     }
 
     function connect() {
-        const source = new EventSource('/events');
+        if (source) source.close();
+        sourceToken = token;
+        lastMessage = Date.now();
+        source = new EventSource(`/events?room=${encodeURIComponent(room)}&token=${encodeURIComponent(token)}`);
         source.addEventListener('state', (event) => {
+            lastMessage = Date.now();
             state = JSON.parse(event.data);
             offset = state.serverNow - Date.now();
             render();
+        });
+        source.addEventListener('ping', () => {
+            lastMessage = Date.now();
         });
     }
 
     function feedback(message, ok) {
         const element = $('guess-feedback');
+        element.className = '';
+        void element.offsetWidth;
         element.textContent = message;
         element.className = ok ? 'ok' : 'ko';
     }
-
-    $('join-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        $('join-feedback').textContent = '';
-        try {
-            const result = await post('/api/join', { name: $('join-name').value, token });
-            token = result.token;
-            myName = result.name;
-            localStorage.setItem('bt_token', token);
-            localStorage.setItem('bt_name', myName);
-            state = result.state;
-            render();
-        } catch (error) {
-            $('join-feedback').textContent = error.message;
-        }
-    });
-
-    $('guess-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const text = $('guess-input').value.trim();
-        if (!text) return;
-        $('guess-input').value = '';
-        try {
-            const result = await post('/api/guess', { token, text });
-            if (result.title && result.artist) feedback(`🔥 Titre + artiste ! +${result.gained} pts`, true);
-            else if (result.title) feedback(`🎵 Titre ! +${result.gained} pts`, true);
-            else if (result.artist) feedback(`🎤 Artiste ! +${result.gained} pts`, true);
-            else if (result.reason === 'throttle') feedback('Doucement… ⏳', false);
-            else if (result.accepted) feedback('❌ Non, essaie encore', false);
-            if (result.title) myFound.title = true;
-            if (result.artist) myFound.artist = true;
-            render();
-        } catch (error) {
-            if (error.message.includes('inconnu')) {
-                token = '';
-                localStorage.removeItem('bt_token');
-                render();
-            } else {
-                feedback(error.message, false);
-            }
-        }
-    });
-
-    $('become-host').addEventListener('click', () => {
-        isHost = !isHost;
-        localStorage.setItem('bt_host', isHost ? '1' : '0');
-        $('become-host').textContent = isHost ? 'Hôte activé ✔ (re-clique pour désactiver)' : 'Je suis l\'hôte 🎛️';
-        render();
-    });
-
-    function toggleHostPanel(open) {
-        $('host-panel').hidden = !open;
-        $('host-toggle').setAttribute('aria-expanded', String(open));
-    }
-
-    $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
-    $('host-close').addEventListener('click', () => toggleHostPanel(false));
 
     function hostFeedback(message) {
         $('host-feedback').textContent = message;
@@ -240,33 +306,209 @@
         }
     }
 
+    function toggleHostPanel(open) {
+        $('host-panel').hidden = !open;
+        $('host-toggle').setAttribute('aria-expanded', String(open));
+        if (open) refreshHost();
+    }
+
+    async function refreshHost() {
+        try {
+            const status = await post(`${api}/host/status`, null, 'GET');
+            const account = status.spotify.account;
+            $('host-key').textContent = `Clé hôte de la salle ${room} : ${status.key}`;
+            $('host-spotify').textContent = status.spotify.connected
+                ? `🎧 Spotify : ${account ? account.name : 'connecté'}${account && account.premium === false ? ' (pas Premium : la lecture échouera)' : ''}`
+                : '🎧 Spotify : non connecté';
+            $('host-connect').hidden = !status.auth;
+            $('host-connect').textContent = status.spotify.connected ? '🎧 Changer de compte Spotify' : '🎧 Connecter Spotify';
+            $('host-playlists').hidden = !status.spotify.connected;
+        } catch (error) {
+            hostFeedback('⚠ ' + error.message);
+        }
+        const { presets } = await post('/api/presets', null, 'GET').catch(() => ({ presets: [] }));
+        const container = $('host-presets');
+        container.innerHTML = '';
+        container.hidden = !presets.length;
+        for (const preset of presets) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = `📀 ${preset.name}`;
+            button.addEventListener('click', () => hostAction(`${api}/host/playlist`, { url: preset.url }));
+            container.appendChild(button);
+        }
+    }
+
+    async function initHome(message) {
+        show('home');
+        $('home-feedback').textContent = message || '';
+        const info = await post('/api/info', null, 'GET').catch(() => null);
+        if (info && info.home) {
+            $('home-house').hidden = false;
+            $('home-house').addEventListener('click', () => {
+                location.href = `/r/${info.home}`;
+            });
+        }
+    }
+
+    async function initRoom() {
+        try {
+            await post(api, null, 'GET');
+        } catch (error) {
+            return initHome(error.message === 'Salle introuvable' ? `La salle ${room} n'existe plus : crée-en une nouvelle ou entre un autre code.` : error.message);
+        }
+        $('join-room').textContent = `Salle ${room}`;
+        if (myName) $('join-name').value = myName;
+        if (myTeam) $('join-team').value = myTeam;
+        if (isHost) $('become-host').textContent = 'Hôte activé ✔ (re-clique pour désactiver)';
+        show('join');
+        connect();
+    }
+
+    $('home-create').addEventListener('click', async () => {
+        try {
+            $('home-feedback').textContent = 'Création de la salle…';
+            const created = await post('/api/rooms', {});
+            storage.set(`bt_hostkey_${created.code}`, created.hostKey);
+            storage.set(`bt_host_${created.code}`, '1');
+            location.href = `/r/${created.code}`;
+        } catch (error) {
+            $('home-feedback').textContent = error.message;
+        }
+    });
+
+    $('home-join-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const code = $('home-code').value.trim().toUpperCase();
+        if (!code) return;
+        try {
+            await post(`/api/r/${encodeURIComponent(code)}`, null, 'GET');
+            location.href = `/r/${code}`;
+        } catch (error) {
+            $('home-feedback').textContent = error.message === 'Salle introuvable' ? `Aucune salle ${code}` : error.message;
+        }
+    });
+
+    $('join-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        $('join-feedback').textContent = '';
+        try {
+            const result = await post(`${api}/join`, { name: $('join-name').value, team: $('join-team').value, token });
+            token = result.token;
+            myName = result.name;
+            myTeam = result.team || '';
+            storage.set(`bt_token_${room}`, token);
+            storage.set('bt_name', myName);
+            storage.set('bt_team', myTeam);
+            keepAwake();
+            state = result.state;
+            render();
+            if (sourceToken !== token) connect();
+        } catch (error) {
+            $('join-feedback').textContent = error.message;
+        }
+    });
+
+    $('guess-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const text = $('guess-input').value.trim();
+        if (!text) return;
+        $('guess-input').value = '';
+        try {
+            const result = await post(`${api}/guess`, { token, text });
+            if (result.title && result.artist) feedback(`🔥 Titre + artiste ! +${result.gained} pts`, true);
+            else if (result.title) feedback(`🎵 Titre ! +${result.gained} pts`, true);
+            else if (result.artist) feedback(`🎤 Artiste ! +${result.gained} pts`, true);
+            else if (result.reason === 'throttle') feedback('Doucement… ⏳', false);
+            else if (result.accepted) feedback('❌ Non, essaie encore', false);
+            if (result.gained && navigator.vibrate) navigator.vibrate(result.title && result.artist ? [60, 40, 60] : 40);
+            if (result.title) myFound.title = true;
+            if (result.artist) myFound.artist = true;
+            render();
+        } catch (error) {
+            if (error.message.includes('inconnu')) {
+                token = '';
+                storage.remove(`bt_token_${room}`);
+                render();
+            } else {
+                feedback(error.message, false);
+            }
+        }
+    });
+
+    $('become-host').addEventListener('click', () => {
+        if (!isHost && !hostKey) {
+            const entered = (prompt('Clé hôte ? (6 chiffres pour la salle de la maison, ou la clé reçue à la création de la salle)') || '').trim();
+            if (!entered) return;
+            hostKey = entered;
+            storage.set(`bt_hostkey_${room}`, hostKey);
+        }
+        isHost = !isHost;
+        storage.set(`bt_host_${room}`, isHost ? '1' : '0');
+        $('become-host').textContent = isHost ? 'Hôte activé ✔ (re-clique pour désactiver)' : 'Je suis l\'hôte 🎛️';
+        render();
+    });
+
+    $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
+    $('host-close').addEventListener('click', () => toggleHostPanel(false));
+    $('host-connect').addEventListener('click', () => {
+        location.href = `/auth/spotify?room=${encodeURIComponent(room)}&key=${encodeURIComponent(hostKey)}`;
+    });
+
+    $('host-playlists').addEventListener('click', async () => {
+        const list = $('host-playlist-list');
+        try {
+            hostFeedback('…');
+            const { playlists } = await post(`${api}/host/playlists`, null, 'GET');
+            list.innerHTML = '';
+            for (const playlist of playlists) {
+                const item = document.createElement('li');
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = `${playlist.name} (${playlist.total})`;
+                button.addEventListener('click', () => {
+                    list.innerHTML = '';
+                    hostAction(`${api}/host/playlist`, { url: `spotify:playlist:${playlist.id}` });
+                });
+                item.appendChild(button);
+                list.appendChild(item);
+            }
+            hostFeedback(playlists.length ? '' : 'Aucune playlist sur ce compte');
+        } catch (error) {
+            hostFeedback('⚠ ' + error.message);
+        }
+    });
+
     $('playlist-form').addEventListener('submit', (event) => {
         event.preventDefault();
-        hostAction('/api/host/playlist', { url: $('playlist-url').value });
+        hostAction(`${api}/host/playlist`, { url: $('playlist-url').value });
     });
     $('host-start').addEventListener('click', () => {
-        hostAction('/api/host/start', {
+        hostAction(`${api}/host/start`, {
             rounds: Number($('opt-rounds').value),
             mode: $('opt-mode').value,
-            guessSeconds: Number($('opt-duration').value)
+            guessSeconds: Number($('opt-duration').value),
+            hints: $('opt-hints').value === 'on'
         });
         toggleHostPanel(false);
     });
-    $('host-skip').addEventListener('click', () => hostAction('/api/host/skip'));
-    $('host-retry').addEventListener('click', () => hostAction('/api/host/retry'));
-    $('host-stop').addEventListener('click', () => hostAction('/api/host/stop'));
-    $('host-lobby').addEventListener('click', () => hostAction('/api/host/lobby'));
+    $('host-skip').addEventListener('click', () => hostAction(`${api}/host/skip`));
+    $('host-retry').addEventListener('click', () => hostAction(`${api}/host/retry`));
+    $('stalled-retry').addEventListener('click', () => hostAction(`${api}/host/retry`));
+    $('host-stop').addEventListener('click', () => hostAction(`${api}/host/stop`));
+    $('host-lobby').addEventListener('click', () => hostAction(`${api}/host/lobby`));
 
     $('host-devices-refresh').addEventListener('click', async () => {
         try {
-            const result = await post('/api/host/devices', {});
+            const result = await post(`${api}/host/devices`, null, 'GET');
             const list = $('host-devices');
             list.innerHTML = '';
             for (const device of result.devices) {
                 const item = document.createElement('li');
                 const button = document.createElement('button');
+                button.type = 'button';
                 button.textContent = `${device.is_active ? '🔊 ' : ''}${device.name} (${device.type})`;
-                button.addEventListener('click', () => hostAction('/api/host/device', { id: device.id }));
+                button.addEventListener('click', () => hostAction(`${api}/host/device`, { id: device.id }));
                 item.appendChild(button);
                 list.appendChild(item);
             }
@@ -276,8 +518,20 @@
         }
     });
 
-    if (myName) $('join-name').value = myName;
-    if (isHost) $('become-host').textContent = 'Hôte activé ✔ (re-clique pour désactiver)';
-    show('join');
-    connect();
+    setInterval(() => {
+        if (source && Date.now() - lastMessage > 40000) connect();
+    }, 5000);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        if (token) keepAwake();
+        if (source && Date.now() - lastMessage > 30000) connect();
+    });
+
+    if (room) {
+        $('lobby-qr').src = `/r/${room}/qr.svg`;
+        initRoom();
+    } else {
+        initHome();
+    }
 })();

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const { normalize, matchesTitle, matchesArtist } = require('../src/matching.js');
+const { normalize, matchesTitle, matchesArtist, distance } = require('../src/matching.js');
 
 test('normalize enlève accents, casse et suffixes', () => {
     assert.strictEqual(normalize('Désenchantée'), 'desenchantee');
@@ -41,4 +41,29 @@ test('artiste tolérant aux fautes', () => {
     assert.ok(matchesArtist('beyonce', ['Beyoncé']));
     assert.ok(matchesArtist('the weekend', ['The Weeknd']));
     assert.ok(matchesArtist('weeknd', ['The Weeknd']));
+});
+
+test('un mot significatif suffit', () => {
+    assert.ok(matchesTitle('billie', 'Billie Jean'));
+    assert.ok(matchesTitle('danse', 'Alors on danse'));
+    assert.ok(matchesTitle('bohemian', 'Bohemian Rhapsody'));
+    assert.ok(matchesTitle('rhapsody bohemian', 'Bohemian Rhapsody'));
+    assert.ok(matchesTitle('story', 'Love Story'));
+    assert.ok(matchesArtist('daft', ['Daft Punk']));
+    assert.ok(matchesArtist('jackson', ['Michael Jackson']));
+});
+
+test('un mot court ou secondaire ne suffit pas', () => {
+    assert.ok(!matchesTitle('jean', 'Billie Jean'));
+    assert.ok(!matchesTitle('love', 'Love Story'));
+    assert.ok(!matchesTitle('on', 'Alors on danse'));
+    assert.ok(!matchesTitle('the', 'Hit the Road Jack'));
+    assert.ok(!matchesTitle('queen', 'Dancing Queen'));
+    assert.ok(!matchesTitle('billie thriller', 'Billie Jean'));
+});
+
+test('la distance normalisée sert à trouver la réponse la plus hors sujet', () => {
+    assert.strictEqual(distance('Billie Jean', 'billie jean'), 0);
+    assert.ok(distance('céline dion', 'Bohemian Rhapsody') > 0.7);
+    assert.ok(distance('bohemian rapsody', 'Bohemian Rhapsody') < 0.1);
 });

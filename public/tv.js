@@ -1,0 +1,290 @@
+(() => {
+    'use strict';
+
+    const $ = (id) => document.getElementById(id);
+    const screens = ['missing', 'lobby', 'countdown', 'guess', 'stalled', 'reveal', 'podium'];
+    const medals = ['🥇', '🥈', '🥉'];
+    const roomMatch = location.pathname.match(/^\/r\/([A-Za-z0-9]{3,12})\/tv$/);
+    const room = roomMatch ? roomMatch[1].toUpperCase() : '';
+
+    let state = null;
+    let offset = 0;
+    let frame = null;
+    let source = null;
+    let lastMessage = 0;
+    let lastPhase = '';
+    let audio = null;
+    const seen = new Map();
+
+    function now() {
+        return Date.now() + offset;
+    }
+
+    function show(name) {
+        for (const screen of screens) $('tv-' + screen).hidden = screen !== name;
+    }
+
+    function spaced(pattern) {
+        return pattern.split(' ').map((word) => word.split('').join(' ')).join('   ');
+    }
+
+    function formatHint(hint) {
+        if (!hint) return '';
+        const lines = [];
+        if (hint.title) lines.push(`🎵 ${spaced(hint.title)}`);
+        if (hint.artist) lines.push(`🎤 ${spaced(hint.artist)}`);
+        return lines.join('\n');
+    }
+
+    function enableSound() {
+        const Context = window.AudioContext || window.webkitAudioContext;
+        if (!Context) return;
+        audio = audio || new Context();
+        audio.resume().catch(() => null).then(() => {
+            $('tv-sound').hidden = audio.state === 'running';
+        });
+    }
+
+    function tone(frequency, duration, type, when) {
+        if (!audio || audio.state !== 'running') return;
+        const start = audio.currentTime + when;
+        const oscillator = audio.createOscillator();
+        const gain = audio.createGain();
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.2, start + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        oscillator.connect(gain).connect(audio.destination);
+        oscillator.start(start);
+        oscillator.stop(start + duration + 0.05);
+    }
+
+    function ding() {
+        tone(880, 0.18, 'sine', 0);
+        tone(1320, 0.25, 'sine', 0.12);
+    }
+
+    function fanfare() {
+        [523, 659, 784, 1047].forEach((frequency, index) => tone(frequency, 0.35, 'triangle', index * 0.16));
+    }
+
+    function renderTeams() {
+        const list = $('tv-teams');
+        const teams = state.teams || [];
+        list.hidden = !teams.length;
+        list.innerHTML = '';
+        for (const team of teams) {
+            const item = document.createElement('li');
+            item.textContent = `${team.name} — ${team.score}`;
+            list.appendChild(item);
+        }
+    }
+
+    function renderRanking() {
+        const list = $('tv-ranking');
+        const previous = new Map([...list.children].map((item) => [item.dataset.name, item.getBoundingClientRect().top]));
+        list.innerHTML = '';
+        let scored = false;
+        state.players.forEach((player, index) => {
+            const item = document.createElement('li');
+            item.dataset.name = player.name;
+            if (seen.has(player.name) && seen.get(player.name) < player.score) {
+                item.classList.add('bump');
+                scored = true;
+            }
+            seen.set(player.name, player.score);
+            item.classList.toggle('offline', player.online === false);
+            const rank = document.createElement('span');
+            rank.className = 'rank';
+            rank.textContent = medals[index] || String(index + 1);
+            const name = document.createElement('span');
+            name.className = 'name';
+            name.textContent = player.team ? `${player.name} · ${player.team}` : player.name;
+            const marks = document.createElement('span');
+            marks.className = 'marks';
+            marks.textContent = [player.found.title ? '🎵' : '', player.found.artist ? '🎤' : '', player.online === false ? '💤' : ''].join('');
+            const score = document.createElement('span');
+            score.className = 'score';
+            score.textContent = String(player.score);
+            item.append(rank, name, marks, score);
+            if (player.gained) {
+                const gained = document.createElement('span');
+                gained.className = 'gained';
+                gained.textContent = `+${player.gained}`;
+                item.appendChild(gained);
+            }
+            if (player.lastGuess) {
+                const guess = document.createElement('span');
+                guess.className = 'last-guess';
+                guess.textContent = `« ${player.lastGuess} »`;
+                item.appendChild(guess);
+            }
+            list.appendChild(item);
+        });
+        $('tv-empty').hidden = state.players.length > 0;
+        fitRanking(list);
+        slideRows(list, previous);
+        if (scored && state.phase === 'guess') ding();
+    }
+
+    function fitRanking(list) {
+        let size = 1.25;
+        list.style.fontSize = `${size}rem`;
+        while (list.scrollHeight > list.clientHeight && size > 0.6) {
+            size -= 0.05;
+            list.style.fontSize = `${size}rem`;
+        }
+    }
+
+    function slideRows(list, previous) {
+        for (const item of list.children) {
+            const before = previous.get(item.dataset.name);
+            if (before === undefined) continue;
+            const delta = before - item.getBoundingClientRect().top;
+            if (!delta) continue;
+            item.style.transition = 'none';
+            item.style.transform = `translateY(${delta}px)`;
+        }
+        void list.offsetHeight;
+        requestAnimationFrame(() => {
+            for (const item of list.children) {
+                item.style.transition = '';
+                item.style.transform = '';
+            }
+        });
+    }
+
+    function renderPodium() {
+        const list = $('tv-podium-list');
+        list.innerHTML = '';
+        state.players.slice(0, 3).forEach((player, index) => {
+            const item = document.createElement('li');
+            const name = document.createElement('span');
+            name.textContent = `${medals[index]} ${player.name}`;
+            const score = document.createElement('b');
+            score.textContent = `${player.score} pts`;
+            item.append(name, score);
+            list.appendChild(item);
+        });
+        const stats = state.stats || {};
+        const lines = [];
+        if (stats.fastest) lines.push(`⚡ Plus rapide : ${stats.fastest.name} en ${String(stats.fastest.seconds).replace('.', ',')} s sur « ${stats.fastest.track} »`);
+        if (stats.firsts) lines.push(`🥇 Le plus souvent premier : ${stats.firsts.name} (${stats.firsts.count}×)`);
+        if (stats.wildest) lines.push(`😅 Réponse la plus hors sujet : « ${stats.wildest.guess} » de ${stats.wildest.name} pour « ${stats.wildest.track} »`);
+        const statsList = $('tv-stats');
+        statsList.innerHTML = '';
+        for (const line of lines) {
+            const item = document.createElement('li');
+            item.textContent = line;
+            statsList.appendChild(item);
+        }
+        statsList.hidden = !lines.length;
+    }
+
+    function loop() {
+        if (state.phase === 'countdown') {
+            const left = Math.max(0, Math.ceil((state.phaseEndsAt - now()) / 1000));
+            $('tv-count').textContent = left || '🎶';
+        }
+        if (state.phase === 'guess') {
+            const remaining = Math.max(0, state.phaseEndsAt - now());
+            const urgent = remaining < 8000;
+            $('tv-bar').style.width = (remaining / state.guessMs * 100) + '%';
+            $('tv-bar').classList.toggle('urgent', urgent);
+            $('tv-seconds').classList.toggle('urgent', urgent);
+            $('tv-seconds').textContent = String(Math.ceil(remaining / 1000));
+        }
+        if (state.phase === 'countdown' || state.phase === 'guess') frame = requestAnimationFrame(loop);
+    }
+
+    function render() {
+        const url = state.joinUrl || '';
+        $('tv-url').textContent = url.replace(/^https?:\/\//, '');
+        $('tv-code').textContent = `Code : ${state.room || room}`;
+        $('tv-lobby-url').textContent = url;
+        $('tv-playlist').textContent = state.playlist ? `📀 ${state.playlist.name} · ${state.playlist.total} titres` : '';
+        $('tv-notice').textContent = state.notice || '';
+        const round = state.round ? `Manche ${state.round}/${state.rounds}` : '';
+        $('tv-round').textContent = round;
+        $('tv-round-countdown').textContent = round;
+        renderTeams();
+        renderRanking();
+        cancelAnimationFrame(frame);
+
+        if (state.phase === 'lobby') {
+            show('lobby');
+        } else if (state.phase === 'countdown') {
+            show('countdown');
+            loop();
+        } else if (state.phase === 'guess') {
+            show('guess');
+            const hint = formatHint(state.hint);
+            if (hint !== $('tv-hint').textContent) {
+                $('tv-hint').textContent = hint;
+                $('tv-hint').classList.remove('fresh');
+                void $('tv-hint').offsetWidth;
+                if (hint) $('tv-hint').classList.add('fresh');
+            }
+            $('tv-mode').textContent = { both: 'Titre + artiste', title: 'Titre seul', artist: 'Artiste seul' }[state.mode] || '';
+            loop();
+        } else if (state.phase === 'stalled') {
+            show('stalled');
+            $('tv-stalled-message').textContent = state.notice || '';
+        } else if (state.phase === 'reveal') {
+            show('reveal');
+            const track = state.track || {};
+            $('tv-cover').src = track.image || '/favicon.svg';
+            $('tv-title').textContent = track.name || '';
+            $('tv-artists').textContent = (track.artists || []).join(', ');
+        } else if (state.phase === 'podium') {
+            show('podium');
+            renderPodium();
+            if (lastPhase !== 'podium') fanfare();
+        }
+        lastPhase = state.phase;
+    }
+
+    function connect() {
+        if (source) source.close();
+        lastMessage = Date.now();
+        source = new EventSource(`/events?room=${encodeURIComponent(room)}`);
+        source.addEventListener('state', (event) => {
+            lastMessage = Date.now();
+            state = JSON.parse(event.data);
+            offset = state.serverNow - Date.now();
+            render();
+        });
+        source.addEventListener('ping', () => {
+            lastMessage = Date.now();
+        });
+    }
+
+    async function init() {
+        if (!room) {
+            show('missing');
+            $('tv-missing-message').textContent = 'Ouvre cette page depuis une salle : /r/CODE/tv';
+            return;
+        }
+        const response = await fetch(`/api/r/${encodeURIComponent(room)}`).catch(() => null);
+        if (!response || !response.ok) {
+            show('missing');
+            $('tv-missing-message').textContent = `La salle ${room} n'existe pas ou plus.`;
+            return;
+        }
+        $('tv-qr').src = `/r/${room}/qr.svg`;
+        $('tv-qr-big').src = `/r/${room}/qr.svg`;
+        connect();
+        enableSound();
+    }
+
+    $('tv-sound').addEventListener('click', enableSound);
+    setInterval(() => {
+        if (source && Date.now() - lastMessage > 40000) connect();
+    }, 5000);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && source && Date.now() - lastMessage > 30000) connect();
+    });
+
+    init();
+})();

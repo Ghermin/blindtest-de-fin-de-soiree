@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Blind Test — écran TV</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/tv.css">
+</head>
+<body>
+    <main class="stage">
+        <section id="tv-missing" hidden>
+            <h1>Blind Test<span>de fin de soirée</span></h1>
+            <p id="tv-missing-message" class="lead"></p>
+        </section>
+
+        <section id="tv-lobby" hidden>
+            <div class="vinyl spinning"></div>
+            <h1>Blind Test<span>de fin de soirée</span></h1>
+            <p class="lead">Scanne le QR code pour rejoindre</p>
+            <img id="tv-qr-big" class="qr-big" alt="QR code pour rejoindre la partie">
+            <p id="tv-lobby-url" class="url"></p>
+            <p id="tv-notice" class="muted"></p>
+            <p id="tv-playlist" class="muted"></p>
+        </section>
+
+        <section id="tv-countdown" hidden>
+            <p id="tv-round-countdown" class="round"></p>
+            <div id="tv-count" class="count"></div>
+        </section>
+
+        <section id="tv-guess" hidden>
+            <p id="tv-round" class="round"></p>
+            <div class="vinyl spinning"><span>?</span></div>
+            <div class="timer-row">
+                <div class="timer" aria-hidden="true"><div id="tv-bar"></div></div>
+                <span id="tv-seconds" class="seconds"></span>
+            </div>
+            <p id="tv-hint" class="hint"></p>
+            <p id="tv-mode" class="muted"></p>
+        </section>
+
+        <section id="tv-stalled" hidden>
+            <p class="round">⚠️ Lecture Spotify interrompue</p>
+            <p id="tv-stalled-message" class="lead"></p>
+        </section>
+
+        <section id="tv-reveal" hidden>
+            <p class="round">C'était…</p>
+            <img id="tv-cover" alt="">
+            <p id="tv-title" class="title"></p>
+            <p id="tv-artists" class="lead"></p>
+        </section>
+
+        <section id="tv-podium" hidden>
+            <h1>🏆 Podium</h1>
+            <ol id="tv-podium-list" class="podium"></ol>
+            <ul id="tv-stats" class="tv-stats"></ul>
+            <p class="muted">L'hôte peut relancer une partie depuis son téléphone</p>
+        </section>
+    </main>
+
+    <aside class="side">
+        <h2>Classement</h2>
+        <ul id="tv-teams" class="tv-teams" hidden></ul>
+        <ol id="tv-ranking" class="ranking"></ol>
+        <p id="tv-empty" class="muted">Personne n'a encore rejoint</p>
+        <button id="tv-sound" class="sound" type="button">🔊 Activer le son</button>
+        <div class="join">
+            <img id="tv-qr" alt="QR code pour rejoindre la partie">
+            <div>
+                <p class="join-label">Rejoindre la partie</p>
+                <p id="tv-url" class="join-url"></p>
+                <p id="tv-code" class="join-code"></p>
+            </div>
+        </div>
+    </aside>
+
+    <script src="/tv.js"></script>
+</body>
+</html>

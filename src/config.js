@@ -13,6 +13,10 @@ module.exports = {
     port: Number(process.env.BLINDTEST_PORT) || 3000,
     host: process.env.BLINDTEST_HOST || '0.0.0.0',
     hostPin: process.env.BLINDTEST_HOST_PIN || '',
+    publicUrl: (process.env.BLINDTEST_PUBLIC_URL || '').replace(/\/+$/, ''),
+    homeRoom: (process.env.BLINDTEST_HOME_ROOM || 'MAISON').toUpperCase(),
+    trustProxy: process.env.BLINDTEST_TRUST_PROXY === '1',
+    dataDir: process.env.BLINDTEST_DATA_DIR || path.join(__dirname, '..', 'data'),
     spotify: {
         clientId: process.env.SPOTIFY_CLIENT_ID || '',
         clientSecret: process.env.SPOTIFY_CLIENT_SECRET || '',
