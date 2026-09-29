@@ -5,6 +5,7 @@ const os = require('node:os');
 const { randomBytes, timingSafeEqual } = require('node:crypto');
 const config = require('./src/config.js');
 const spotify = require('./src/spotify.js');
+const deezer = require('./src/deezer.js');
 const rooms = require('./src/rooms.js');
 const qr = require('./src/qr.js');
 const ratelimit = require('./src/ratelimit.js');
@@ -148,7 +149,18 @@ async function handleHost(request, response, room, action, body) {
     }
     if (action === '/host/playlist' && post) return send(response, 200, { playlist: await game.setPlaylist(body.url) });
     if (action === '/host/playlists') return send(response, 200, { playlists: await spotify.myPlaylists() });
-    if (action === '/host/search' && post) return send(response, 200, { playlists: await spotify.searchPlaylists(body.q) });
+    if (action === '/host/search' && post) {
+        const query = String(body.q || '').trim().slice(0, 80);
+        const quiet = (label) => (error) => {
+            console.log(`Recherche ${label} en échec : ${error.message}`);
+            return [];
+        };
+        const [fromSpotify, fromDeezer] = await Promise.all([
+            spotify.configured() ? spotify.searchPlaylists(query).catch(quiet('Spotify')) : [],
+            deezer.searchPlaylists(query).catch(quiet('Deezer'))
+        ]);
+        return send(response, 200, { playlists: [...fromSpotify, ...fromDeezer] });
+    }
     if (action === '/host/spotify/forget' && post) {
         spotify.forgetUser();
         return send(response, 200, { ok: true });

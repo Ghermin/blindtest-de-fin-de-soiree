@@ -427,9 +427,6 @@
         } catch (error) {
             return initHome(error.message === 'Salle introuvable' ? `La salle ${room} n'existe plus : crée-en une nouvelle ou entre un autre code.` : error.message);
         }
-        post('/api/info', null, 'GET').then((info) => {
-            $('playlist-search').hidden = !info.spotify;
-        }).catch(() => null);
         $('join-room').textContent = `Salle ${room}`;
         if (myName) $('join-name').value = myName;
         if (myTeam) $('join-team').value = myTeam;
@@ -552,11 +549,12 @@
             button.type = 'button';
             const parts = [playlist.total ? `${playlist.name} (${playlist.total})` : playlist.name];
             if (playlist.owner) parts.push(playlist.owner);
-            if (!playlist.mine && playlist.total > 100) parts.push('100 premiers titres');
+            parts.push(playlist.source === 'deezer' ? 'Deezer' : 'Spotify');
+            if (playlist.source !== 'deezer' && !playlist.mine && playlist.total > 100) parts.push('100 premiers titres');
             button.textContent = parts.join(' · ');
             button.addEventListener('click', () => {
                 list.innerHTML = '';
-                hostAction(`${api}/host/playlist`, { url: `spotify:playlist:${playlist.id}` });
+                hostAction(`${api}/host/playlist`, { url: `${playlist.source === 'deezer' ? 'deezer' : 'spotify'}:playlist:${playlist.id}` });
             });
             item.appendChild(button);
             list.appendChild(item);
@@ -574,24 +572,30 @@
         }
     });
 
-    $('playlist-search').addEventListener('submit', async (event) => {
+
+    function looksLikeLink(text) {
+        return /https?:\/\/|spotify:|deezer:|^[A-Za-z0-9]{22}$|^\d{4,}$/.test(text);
+    }
+
+    $('playlist-form').addEventListener('submit', async (event) => {
         event.preventDefault();
-        const q = $('playlist-query').value.trim();
-        if (!q) return;
+        const text = $('playlist-url').value.trim();
+        if (!text) return;
+        const list = $('host-playlist-list');
+        if (looksLikeLink(text)) {
+            list.innerHTML = '';
+            hostAction(`${api}/host/playlist`, { url: text });
+            return;
+        }
         try {
             hostFeedback('…');
-            const { playlists } = await post(`${api}/host/search`, { q });
-            renderPlaylists(playlists, 'Aucune playlist trouvée');
-            $('playlist-query').blur();
-            $('host-playlist-list').scrollIntoView({ block: 'nearest' });
+            const { playlists } = await post(`${api}/host/search`, { q: text });
+            renderPlaylists(playlists, 'Aucune playlist trouvée, essaie un autre nom ou colle un lien');
+            $('playlist-url').blur();
+            list.scrollIntoView({ block: 'nearest' });
         } catch (error) {
             hostFeedback('⚠ ' + error.message);
         }
-    });
-
-    $('playlist-form').addEventListener('submit', (event) => {
-        event.preventDefault();
-        hostAction(`${api}/host/playlist`, { url: $('playlist-url').value });
     });
     $('host-start').addEventListener('click', async () => {
         if (await hostAction(`${api}/host/start`, startOptions())) toggleHostPanel(false);
