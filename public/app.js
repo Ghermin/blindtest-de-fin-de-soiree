@@ -90,7 +90,7 @@
 
     function syncAudio() {
         const audio = state && state.audio;
-        const active = speaker && audio && audio.url && ['countdown', 'guess', 'reveal'].includes(state.phase);
+        const active = speaker && audio && audio.url && !state.paused && ['countdown', 'guess', 'reveal'].includes(state.phase);
         if (!active) {
             if (!player.paused) player.pause();
             return;
@@ -196,7 +196,7 @@
         if (state.phase === 'countdown') {
             clearInterval(countdownTimer);
             const tick = () => {
-                const left = Math.max(0, Math.ceil((state.phaseEndsAt - now()) / 1000));
+                const left = Math.max(0, Math.ceil((state.paused ? state.pauseRemaining : state.phaseEndsAt - now()) / 1000));
                 $('countdown-big').textContent = left || '🎶';
             };
             tick();
@@ -228,13 +228,13 @@
             const counter = $('timer-left');
             const animate = () => {
                 const total = state.guessMs;
-                const remaining = Math.max(0, state.phaseEndsAt - now());
+                const remaining = state.paused ? state.pauseRemaining : Math.max(0, state.phaseEndsAt - now());
                 const seconds = String(Math.ceil(remaining / 1000));
                 bar.style.width = (remaining / total * 100) + '%';
                 bar.classList.toggle('urgent', remaining < 8000);
                 counter.classList.toggle('urgent', remaining < 8000);
                 if (counter.textContent !== seconds) counter.textContent = seconds;
-                if (remaining > 0 && state.phase === 'guess') timerFrame = requestAnimationFrame(animate);
+                if (remaining > 0 && state.phase === 'guess' && !state.paused) timerFrame = requestAnimationFrame(animate);
             };
             animate();
         }
@@ -293,6 +293,14 @@
         $('lobby-setup').hidden = !isHost;
         $('podium-actions').hidden = !isHost;
         $('podium-guest').hidden = isHost;
+        const running = ['countdown', 'guess', 'reveal'].includes(state.phase);
+        $('host-bar').hidden = !(isHost && running);
+        document.body.classList.toggle('has-bar', isHost && running);
+        document.body.classList.toggle('paused', Boolean(state.paused));
+        $('bar-pause').textContent = state.paused ? '▶ Reprendre' : '⏸ Pause';
+        $('host-pause').textContent = state.paused ? '▶ Reprendre' : '⏸ Pause';
+        $('game-paused').hidden = !state.paused;
+        $('guess-input').disabled = Boolean(state.paused);
         document.body.classList.toggle('is-host', isHost);
         $('host-playlist-info').textContent = playlistLabel(state.playlist, true);
 
@@ -486,6 +494,7 @@
             else if (result.title) feedback(`🎵 Titre ! +${result.gained} pts`, true);
             else if (result.artist) feedback(`🎤 Artiste ! +${result.gained} pts`, true);
             else if (result.reason === 'throttle') feedback('Doucement… ⏳', false);
+            else if (result.reason === 'paused') feedback('⏸ Pause', false);
             else if (result.accepted) feedback('❌ Non, essaie encore', false);
             if (result.gained && navigator.vibrate) navigator.vibrate(result.title && result.artist ? [60, 40, 60] : 40);
             if (result.title) myFound.title = true;
@@ -573,6 +582,8 @@
             hostFeedback('…');
             const { playlists } = await post(`${api}/host/search`, { q });
             renderPlaylists(playlists, 'Aucune playlist trouvée');
+            $('playlist-query').blur();
+            $('host-playlist-list').scrollIntoView({ block: 'nearest' });
         } catch (error) {
             hostFeedback('⚠ ' + error.message);
         }
@@ -594,9 +605,22 @@
         await hostAction(`${api}/host/lobby`);
     });
     $('lobby-setup').addEventListener('click', () => toggleHostPanel(true));
+    function pauseRoute() {
+        return `${api}/host/${state && state.paused ? 'resume' : 'pause'}`;
+    }
+
+    async function barAction(route) {
+        if (!(await hostAction(route))) toggleHostPanel(true);
+    }
+
+    $('host-pause').addEventListener('click', () => hostAction(pauseRoute()));
     $('host-skip').addEventListener('click', () => hostAction(`${api}/host/skip`));
     $('host-stop').addEventListener('click', () => hostAction(`${api}/host/stop`));
     $('host-lobby').addEventListener('click', () => hostAction(`${api}/host/lobby`));
+    $('bar-pause').addEventListener('click', () => barAction(pauseRoute()));
+    $('bar-skip').addEventListener('click', () => barAction(`${api}/host/skip`));
+    $('bar-stop').addEventListener('click', () => barAction(`${api}/host/stop`));
+    $('bar-lobby').addEventListener('click', () => barAction(`${api}/host/lobby`));
 
     document.addEventListener('pointerdown', () => {
         if (speaker && !$('sound-help').hidden) syncAudio();

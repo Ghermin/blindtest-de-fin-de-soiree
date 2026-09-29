@@ -56,7 +56,7 @@
 
     function syncAudio(fromGesture) {
         const clip = state && state.audio;
-        const active = clip && clip.url && ['countdown', 'guess', 'reveal'].includes(state.phase);
+        const active = clip && clip.url && !state.paused && ['countdown', 'guess', 'reveal'].includes(state.phase);
         if (!active) {
             if (!player.paused) player.pause();
             return;
@@ -228,11 +228,11 @@
 
     function loop() {
         if (state.phase === 'countdown') {
-            const left = Math.max(0, Math.ceil((state.phaseEndsAt - now()) / 1000));
+            const left = Math.max(0, Math.ceil((state.paused ? state.pauseRemaining : state.phaseEndsAt - now()) / 1000));
             $('tv-count').textContent = left || '🎶';
         }
         if (state.phase === 'guess') {
-            const remaining = Math.max(0, state.phaseEndsAt - now());
+            const remaining = state.paused ? state.pauseRemaining : Math.max(0, state.phaseEndsAt - now());
             const urgent = remaining < 8000;
             $('tv-bar').style.width = (remaining / state.guessMs * 100) + '%';
             $('tv-bar').classList.toggle('urgent', urgent);
@@ -249,6 +249,8 @@
         $('tv-lobby-url').textContent = url;
         $('tv-playlist').textContent = playlistLabel(state.playlist);
         $('tv-notice').textContent = state.notice || '';
+        $('tv-paused').hidden = !state.paused;
+        document.body.classList.toggle('paused', Boolean(state.paused));
         const round = state.round ? `Manche ${state.round}/${state.rounds}` : '';
         $('tv-round').textContent = round;
         $('tv-round-countdown').textContent = round;

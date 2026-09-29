@@ -33,6 +33,21 @@ body {
     color: var(--text);
 }
 
+.paused {
+    position: fixed;
+    top: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    padding: 0.5rem 1.4rem;
+    border-radius: 999px;
+    background: #ff3d8b;
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+}
+
 .stage {
     display: flex;
     align-items: center;
@@ -499,4 +514,8 @@ p {
     font-size: 0.8rem;
     text-align: right;
     color: var(--muted);
+}
+
+body.paused .spinning {
+    animation-play-state: paused;
 }

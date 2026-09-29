@@ -56,6 +56,10 @@ ouvre une adresse.
 6. Sur le podium : **🔁 Rejouer** relance avec les mêmes réglages,
    **⚙️ Modifier la partie** ramène au lobby avec le panneau ouvert (playlist,
    manches, durée, indices).
+7. Pendant la partie, une barre en haut de ton téléphone : **⏸ Pause** (chrono,
+   indices et extrait gelés partout, **▶ Reprendre** pour repartir), **⏭ Passer**
+   la manche, **⏹ Terminer** (podium avec les scores du moment), **↩ Lobby**
+   pour changer de playlist ou de réglages.
 
 Pour tester tout de suite, une playlist Deezer publique :
 `https://www.deezer.com/fr/playlist/1743878062` (Soirée 80).

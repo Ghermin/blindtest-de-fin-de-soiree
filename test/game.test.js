@@ -213,3 +213,23 @@ test('titre et artiste dans la même réponse rapportent les deux', () => {
     assert.ok(result.gained > 0);
     assert.strictEqual(game.guess(tom.token, 'billie jean').accepted, false);
 });
+
+test('la pause gèle la manche et refuse les réponses, la reprise termine la manche', async () => {
+    const game = make();
+    const tom = game.join('Tom');
+    await game.setPlaylist('x');
+    await until(() => game.playlist.ready, 2000);
+    game.start({ rounds: 1 });
+    await until(() => game.phase === 'guess', 2000);
+    game.pause();
+    const frozen = game.publicState();
+    assert.strictEqual(frozen.paused, true);
+    assert.ok(frozen.pauseRemaining > 0 && frozen.pauseRemaining <= 300);
+    assert.strictEqual(game.guess(tom.token, 'Billie Jean').accepted, false);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    assert.strictEqual(game.phase, 'guess');
+    game.resume();
+    assert.strictEqual(game.publicState().paused, false);
+    await until(() => game.phase === 'reveal', 2000);
+    await until(() => game.phase === 'podium', 2000);
+});
