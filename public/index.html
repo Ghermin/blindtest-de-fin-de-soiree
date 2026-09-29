@@ -129,15 +129,11 @@
             <button id="host-connect" type="button">🎧 Connecter mon compte Spotify</button>
             <button id="host-playlists" type="button" hidden>📚 Mes playlists</button>
         </div>
-        <form id="playlist-search" class="host-search" hidden>
-            <input id="playlist-query" type="search" placeholder="Chercher une playlist Spotify (années 80, rap français…)" aria-label="Chercher une playlist Spotify" autocomplete="off">
-            <button type="submit" aria-label="Rechercher">🔍</button>
+        <form id="playlist-form">
+            <input id="playlist-url" type="text" placeholder="Lien de playlist, ou nom à chercher (années 80, rap…)" aria-label="Lien de playlist, ou nom de playlist à chercher" autocomplete="off" enterkeyhint="search">
+            <button type="submit">OK</button>
         </form>
         <ul id="host-playlist-list" class="host-list"></ul>
-        <form id="playlist-form">
-            <input id="playlist-url" type="text" inputmode="url" placeholder="Lien de playlist Spotify ou Deezer" aria-label="Lien de playlist Spotify ou Deezer" autocomplete="off">
-            <button type="submit">Charger</button>
-        </form>
         <div id="host-presets" class="host-actions" hidden></div>
         <p id="host-playlist-info"></p>
         <p id="host-feedback" role="status"></p>

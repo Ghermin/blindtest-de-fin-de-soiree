@@ -69,4 +69,18 @@ async function preview(id) {
     return track.preview;
 }
 
-module.exports = { playlist, search, preview };
+async function searchPlaylists(query) {
+    const text = String(query || '').trim().slice(0, 80);
+    if (!text) return [];
+    const data = await call(`/search/playlist?q=${encodeURIComponent(text)}&limit=10`);
+    return (data.data || []).filter((item) => item && item.id && item.public !== false).map((item) => ({
+        id: String(item.id),
+        source: 'deezer',
+        name: item.title || '',
+        owner: item.user ? item.user.name : '',
+        total: item.nb_tracks || 0,
+        image: item.picture_medium || null
+    }));
+}
+
+module.exports = { playlist, search, searchPlaylists, preview };

@@ -182,7 +182,7 @@ async function myPlaylists() {
         for (const item of page.items || []) {
             if (!item || !item.id) continue;
             const count = item.items || item.tracks;
-            result.push({ id: item.id, name: item.name, total: count ? count.total : 0, mine: Boolean(item.owner && item.owner.id === me) });
+            result.push({ id: item.id, source: 'spotify', name: item.name, total: count ? count.total : 0, mine: Boolean(item.owner && item.owner.id === me) });
         }
         route = page.next ? page.next.replace(API, '') : null;
     }
@@ -201,6 +201,7 @@ async function searchPlaylists(query) {
         const count = item.items || item.tracks;
         return {
             id: item.id,
+            source: 'spotify',
             name: item.name,
             owner: item.owner ? item.owner.display_name || item.owner.id : '',
             total: count ? count.total : 0,

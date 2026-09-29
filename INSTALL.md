@@ -49,8 +49,9 @@ ouvre une adresse.
    **Activer le son** avec la télécommande. Mets la page en favori.
 4. Les invités scannent le QR code (dans Termux, dans le lobby de ton
    téléphone ou sur la TV), entrent un pseudo et une équipe s'ils veulent.
-5. Toi, dans Chrome : pseudo → **Rejoindre** → manette 🎛️ → playlist →
-   **▶ Lancer**. Pas de manette (autre navigateur, page ouverte depuis le QR
+5. Toi, dans Chrome : pseudo → **Rejoindre** → manette 🎛️ → colle un lien ou
+   tape un nom de playlist → **OK** → choisis dans la liste → **▶ Lancer**. Pas
+   de manette (autre navigateur, page ouverte depuis le QR
    code) ? **Je suis l'hôte** → ton code, sur l'écran de connexion ou dans le
    lobby à côté de « Changer de pseudo ».
 6. Sur le podium : **🔁 Rejouer** relance avec les mêmes réglages,
@@ -69,11 +70,12 @@ et une enceinte Bluetooth sur ton téléphone.
 
 ## 3. Spotify (optionnel, 5 min, une seule fois)
 
-Sans rien configurer, tu peux coller le lien de n'importe quelle playlist
-Spotify **publique** (éditoriales comprises) ou Deezer. Pour Spotify, le jeu lit
-la page publique du lecteur intégré : elle donne les **100 premiers titres** et
-leurs extraits. Les identifiants d'une app Spotify ajoutent la **recherche de
-playlists** dans le panneau hôte et, avec ton compte connecté, **Mes
+Sans rien configurer, le champ du panneau hôte accepte le lien de n'importe
+quelle playlist Spotify **publique** (éditoriales comprises) ou Deezer, et un
+nom à chercher (« années 80 », « rap français ») qui interroge Deezer. Pour
+Spotify, le jeu lit la page publique du lecteur intégré : elle donne les **100
+premiers titres** et leurs extraits. Les identifiants d'une app Spotify ajoutent
+les playlists Spotify à la recherche et, avec ton compte connecté, **Mes
 playlists** (privées comprises, en entier si tu les possèdes).
 
 1. https://developer.spotify.com/dashboard → **Create app** : nom `Blind Test`,

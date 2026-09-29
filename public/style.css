@@ -717,6 +717,7 @@ form.stack > button {
     gap: 6px;
     max-height: 30dvh;
     overflow-y: auto;
+    flex-shrink: 0;
 }
 
 .host-list button {

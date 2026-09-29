@@ -21,7 +21,7 @@ Spotify Premium.
 2. La TV ouvre l'adresse de la salle suivie de `/tv` dans son navigateur et
    valide **Activer le son**. Les invités scannent le QR code.
 3. L'hôte colle le lien d'une playlist **Spotify** ou **Deezer** publique, ou
-   la cherche par nom (recherche Spotify avec des identifiants d'app), attend
+   la cherche par nom (Deezer, et Spotify avec des identifiants d'app), attend
    « extraits prêts », lance.
 4. À chaque manche, le serveur donne à l'écran TV l'extrait et l'instant de
    départ ; sans écran, le téléphone de l'hôte peut jouer le son sur une
