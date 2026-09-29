@@ -25,22 +25,21 @@ Zéro dépendance runtime : Node ≥ 20, `node:http`, SSE et du JS vanilla.
   (et, pour la famille, `https://<ton-domaine>/auth/spotify/callback`)
 - Node ≥ 20 (le Pi est installé automatiquement en Node 22 par `deploy/install.sh`)
 
-## Connexion Spotify de la salle de la maison (une seule fois)
+## Connexion Spotify de la salle de la maison
+
+Sur le Pi, l'assistant d'installation s'en charge : il affiche une adresse à
+ouvrir sur ton téléphone ou ton PC, Spotify te renvoie vers une page d'erreur
+`127.0.0.1` dont tu recolles l'adresse dans le terminal, et le jeton est écrit
+dans `.env`. Avec lui, le serveur crée au démarrage la salle `MAISON` (nom
+modifiable par `BLINDTEST_HOME_ROOM`) dont tu es l'hôte.
+
+Pour un PC de développement :
 
 ```bash
 cp .env.example .env        # renseigne SPOTIFY_CLIENT_ID et SPOTIFY_CLIENT_SECRET
 npm run auth                # ouvre l'URL affichée, autorise, colle le SPOTIFY_REFRESH_TOKEN dans .env
+node scripts/auth.js --manual --write   # variante sans serveur local : on recolle l'adresse de retour
 ```
-
-Spotify n'accepte que `127.0.0.1` en redirect HTTP : lance `npm run auth` sur la
-machine où est ton navigateur. Pour le Pi, tunnel SSH puis ouvre l'URL sur ton PC :
-
-```bash
-ssh -L 8888:127.0.0.1:8888 pi@raspberrypi.local
-```
-
-Le refresh token n'expire pas. Avec lui, le serveur crée au démarrage la salle
-`MAISON` (nom modifiable par `BLINDTEST_HOME_ROOM`) dont tu es l'hôte.
 
 ## Lancer en local
 
@@ -51,12 +50,16 @@ npm start                   # http://localhost:3000
 ## Déployer sur le Raspberry Pi
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/install.sh | sudo bash
-sudo nano /opt/blindtest/.env   # colle les variables SPOTIFY_*
-sudo systemctl start blindtest
+curl -fsSL https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/install.sh -o /tmp/install.sh
+sudo bash /tmp/install.sh
 ```
 
-Le jeu est sur `http://<hostname>.local:3000`. Une mise à jour est tirée
+L'installation enchaîne sur un **assistant** qui demande les identifiants
+Spotify et le code hôte, connecte ton compte Spotify, propose l'accès famille
+et l'écran TV, démarre le service et affiche le QR code de ta salle dans le
+terminal. Relançable à tout moment : `sudo /opt/blindtest/deploy/setup.sh`.
+
+Le jeu est sur `http://<ip-du-pi>:3000`. Une mise à jour est tirée
 automatiquement toutes les 30 min (`blindtest-update.timer`), mais jamais
 pendant une partie : le script attend que toutes les salles soient au lobby ou
 au podium.
@@ -102,25 +105,37 @@ n'empêche pas la manche de se terminer quand tous les autres ont trouvé.
   serveur conserve joueurs, scores et playlist, et remet une partie interrompue
   au lobby. Une salle inactive depuis 6 h disparaît.
 
-## Écran TV
+## Afficher le jeu sur la TV
 
-`/r/CODE/tv` affiche en grand le QR code pour rejoindre (même en cours de
-partie), le classement avec les scores et les équipes, le chrono, les indices,
-la révélation avec la pochette et le podium avec les statistiques. Un petit son
-accompagne les bonnes réponses et le podium.
+`/r/CODE/tv` est l'écran de la salle : QR code permanent pour rejoindre,
+classement avec scores et équipes, chrono, indices, révélation avec la
+pochette, podium avec les statistiques, petit son sur les bonnes réponses.
+Rien des saisies de l'hôte n'y apparaît.
 
-Attention au son : si la musique sort sur un Chromecast, Spotify prend l'écran
-de cette TV dès le premier morceau et coupe tout ce qu'on y castait. Deux
-montages qui marchent :
+Une règle avant tout : **l'appareil qui affiche le jeu ne peut pas être celui
+qui joue la musique**. Dès que Spotify envoie un titre à un Chromecast, il
+prend son écran. Fais donc sortir le son ailleurs : le téléphone de l'hôte sur
+une enceinte Bluetooth (« ce téléphone » dans **Appareils Spotify**), une
+enceinte Spotify Connect, un Nest, une barre de son.
 
-- **Le Pi branché en HDMI sur la TV** (recommandé) : `sudo /opt/blindtest/deploy/tv-setup.sh`
-  installe [raspotify](https://github.com/dtcooper/raspotify), qui fait du Pi
-  un appareil Spotify Connect « Blind Test TV » dont le son sort par le HDMI,
-  et lance Chromium en plein écran sur `/r/MAISON/tv` au démarrage.
-  Un seul câble, rien à caster.
-- **Le son ailleurs que sur la TV** (enceinte Connect, Nest, téléphone sur une
-  enceinte Bluetooth) : la TV est libre, caste l'onglet `/r/CODE/tv` depuis
-  Chrome sur un PC, ou ouvre l'URL dans le navigateur de la TV.
+Trois façons d'afficher `/tv` :
+
+1. **Caster depuis un téléphone Android** : bouton **📺 Caster sur la TV** dans
+   le panneau hôte. Le Chromecast charge lui-même la page, le téléphone reste
+   libre pour jouer. Il faut l'accès famille (adresse HTTPS, section suivante)
+   et un récepteur Cast enregistré une fois chez Google pour 5 $ :
+   https://cast.google.com/publish → **Add new application** → **Custom Receiver**
+   → URL `https://ton-domaine/cast` → l'**Application ID** va dans
+   `BLINDTEST_CAST_APP_ID` → **Publish**. Marche dans toutes les maisons
+   équipées d'un Chromecast ou d'une Google TV. Pas depuis un iPhone : les
+   navigateurs iOS ne savent pas caster une page.
+2. **N'importe quel autre écran** ouvre `https://ton-domaine/r/CODE/tv` : une
+   tablette posée sur la table, un portable avec Chrome (menu → **Caster** →
+   cet onglet), le navigateur d'une Android TV ou d'une Fire TV.
+3. **Le Pi branché en HDMI sur la TV** : `sudo /opt/blindtest/deploy/tv-setup.sh`
+   installe [raspotify](https://github.com/dtcooper/raspotify) (le Pi devient
+   l'appareil Spotify « Blind Test TV », son par le HDMI) et Chromium en plein
+   écran sur `/r/MAISON/tv`.
 
 ## Ouvrir le jeu à la famille
 
@@ -186,6 +201,7 @@ la plus hors sujet.
 | `BLINDTEST_PUBLIC_URL` | Adresse publique HTTPS (tunnel), sert aux QR codes et à la connexion Spotify des hôtes |
 | `BLINDTEST_TRUST_PROXY` | `1` derrière Cloudflare pour lire la vraie adresse des joueurs |
 | `BLINDTEST_DATA_DIR` | Dossier des sauvegardes et des préréglages (`data/`) |
+| `BLINDTEST_CAST_APP_ID` | Application ID du récepteur Cast enregistré chez Google : active le bouton « Caster sur la TV » |
 
 Préréglages de playlists : copie `presets.example.json` en `data/presets.json`
 avec des liens de playlists **perso ou d'autres utilisateurs**. Les playlists
@@ -209,6 +225,10 @@ développement.
 - **La musique démarre en retard** : normal sur Chromecast (~1 s), le chrono ne
   démarre qu'une fois la lecture confirmée par Spotify.
 - **Podium figé** : l'hôte a un bouton « ↩ Lobby » pour repartir sur une nouvelle partie.
+- **Le bouton « Caster sur la TV » n'apparaît pas** : il faut Chrome sur Android ou un PC,
+  `BLINDTEST_CAST_APP_ID` renseigné et l'adresse HTTPS de l'accès famille.
+- **La TV affiche le jeu puis Spotify prend l'écran** : la musique sort sur ce même
+  Chromecast. Choisis une autre sortie dans **Appareils Spotify**.
 - **Voir ce qui se passe** : `journalctl -u blindtest -f` trace les salles, joueurs,
   manches, erreurs Spotify. `GET /api/health` dit si une partie est en cours.
 

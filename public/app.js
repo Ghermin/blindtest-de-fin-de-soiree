@@ -38,6 +38,7 @@
     let source = null;
     let sourceToken = null;
     let lastMessage = 0;
+    let castContext = null;
     const seen = new Map();
 
     if (room && location.hash.startsWith('#host=')) {
@@ -339,6 +340,30 @@
         }
     }
 
+    function setupCast(appId) {
+        const framework = window.cast && window.cast.framework;
+        if (!framework || !window.chrome || !window.chrome.cast) return;
+        castContext = framework.CastContext.getInstance();
+        castContext.setOptions({ receiverApplicationId: appId, autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED });
+        castContext.addEventListener(framework.CastContextEventType.SESSION_STATE_CHANGED, (event) => {
+            const session = castContext.getCurrentSession();
+            const started = event.sessionState === framework.SessionState.SESSION_STARTED || event.sessionState === framework.SessionState.SESSION_RESUMED;
+            if (started && session) session.sendMessage('urn:x-cast:fr.blindtest', { room });
+            $('host-cast').textContent = session ? '📺 Arrêter la diffusion TV' : '📺 Caster sur la TV';
+        });
+        $('host-cast').hidden = false;
+    }
+
+    function loadCast(appId) {
+        if (!appId || !room || /iPhone|iPad|iPod/.test(navigator.userAgent)) return;
+        window.__onGCastApiAvailable = (available) => {
+            if (available) setupCast(appId);
+        };
+        const script = document.createElement('script');
+        script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
+        document.head.appendChild(script);
+    }
+
     async function initHome(message) {
         show('home');
         $('home-feedback').textContent = message || '';
@@ -357,6 +382,7 @@
         } catch (error) {
             return initHome(error.message === 'Salle introuvable' ? `La salle ${room} n'existe plus : crée-en une nouvelle ou entre un autre code.` : error.message);
         }
+        post('/api/info', null, 'GET').then((info) => loadCast(info.cast)).catch(() => null);
         $('join-room').textContent = `Salle ${room}`;
         if (myName) $('join-name').value = myName;
         if (myTeam) $('join-team').value = myTeam;
@@ -453,6 +479,21 @@
     $('host-close').addEventListener('click', () => toggleHostPanel(false));
     $('host-connect').addEventListener('click', () => {
         location.href = `/auth/spotify?room=${encodeURIComponent(room)}&key=${encodeURIComponent(hostKey)}`;
+    });
+
+    $('host-cast').addEventListener('click', async () => {
+        if (!castContext) return;
+        try {
+            if (castContext.getCurrentSession()) {
+                castContext.endCurrentSession(true);
+                return;
+            }
+            hostFeedback('Choisis la TV dans la fenêtre…');
+            await castContext.requestSession();
+            hostFeedback('');
+        } catch {
+            hostFeedback('');
+        }
     });
 
     $('host-playlists').addEventListener('click', async () => {
