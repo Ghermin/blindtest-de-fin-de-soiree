@@ -344,6 +344,30 @@ body.is-host {
     padding-bottom: 96px;
 }
 
+body.has-bar {
+    padding-top: 64px;
+}
+
+.host-bar {
+    position: fixed;
+    top: calc(8px + env(safe-area-inset-top));
+    left: 8px;
+    right: 8px;
+    z-index: 3;
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.host-bar button {
+    padding: 8px 10px;
+    min-height: 36px;
+    font-size: 0.85rem;
+    background: var(--card);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
 #host-toggle {
     position: fixed;
     right: 16px;
@@ -736,4 +760,8 @@ form.stack > button {
     justify-content: center;
     gap: 8px;
     flex-wrap: wrap;
+}
+
+body.paused .spinning {
+    animation-play-state: paused;
 }

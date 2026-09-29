@@ -70,6 +70,7 @@
                 <span id="round-label"></span>
                 <span id="mode-label"></span>
             </header>
+            <p id="game-paused" class="notice" hidden>⏸ Pause, l'hôte reprend quand il veut</p>
             <div id="countdown-big" hidden></div>
             <div id="guess-zone" hidden>
                 <div class="vinyl spinning"><span>?</span></div>
@@ -111,6 +112,12 @@
         </section>
     </main>
 
+    <div id="host-bar" class="host-bar" hidden>
+        <button id="bar-pause" type="button">⏸ Pause</button>
+        <button id="bar-skip" type="button">⏭ Passer</button>
+        <button id="bar-stop" type="button">⏹ Terminer</button>
+        <button id="bar-lobby" type="button">↩ Lobby</button>
+    </div>
     <button id="host-toggle" aria-label="Panneau hôte" aria-controls="host-panel" aria-expanded="false" hidden>🎛️</button>
     <aside id="host-panel" aria-label="Panneau hôte" hidden>
         <div class="host-header">
@@ -133,6 +140,7 @@
         </form>
         <div id="host-presets" class="host-actions" hidden></div>
         <p id="host-playlist-info"></p>
+        <p id="host-feedback" role="status"></p>
         <div class="host-settings">
             <label>Manches
                 <select id="opt-rounds">
@@ -160,6 +168,7 @@
         </div>
         <div class="host-actions">
             <button id="host-start" class="primary">▶ Lancer</button>
+            <button id="host-pause">⏸ Pause</button>
             <button id="host-skip">⏭ Passer</button>
             <button id="host-stop">⏹ Stop</button>
             <button id="host-lobby">↩ Lobby</button>
@@ -168,7 +177,6 @@
             <button id="host-speaker" type="button">🔈 Son sur ce téléphone : non</button>
         </div>
         <p class="hint">Le son sort de l'écran TV de la salle. Sans écran, active-le sur ce téléphone et branche une enceinte.</p>
-        <p id="host-feedback" role="status"></p>
         <p id="host-key" class="hint"></p>
     </aside>
 

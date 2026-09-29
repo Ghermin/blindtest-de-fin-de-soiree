@@ -157,6 +157,14 @@ async function handleHost(request, response, room, action, body) {
         game.start(body);
         return send(response, 200, { ok: true });
     }
+    if (action === '/host/pause' && post) {
+        game.pause();
+        return send(response, 200, { ok: true });
+    }
+    if (action === '/host/resume' && post) {
+        game.resume();
+        return send(response, 200, { ok: true });
+    }
     if (action === '/host/skip' && post) {
         game.skip();
         return send(response, 200, { ok: true });

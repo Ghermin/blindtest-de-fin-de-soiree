@@ -63,6 +63,9 @@ class Game extends EventEmitter {
         this.resolveGeneration = 0;
         this.hint = null;
         this.hintTimers = [];
+        this.paused = false;
+        this.pausedAt = 0;
+        this.pauseRemaining = 0;
         this.wildest = null;
         this.stats = null;
     }
@@ -124,7 +127,7 @@ class Game extends EventEmitter {
         player.connections = Math.max(0, player.connections - 1);
         if (player.connections) return;
         this.changed();
-        if (this.phase === 'guess' && this.everyoneDone()) this.schedule(1500, () => this.endGuess());
+        if (this.phase === 'guess' && !this.paused && this.everyoneDone()) this.schedule(1500, () => this.endGuess());
     }
 
     leave(token) {
@@ -200,6 +203,7 @@ class Game extends EventEmitter {
         this.wildest = null;
         this.stats = null;
         this.roundIndex = 0;
+        this.paused = false;
         this.generation++;
         this.notice = null;
         this.log(`Partie lancée : ${rounds} manches, mode ${mode}, ${this.players.size} joueur(s)`);
@@ -266,17 +270,20 @@ class Game extends EventEmitter {
         return [[half, 1], [Math.max(half, this.settings.guessMs - 10000), 2]];
     }
 
-    scheduleHints() {
-        this.clearHints();
+    scheduleHints(elapsed = 0) {
+        for (const timer of this.hintTimers) clearTimeout(timer);
+        this.hintTimers = [];
+        if (!elapsed) this.hint = null;
         if (!this.settings.hints) return;
         const track = this.track;
         const generation = this.generation;
         for (const [delay, stage] of this.hintDelays()) {
+            if (delay <= elapsed) continue;
             this.hintTimers.push(setTimeout(() => {
-                if (generation !== this.generation || this.track !== track || this.phase !== 'guess') return;
+                if (generation !== this.generation || this.track !== track || this.phase !== 'guess' || this.paused) return;
                 this.hint = hints(track, this.settings.mode, stage);
                 this.changed();
-            }, delay));
+            }, delay - elapsed));
         }
     }
 
@@ -338,7 +345,42 @@ class Game extends EventEmitter {
         };
     }
 
+    pause() {
+        if (this.paused) return;
+        if (!['countdown', 'guess', 'reveal'].includes(this.phase)) throw new Error('Rien à mettre en pause');
+        clearTimeout(this.timer);
+        for (const timer of this.hintTimers) clearTimeout(timer);
+        this.hintTimers = [];
+        this.paused = true;
+        this.pausedAt = Date.now();
+        this.pauseRemaining = Math.max(0, this.phaseEndsAt - this.pausedAt);
+        this.log('Pause');
+        this.changed();
+    }
+
+    resume() {
+        if (!this.paused) return;
+        const now = Date.now();
+        const pausedMs = now - this.pausedAt;
+        this.paused = false;
+        this.phaseEndsAt = now + this.pauseRemaining;
+        if (this.guessStartedAt) this.guessStartedAt += pausedMs;
+        if (this.audio && this.audio.startedAt) this.audio = { ...this.audio, startedAt: this.audio.startedAt + pausedMs };
+        if (this.phase === 'countdown') {
+            this.schedule(this.pauseRemaining, () => this.beginGuess());
+        } else if (this.phase === 'guess') {
+            this.schedule(this.pauseRemaining, () => this.endGuess());
+            this.scheduleHints(now - this.guessStartedAt);
+        } else if (this.phase === 'reveal') {
+            this.schedule(this.pauseRemaining, () => this.finishOrNext());
+        }
+        this.log('Reprise');
+        this.changed();
+        if (this.phase === 'guess' && this.everyoneDone()) this.schedule(1500, () => this.endGuess());
+    }
+
     skip() {
+        this.paused = false;
         if (this.phase === 'guess' || this.phase === 'countdown') {
             this.endGuess();
         } else if (this.phase === 'reveal') {
@@ -351,6 +393,7 @@ class Game extends EventEmitter {
 
     stop() {
         this.generation++;
+        this.paused = false;
         clearTimeout(this.timer);
         this.clearHints();
         this.audio = null;
@@ -366,6 +409,7 @@ class Game extends EventEmitter {
 
     backToLobby() {
         this.generation++;
+        this.paused = false;
         clearTimeout(this.timer);
         this.clearHints();
         this.audio = null;
@@ -385,6 +429,7 @@ class Game extends EventEmitter {
         const player = this.players.get(token);
         if (!player) throw new Error('Joueur inconnu, rejoins la partie');
         if (this.phase !== 'guess') return { accepted: false, reason: 'wait' };
+        if (this.paused) return { accepted: false, reason: 'paused' };
         const now = Date.now();
         if (now - player.lastGuessAt < 500) return { accepted: false, reason: 'throttle' };
         player.lastGuessAt = now;
@@ -432,7 +477,7 @@ class Game extends EventEmitter {
             player.score += result.gained;
             player.gained += result.gained;
             this.changed();
-            if (this.everyoneDone()) this.schedule(1500, () => this.endGuess());
+            if (!this.paused && this.everyoneDone()) this.schedule(1500, () => this.endGuess());
         }
         return result;
     }
@@ -460,6 +505,8 @@ class Game extends EventEmitter {
             phase: this.phase,
             serverNow: Date.now(),
             phaseEndsAt: this.phaseEndsAt,
+            paused: this.paused,
+            pauseRemaining: this.paused ? this.pauseRemaining : 0,
             round: this.roundIndex,
             rounds: this.queue.length || this.settings.rounds,
             mode: this.settings.mode,
