@@ -289,6 +289,7 @@
         }
 
         $('host-toggle').hidden = !isHost;
+        $('lobby-host').hidden = isHost;
         document.body.classList.toggle('is-host', isHost);
         $('host-playlist-info').textContent = playlistLabel(state.playlist, true);
 
@@ -487,7 +488,7 @@
         }
     });
 
-    $('become-host').addEventListener('click', () => {
+    function toggleHost() {
         if (!isHost && !hostKey) {
             const entered = (prompt('Clé hôte ? (le code hôte de la salle de la maison, ou la clé reçue à la création de la salle)') || '').trim();
             if (!entered) return;
@@ -497,6 +498,19 @@
         isHost = !isHost;
         storage.set(`bt_host_${room}`, isHost ? '1' : '0');
         $('become-host').textContent = isHost ? 'Hôte activé ✔ (re-clique pour désactiver)' : 'Je suis l\'hôte 🎛️';
+        render();
+    }
+
+    $('become-host').addEventListener('click', toggleHost);
+    $('lobby-host').addEventListener('click', () => {
+        toggleHost();
+        if (isHost) toggleHostPanel(true);
+    });
+    $('lobby-back').addEventListener('click', () => {
+        const leaving = token;
+        token = '';
+        storage.remove(`bt_token_${room}`);
+        if (leaving) post(`${api}/leave`, { token: leaving }).catch(() => null);
         render();
     });
 

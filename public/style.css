@@ -726,3 +726,10 @@ form.stack > button {
     font-size: 0.8rem;
     color: var(--muted);
 }
+
+.lobby-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
