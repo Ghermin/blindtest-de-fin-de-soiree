@@ -13,8 +13,12 @@ if [ -z "${PREFIX:-}" ] || [ ! -d "/data/data/com.termux" ]; then
 fi
 
 echo "🎧 Blind Test — installation sur ce téléphone (Termux)"
-pkg update -y >/dev/null
-pkg install -y nodejs-lts git termux-tools >/dev/null
+rm -f "$PREFIX/etc/termux/chosen_mirrors"
+printf 'deb https://packages.termux.dev/apt/termux-main stable main\n' > "$PREFIX/etc/apt/sources.list"
+APT_OPTS="-o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 -o Acquire::Retries=2"
+echo "→ Téléchargement de Node et Git…"
+apt-get update -qq $APT_OPTS
+DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $APT_OPTS nodejs-lts git termux-tools
 
 TOKEN_FILE="$HOME/storage/downloads/github-token.txt"
 if [ -z "${GITHUB_TOKEN:-}" ] && [ ! -d "$HOME/storage/downloads" ]; then
