@@ -21,6 +21,9 @@ apt-get update -qq $APT_OPTS
 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $APT_OPTS nodejs-lts git termux-tools
 
 TOKEN_FILE="$HOME/storage/downloads/github-token.txt"
+if [ -z "${GITHUB_TOKEN:-}" ] && git ls-remote --exit-code --heads "$REPO" "$BRANCH" >/dev/null 2>&1; then
+    echo "→ Dépôt accessible, aucun jeton nécessaire"
+else
 if [ -z "${GITHUB_TOKEN:-}" ] && [ ! -d "$HOME/storage/downloads" ]; then
     termux-setup-storage >/dev/null 2>&1 || true
     echo "→ Autorise l'accès au stockage dans la fenêtre Android (pour lire le jeton déposé dans Téléchargements)…"
@@ -44,8 +47,9 @@ if [ -n "${GITHUB_TOKEN:-}" ]; then
     echo "https://x-access-token:${GITHUB_TOKEN}@github.com" >> "$HOME/.git-credentials"
 fi
 if ! git ls-remote --exit-code --heads "$REPO" "$BRANCH" >/dev/null 2>&1; then
-    echo "Impossible d'accéder au dépôt. S'il est privé : GITHUB_TOKEN=github_pat_xxx bash $0" >&2
+    echo "Impossible d'accéder au dépôt (pas d'Internet ? dépôt privé ? alors : GITHUB_TOKEN=github_pat_xxx bash $0)" >&2
     exit 1
+fi
 fi
 
 if [ -d "$DIR/.git" ]; then

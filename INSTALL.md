@@ -6,25 +6,22 @@ ouvre une adresse.
 
 ## 1. Installer une fois (5 min)
 
+Le plus simple : ouvre **https://ghermin.github.io/blindtest-de-fin-de-soiree/**
+sur le téléphone à installer, tout y est avec un bouton pour copier la commande.
+
 ### Ce qu'il faut
 
-- Un **Android** (un iPhone ne peut pas héberger le jeu).
-- Un **jeton GitHub** en lecture seule sur ce dépôt privé, pour télécharger le
-  jeu et ses mises à jour : https://github.com/settings/personal-access-tokens/new
-  → nom `blindtest-phone`, expiration la plus longue, **Only select
-  repositories** → `blindtest-de-fin-de-soiree`, **Repository permissions →
-  Contents : Read-only**, **Generate token**. Copie-le (`github_pat_…`).
+- Un **Android** (un iPhone ne peut pas héberger le jeu) et Internet.
 
 ### Les étapes
 
 1. Installe **Termux** depuis F-Droid (https://f-droid.org/packages/com.termux/)
    ou ses versions GitHub, pas celui du Play Store, abandonné. Installe aussi
    **Termux:Widget** (même source) pour le raccourci d'écran d'accueil.
-2. Ouvre Termux et colle, en remplaçant `github_pat_xxx` par ton jeton :
+2. Ouvre Termux et colle :
 
    ```
-   T=github_pat_xxx
-   curl -fsSL -H "Authorization: token $T" https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/termux.sh -o termux.sh && GITHUB_TOKEN=$T bash termux.sh
+   curl -fsSL https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/termux.sh -o termux.sh && bash termux.sh
    ```
 
    Le script télécharge Node et le jeu, puis demande ton **code hôte** (les
@@ -103,14 +100,12 @@ publiques passent toutes, en entier.
 
 ## 4. Installer sur un autre téléphone (l'hôte d'une autre maison)
 
-Depuis ta salle : panneau hôte → **📲 Installer sur un autre téléphone**. La
-page affiche un QR code ; l'autre téléphone (Android, sur le même Wi-Fi) le
-scanne et suit les étapes : installer Termux et Termux:Widget depuis F-Droid,
-coller la commande (bouton **Copier**, elle contient déjà le jeton du dépôt),
-répondre au code hôte. Il a ensuite le même widget « Blind Test » que toi, avec
-les mises à jour automatiques.
-
-À distance, envoie la commande de la section 1 par message, avec un jeton.
+Envoie-lui **https://ghermin.github.io/blindtest-de-fin-de-soiree/** ou, depuis
+ta salle, panneau hôte → **📲 Installer sur un autre téléphone** : la page
+affiche un QR code à scanner. L'autre téléphone (Android) suit les étapes :
+installer Termux et Termux:Widget depuis F-Droid, coller la commande (bouton
+**Copier**), répondre au code hôte. Il a ensuite le même widget « Blind Test »
+que toi, avec les mises à jour automatiques.
 
 ## Si ça coince
 
@@ -118,8 +113,8 @@ les mises à jour automatiques.
 |---|---|
 | Les invités ne voient pas la page | Même Wi-Fi que ton téléphone, pas le réseau invité ; sinon ton partage de connexion |
 | La partie se coupe écran éteint | Termux → Batterie → Non restreinte, et garde Termux ouvert en arrière-plan |
-| « Impossible d'accéder au dépôt » | Jeton absent, expiré ou sans la permission Contents : refais-en un et relance l'installation |
-| « Pas de mise à jour (hors ligne ou jeton expiré) » | Le jeu se lance quand même ; refais un jeton quand tu veux |
+| « Impossible d'accéder au dépôt » | Pas d'Internet sur le téléphone au moment de l'installation : réessaie connecté |
+| « Pas de mise à jour (hors ligne ?) » | Le jeu se lance quand même avec la version déjà installée |
 | « Recherche des extraits en cours » | Patiente, le compteur avance dans le panneau hôte |
 | « Pas assez d'extraits trouvés » | Titres trop rares : essaie la même playlist côté Deezer |
 | « Playlist Spotify introuvable ou privée » | Vérifie le lien ; la playlist privée d'un autre compte est inaccessible : Deezer, ou une copie dans ton compte |

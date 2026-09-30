@@ -12,6 +12,7 @@
         "start": "node index.js",
         "test": "node --test",
         "icons": "node scripts/icons.js",
+        "pages": "node scripts/pages.js",
         "lint": "eslint ."
     },
     "devDependencies": {
