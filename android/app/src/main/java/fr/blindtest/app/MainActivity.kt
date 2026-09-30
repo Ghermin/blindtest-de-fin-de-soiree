@@ -11,12 +11,15 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.webkit.ConsoleMessage
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -32,6 +35,7 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity() {
+    private val TAG = "BlindTestWeb"
     private lateinit var settings: Settings
     private lateinit var webView: WebView
     private lateinit var loading: View
@@ -133,8 +137,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun roomUrl(): String = "http://127.0.0.1:${Settings.PORT}/r/${Settings.ROOM}#host=${settings.pinOrRandom()}"
 
+    private fun recreateWebView() {
+        val parent = webView.parent as? ViewGroup ?: return
+        val index = parent.indexOfChild(webView)
+        val params = webView.layoutParams
+        parent.removeView(webView)
+        webView.destroy()
+        webView = WebView(this)
+        webView.id = R.id.web
+        webView.setBackgroundColor(0xFF12081F.toInt())
+        parent.addView(webView, index, params)
+        configureWebView()
+        loaded = false
+        loading.visibility = View.VISIBLE
+        loadingText.text = getString(R.string.status_reconnecting)
+        handler.removeCallbacks(poller)
+        handler.post(poller)
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebView() {
+        WebView.setWebContentsDebuggingEnabled(true)
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -162,9 +185,20 @@ class MainActivity : AppCompatActivity() {
                 handler.removeCallbacks(poller)
                 handler.postDelayed(poller, 1500)
             }
+
+            override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                Log.w(TAG, "Moteur web perdu, page recréée")
+                handler.post { recreateWebView() }
+                return true
+            }
         }
         webView.addJavascriptInterface(AppBridge(this), "BlindTestApp")
         webView.webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(message: ConsoleMessage): Boolean {
+                Log.i(TAG, "${message.messageLevel()} ${message.message()} (${message.sourceId()}:${message.lineNumber()})")
+                return true
+            }
+
             override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
                 AlertDialog.Builder(this@MainActivity)
                     .setMessage(message)
