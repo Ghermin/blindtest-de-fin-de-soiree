@@ -66,8 +66,7 @@ object Updater {
     }
 
     private fun latestCommit(): String {
-        val connection = open(COMMIT_URL)
-        connection.setRequestProperty("Accept", "application/vnd.github+json")
+        val connection = open(COMMIT_URL, "application/vnd.github+json")
         connection.inputStream.bufferedReader().use { reader ->
             val body = reader.readText()
             val match = Regex("\"sha\"\\s*:\\s*\"([0-9a-f]{40})\"").find(body)
@@ -98,12 +97,13 @@ object Updater {
         }
     }
 
-    private fun open(url: String): HttpURLConnection {
+    private fun open(url: String, accept: String? = null): HttpURLConnection {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.connectTimeout = 8000
         connection.readTimeout = 30000
         connection.instanceFollowRedirects = true
         connection.setRequestProperty("User-Agent", "blindtest-android")
+        if (accept != null) connection.setRequestProperty("Accept", accept)
         if (connection.responseCode >= 400) throw IllegalStateException("HTTP ${connection.responseCode} sur $url")
         return connection
     }
