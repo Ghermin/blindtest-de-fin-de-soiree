@@ -62,5 +62,12 @@
         return icon(index ? 'medal' : 'crown', `medal-${index + 1}`);
     }
 
+    window.addEventListener('error', (event) => {
+        const box = document.getElementById('boot-error');
+        if (!box) return;
+        box.hidden = false;
+        box.textContent = `Erreur : ${event.message}`;
+    });
+
     window.UI = { attempt, icon, label, formatHint, renderHint, rankMark };
 })();

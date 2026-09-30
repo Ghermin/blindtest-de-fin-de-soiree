@@ -189,6 +189,7 @@
 
     function show(name) {
         for (const screen of screens) $('screen-' + screen).hidden = screen !== name;
+        attempt(() => sessionStorage.removeItem('bt_boot_retry'));
     }
 
     function now() {
@@ -979,6 +980,14 @@
         if (token) keepAwake();
         if (source && Date.now() - lastMessage > 30000) connect();
     });
+
+    setTimeout(() => {
+        if (document.querySelector('main > section:not([hidden])')) return;
+        const tries = Number(attempt(() => sessionStorage.getItem('bt_boot_retry'), '0')) || 0;
+        if (tries >= 2) return;
+        attempt(() => sessionStorage.setItem('bt_boot_retry', String(tries + 1)));
+        location.reload();
+    }, 8000);
 
     if (room) {
         $('lobby-qr').src = `/r/${room}/qr.svg`;

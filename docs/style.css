@@ -1047,6 +1047,11 @@ form.stack > button {
     flex-wrap: wrap;
 }
 
+.boot-error {
+    color: var(--ko);
+    z-index: 9;
+}
+
 .sound-help {
     position: fixed;
     top: 12px;
