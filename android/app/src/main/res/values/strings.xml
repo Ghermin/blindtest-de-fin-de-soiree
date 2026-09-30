@@ -30,7 +30,7 @@
     <string name="spotify_secret_hint">Client secret</string>
     <string name="save">C\'est parti 🎉</string>
     <string name="cancel">Annuler</string>
-    <string name="restart_needed">Réglages enregistrés, relance l\'appli pour les appliquer.</string>
+    <string name="restart_needed">Réglages enregistrés. L\'appli se ferme : rouvre-la pour les appliquer.</string>
     <string name="menu_update">Mettre à jour l\'appli</string>
     <string name="update_title">Nouvelle version de l\'appli</string>
     <string name="update_message">La version %1$s est disponible (tu as la %2$s). Le téléchargement prend quelques secondes ; la première fois, Android demandera d\'autoriser Blind Test à installer des applis.</string>

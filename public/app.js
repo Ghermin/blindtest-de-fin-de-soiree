@@ -638,6 +638,21 @@
     $('host-install').addEventListener('click', () => {
         location.href = installUrl;
     });
+    const native = window.BlindTestApp || null;
+    if (native) {
+        $('host-app-title').hidden = false;
+        $('host-app').hidden = false;
+        try {
+            $('app-update').textContent = `⬆️ Mettre à jour l'appli (${native.version()})`;
+        } catch (_error) {
+            $('app-update').textContent = '⬆️ Mettre à jour l\'appli';
+        }
+        $('app-update').addEventListener('click', () => native.checkUpdate());
+        $('app-settings').addEventListener('click', () => native.openSettings());
+        $('app-quit').addEventListener('click', () => {
+            if (confirm('Arrêter le serveur et fermer l\'appli ? La partie en cours sera perdue.')) native.quit();
+        });
+    }
     $('host-connect').addEventListener('click', () => {
         location.href = `/auth/spotify?room=${encodeURIComponent(room)}&key=${encodeURIComponent(hostKey)}&back=${encodeURIComponent(location.origin)}`;
     });
