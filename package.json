@@ -1,7 +1,7 @@
 {
     "name": "blindtest-de-fin-de-soiree",
     "version": "1.0.0",
-    "description": "Blind test multijoueur sur playlist Spotify, hébergé sur Raspberry Pi",
+    "description": "Blind test multijoueur : l'appli Android de l'hôte héberge la partie, les invités jouent sur leur téléphone, la TV affiche et joue les extraits",
     "main": "index.js",
     "private": true,
     "license": "MIT",
