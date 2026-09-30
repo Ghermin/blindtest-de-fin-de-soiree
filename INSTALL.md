@@ -9,8 +9,13 @@ ouvre une adresse.
 Le plus simple : l'**appli Android**. Ouvre
 **https://ghermin.github.io/blindtest-de-fin-de-soiree/** sur le téléphone,
 télécharge l'APK, installe-le, lance Blind Test, choisis un code hôte. Terminé :
-le jeu se met à jour tout seul à chaque lancement. La suite de cette section
-décrit l'autre voie, Termux, qui donne le même résultat.
+le jeu se met à jour tout seul à chaque lancement, et l'appli demande à être
+exclue de l'optimisation de batterie (accepte, sinon Android coupe le serveur
+écran éteint). Dans l'appli, le bouton **⋯** en bas à gauche donne l'adresse à
+taper sur la TV, recharge la page, rouvre les réglages (code hôte, Spotify) ou
+arrête le serveur. La notification « Blind Test » reste affichée tant que la
+partie peut être jouée. La suite de cette section décrit l'autre voie, Termux,
+qui donne le même résultat.
 
 ### Ce qu'il faut
 
