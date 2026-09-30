@@ -372,12 +372,45 @@ body.has-bar {
     position: fixed;
     right: 16px;
     bottom: calc(16px + env(safe-area-inset-bottom));
-    font-size: 1.5rem;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
     border-radius: 50%;
     width: 56px;
     height: 56px;
-    background: var(--card);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    color: var(--text);
+    background: linear-gradient(135deg, var(--card), #3b1f6e);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+#host-toggle svg {
+    display: block;
+}
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    background: rgba(8, 3, 20, 0.6);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    animation: fade-in 0.2s ease-out;
+}
+
+.sheet-handle {
+    width: 44px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+    margin: -6px auto 0;
+    flex-shrink: 0;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
 }
 
 #host-panel {
@@ -385,9 +418,11 @@ body.has-bar {
     left: 0;
     right: 0;
     bottom: 0;
+    z-index: 5;
     background: #1a0d31;
-    border-top: 2px solid var(--card);
-    border-radius: 20px 20px 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
     padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
     max-height: 75dvh;
     overflow-y: auto;

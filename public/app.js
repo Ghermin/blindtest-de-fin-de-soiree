@@ -461,6 +461,7 @@
 
     function toggleHostPanel(open) {
         $('host-panel').hidden = !open;
+        $('host-backdrop').hidden = !open;
         $('host-toggle').setAttribute('aria-expanded', String(open));
         if (open) refreshHost();
     }
@@ -620,6 +621,7 @@
 
     $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
     $('host-close').addEventListener('click', () => toggleHostPanel(false));
+    $('host-backdrop').addEventListener('click', () => toggleHostPanel(false));
     $('host-speaker').addEventListener('click', () => setSpeaker(!speaker));
     for (const group of document.querySelectorAll('.segmented[data-option]')) {
         group.addEventListener('click', (event) => {
