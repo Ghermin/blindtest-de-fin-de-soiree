@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Installer le Blind Test</title>
-    <link rel="icon" href="/favicon.svg">
-    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="favicon.svg">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <main id="app" class="install">
         <section>
             <h1>Blind Test<span>installer sur un autre téléphone</span></h1>
             <div class="join-card">{{QR}}<p class="join-url">{{URL}}</p></div>
-            <p class="hint">Scanne ce code avec le téléphone à installer (Android, sur le même Wi-Fi). Compte 5 minutes et une connexion Internet.</p>
+            <p class="hint">Ouvre cette page sur le téléphone à installer (Android), par exemple en scannant ce code. Compte 5 minutes et une connexion Internet.</p>
             <ol class="steps">
                 <li>
                     <b>Installe Termux et Termux:Widget</b> depuis F-Droid, pas le Play Store :
@@ -37,9 +37,9 @@
                 </li>
             </ol>
             <p class="hint">Ensuite, à chaque soirée : touche « Blind Test », le navigateur s'ouvre sur la salle en mode hôte, la TV ouvre l'adresse « Écran TV » affichée dans Termux, les invités scannent le QR code.</p>
-            <p><a class="ghost-link" href="{{BACK}}">← Retour à la salle</a></p>
+            <p><a class="ghost-link" href="{{BACK}}">{{BACK_LABEL}}</a></p>
         </section>
     </main>
-    <script src="/install.js"></script>
+    <script src="install.js"></script>
 </body>
 </html>

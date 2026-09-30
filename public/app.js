@@ -40,6 +40,7 @@
     let sourceToken = null;
     let lastMessage = 0;
     let playerSrc = '';
+    let installUrl = '/install';
     const seen = new Map();
     const player = new Audio();
     player.preload = 'auto';
@@ -427,6 +428,9 @@
         } catch (error) {
             return initHome(error.message === 'Salle introuvable' ? `La salle ${room} n'existe plus : crée-en une nouvelle ou entre un autre code.` : error.message);
         }
+        post('/api/info', null, 'GET').then((info) => {
+            if (info.pagesUrl) installUrl = info.pagesUrl;
+        }).catch(() => null);
         $('join-room').textContent = `Salle ${room}`;
         if (myName) $('join-name').value = myName;
         if (myTeam) $('join-team').value = myTeam;
@@ -538,7 +542,7 @@
     $('host-close').addEventListener('click', () => toggleHostPanel(false));
     $('host-speaker').addEventListener('click', () => setSpeaker(!speaker));
     $('host-install').addEventListener('click', () => {
-        location.href = `/install?key=${encodeURIComponent(hostKey)}`;
+        location.href = installUrl;
     });
     $('host-connect').addEventListener('click', () => {
         location.href = `/auth/spotify?room=${encodeURIComponent(room)}&key=${encodeURIComponent(hostKey)}&back=${encodeURIComponent(location.origin)}`;

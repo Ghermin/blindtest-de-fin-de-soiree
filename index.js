@@ -104,22 +104,17 @@ function escapeHtml(text) {
     return String(text).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 }
 
-async function serveInstall(response, url) {
+async function serveInstall(response) {
     const home = rooms.get(config.homeRoom);
-    const key = url.searchParams.get('key') || '';
-    const trusted = Boolean(home && key && safeEqual(key, home.hostKey));
-    const token = trusted ? install.githubToken() : '';
-    const link = `${baseUrl()}/install${trusted ? `?key=${encodeURIComponent(key)}` : ''}`;
-    let note = 'Ouvre cette page depuis le panneau hôte (bouton « Installer sur un autre téléphone ») pour que la commande contienne le jeton du dépôt.';
-    if (token) note = 'La commande contient le jeton de lecture du dépôt : ne la partage qu\'avec le téléphone à installer.';
-    else if (trusted) note = 'Aucun jeton GitHub trouvé sur ce téléphone : si le dépôt est privé, il sera demandé pendant l\'installation.';
+    const link = config.pagesUrl || `${baseUrl()}/install`;
     try {
         const html = (await fs.readFile(path.join(PUBLIC, 'install.html'), 'utf8'))
             .replace('{{QR}}', qr.svg(link))
             .replace('{{URL}}', escapeHtml(link))
-            .replace('{{COMMAND}}', escapeHtml(install.command(token)))
-            .replace('{{TOKEN_NOTE}}', escapeHtml(note))
-            .replace('{{BACK}}', home ? `/r/${home.code}` : '/');
+            .replace('{{COMMAND}}', escapeHtml(install.command()))
+            .replace('{{TOKEN_NOTE}}', 'Le code du jeu est public : rien d\'autre à saisir, et les mises à jour se font toutes seules à chaque lancement.')
+            .replace('{{BACK}}', home ? `/r/${home.code}` : '/')
+            .replace('{{BACK_LABEL}}', '← Retour à la salle');
         response.writeHead(200, { ...HEADERS, 'Content-Type': 'text/html; charset=utf-8' });
         response.end(html);
     } catch {
@@ -231,7 +226,7 @@ async function handleApi(request, response, url) {
     if (route === '/api/health') return send(response, 200, { ok: true, rooms: rooms.all().length, busy: rooms.busy() });
     if (route === '/api/info') {
         const home = rooms.get(config.homeRoom);
-        return send(response, 200, { home: home ? home.code : null, publicUrl: baseUrl(), spotify: spotify.configured() });
+        return send(response, 200, { home: home ? home.code : null, publicUrl: baseUrl(), spotify: spotify.configured(), pagesUrl: config.pagesUrl });
     }
     if (route === '/api/rooms' && post) {
         if (!ratelimit.allow(`rooms:${ip}`, 5, 3600000)) return send(response, 429, { error: 'Trop de salles créées, réessaie plus tard' });
@@ -339,7 +334,7 @@ const server = http.createServer(async (request, response) => {
         return;
     }
     if (route === '/' || route === '/index.html') return serveFile(response, 'index.html', 'text/html; charset=utf-8');
-    if (route === '/install') return serveInstall(response, url);
+    if (route === '/install') return serveInstall(response);
     const page = route.match(/^\/r\/([A-Za-z0-9]{3,12})(\/tv|\/qr\.svg)?$/);
     if (page) {
         if (page[2] === '/qr.svg') {

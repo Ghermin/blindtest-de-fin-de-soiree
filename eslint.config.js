@@ -26,6 +26,6 @@ module.exports = [
         }
     },
     {
-        ignores: ['node_modules/**', 'data/**']
+        ignores: ['node_modules/**', 'data/**', 'docs/**']
     }
 ];

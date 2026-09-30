@@ -13,7 +13,7 @@ if git pull --ff-only --quiet 2>/dev/null; then
         echo "⬆ Mise à jour appliquée (${after:0:7})"
     fi
 else
-    echo "ℹ Pas de mise à jour (hors ligne ou jeton GitHub expiré), on continue"
+    echo "ℹ Pas de mise à jour (hors ligne ?), on continue"
 fi
 
 ICON="$HOME/.shortcuts/icons/Blind Test.png"

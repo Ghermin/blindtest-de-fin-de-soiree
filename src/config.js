@@ -20,6 +20,7 @@ module.exports = {
     country: (process.env.BLINDTEST_COUNTRY || 'FR').toUpperCase(),
     repo: process.env.BLINDTEST_REPO || 'https://github.com/Ghermin/blindtest-de-fin-de-soiree',
     branch: process.env.BLINDTEST_BRANCH || 'main',
+    pagesUrl: process.env.BLINDTEST_PAGES_URL || 'https://ghermin.github.io/blindtest-de-fin-de-soiree/',
     spotify: {
         clientId: process.env.SPOTIFY_CLIENT_ID || '',
         clientSecret: process.env.SPOTIFY_CLIENT_SECRET || ''
