@@ -622,6 +622,38 @@
     $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
     $('host-close').addEventListener('click', () => toggleHostPanel(false));
     $('host-backdrop').addEventListener('click', () => toggleHostPanel(false));
+    (() => {
+        const panel = $('host-panel');
+        let startY = 0;
+        let delta = 0;
+        let dragging = false;
+        panel.addEventListener('touchstart', (event) => {
+            if (panel.scrollTop > 0 || event.touches.length !== 1) return;
+            startY = event.touches[0].clientY;
+            delta = 0;
+            dragging = true;
+            panel.style.transition = 'none';
+        }, { passive: true });
+        panel.addEventListener('touchmove', (event) => {
+            if (!dragging) return;
+            delta = event.touches[0].clientY - startY;
+            if (delta <= 0 || panel.scrollTop > 0) {
+                delta = 0;
+                panel.style.transform = '';
+                return;
+            }
+            panel.style.transform = `translateY(${delta}px)`;
+        }, { passive: true });
+        const release = () => {
+            if (!dragging) return;
+            dragging = false;
+            panel.style.transition = '';
+            panel.style.transform = '';
+            if (delta > 110) toggleHostPanel(false);
+        };
+        panel.addEventListener('touchend', release);
+        panel.addEventListener('touchcancel', release);
+    })();
     $('host-speaker').addEventListener('click', () => setSpeaker(!speaker));
     for (const group of document.querySelectorAll('.segmented[data-option]')) {
         group.addEventListener('click', (event) => {

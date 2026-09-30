@@ -27,7 +27,7 @@ function decode(text) {
 }
 
 test('le QR code se décode avec un lecteur indépendant', () => {
-    for (const text of ['A', 'http://192.168.1.42:3000', 'http://raspberrypi.local:3000/', 'https://blindtest.example.org/salle/2?code=ABCD', 'x'.repeat(106)]) {
+    for (const text of ['A', 'http://192.168.1.42:3000', 'http://blindtest.local:3000/', 'https://blindtest.example.org/salle/2?code=ABCD', 'x'.repeat(106)]) {
         assert.strictEqual(decode(text), text);
     }
 });
