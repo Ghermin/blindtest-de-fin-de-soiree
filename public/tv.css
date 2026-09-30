@@ -25,6 +25,8 @@
     --side: rgba(255, 255, 255, 0.04);
     --scrim-strong: rgba(8, 3, 20, 0.7);
     --shadow: rgba(0, 0, 0, 0.45);
+    --silver: #cdd5e3;
+    --bronze: #d9a066;
 }
 
 :root[data-theme="light"] {
@@ -46,6 +48,8 @@
     --side: rgba(29, 18, 51, 0.04);
     --scrim-strong: rgba(246, 241, 255, 0.82);
     --shadow: rgba(60, 30, 110, 0.18);
+    --silver: #6f7a8f;
+    --bronze: #a8622a;
 }
 
 html {
@@ -741,11 +745,11 @@ h1 .icon,
 }
 
 .medal-2 {
-    color: #cdd5e3;
+    color: var(--silver);
 }
 
 .medal-3 {
-    color: #d9a066;
+    color: var(--bronze);
 }
 
 .podium li:first-child .medal-1 {

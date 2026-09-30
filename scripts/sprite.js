@@ -11,7 +11,7 @@ const WEB = [
     'flame', 'headphones', 'hourglass', 'house', 'key-round', 'keyboard', 'laugh', 'list-checks', 'list-music', 'medal',
     'mic', 'moon', 'music', 'party-popper', 'pause', 'play', 'power', 'rotate-ccw', 'send-horizontal', 'settings',
     'skip-forward', 'sliders-horizontal', 'smartphone', 'sparkles', 'square', 'trophy', 'tv', 'user', 'users',
-    'volume-2', 'volume-x', 'x', 'zap', 'triangle-alert', 'eraser', 'flag', 'log-out', 'plus', 'sun', 'user-x', 'ellipsis'
+    'volume-2', 'volume-x', 'x', 'zap', 'triangle-alert', 'eraser', 'flag', 'log-out', 'plus', 'sun', 'user-x', 'ellipsis', 'pencil'
 ];
 
 const ANDROID = {
@@ -90,7 +90,7 @@ function buildDrawables() {
         const paths = elements(read(name)).map((element) => [
             '    <path',
             '        android:fillColor="@android:color/transparent"',
-            '        android:strokeColor="#F3ECFF"',
+            '        android:strokeColor="@color/text"',
             '        android:strokeWidth="2"',
             '        android:strokeLineCap="round"',
             '        android:strokeLineJoin="round"',
