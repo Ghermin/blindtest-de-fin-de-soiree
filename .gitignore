@@ -2,3 +2,13 @@ node_modules/
 .env
 data/
 *.log
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/app/libnode/
+android/app/src/main/assets/nodejs-project/
+android/local.properties
+android/keystore.p12

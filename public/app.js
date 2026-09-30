@@ -400,6 +400,8 @@
             $('lobby-notice').textContent = state.notice || '';
             $('lobby-notice').hidden = !state.notice;
             $('lobby-url').textContent = state.joinUrl || '';
+            $('lobby-tv').hidden = !isHost || !state.joinUrl;
+            $('lobby-tv').textContent = state.joinUrl ? `📺 Écran TV : ${state.joinUrl}/tv` : '';
             renderTeams(state.teams, $('lobby-teams'));
             renderPlayers(state.players, $('lobby-players'), false);
         } else if (state.phase === 'countdown' || state.phase === 'guess') {

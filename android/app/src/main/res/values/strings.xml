@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Blind Test</string>
+    <string name="channel_name">Serveur du blind test</string>
+    <string name="channel_description">Reste affichée tant que la partie peut être jouée</string>
+    <string name="notification_starting">Démarrage du serveur…</string>
+    <string name="notification_running">En cours · %1$s</string>
+    <string name="action_stop">Arrêter</string>
+    <string name="status_preparing">Préparation du jeu…</string>
+    <string name="status_starting">Démarrage du serveur…</string>
+    <string name="status_reconnecting">Reconnexion au serveur…</string>
+    <string name="status_ready">Prêt</string>
+    <string name="status_stopped">Serveur arrêté</string>
+    <string name="menu">Menu</string>
+    <string name="menu_tv">Adresse pour la TV</string>
+    <string name="menu_reload">Recharger la page</string>
+    <string name="menu_settings">Réglages</string>
+    <string name="menu_quit">Arrêter et quitter</string>
+    <string name="tv_message">Sur le navigateur de la TV, ouvre :\n%1$s/r/MAISON/tv\n\nLes invités scannent le QR code du lobby ou vont sur :\n%1$s/r/MAISON</string>
+    <string name="copy">Copier l\'adresse TV</string>
+    <string name="copied">Adresse copiée</string>
+    <string name="setup_title">Bienvenue 🎧</string>
+    <string name="setup_intro">Ce téléphone héberge la partie. Les invités et la TV se connectent en Wi-Fi ou sur ton partage de connexion, rien à installer chez eux.</string>
+    <string name="pin_label">Code hôte</string>
+    <string name="pin_help">Les chiffres qui te donnent la main sur ce téléphone. Garde-les pour toi.</string>
+    <string name="pin_error">4 à 8 chiffres</string>
+    <string name="spotify_label">Spotify (facultatif)</string>
+    <string name="spotify_help">Identifiants d\'une app Spotify pour chercher des playlists Spotify et lister les tiennes. Sans rien, les liens Spotify publics et Deezer marchent déjà.</string>
+    <string name="spotify_id_hint">Client ID</string>
+    <string name="spotify_secret_hint">Client secret</string>
+    <string name="save">C\'est parti 🎉</string>
+    <string name="cancel">Annuler</string>
+    <string name="restart_needed">Réglages enregistrés, relance l\'appli pour les appliquer.</string>
+</resources>

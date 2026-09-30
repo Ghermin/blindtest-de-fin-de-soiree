@@ -11,7 +11,8 @@ viennent des catalogues publics de Deezer et d'Apple Music. Pas besoin de
 Spotify Premium.
 
 > 📱 **Installer sur un téléphone : https://ghermin.github.io/blindtest-de-fin-de-soiree/**
-> (une commande à coller dans Termux). Le pas à pas complet : [INSTALL.md](INSTALL.md).
+> (appli Android à télécharger, ou une commande à coller dans Termux). Le pas à pas
+> complet : [INSTALL.md](INSTALL.md).
 
 ## Comment ça marche
 

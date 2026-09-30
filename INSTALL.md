@@ -6,8 +6,11 @@ ouvre une adresse.
 
 ## 1. Installer une fois (5 min)
 
-Le plus simple : ouvre **https://ghermin.github.io/blindtest-de-fin-de-soiree/**
-sur le téléphone à installer, tout y est avec un bouton pour copier la commande.
+Le plus simple : l'**appli Android**. Ouvre
+**https://ghermin.github.io/blindtest-de-fin-de-soiree/** sur le téléphone,
+télécharge l'APK, installe-le, lance Blind Test, choisis un code hôte. Terminé :
+le jeu se met à jour tout seul à chaque lancement. La suite de cette section
+décrit l'autre voie, Termux, qui donne le même résultat.
 
 ### Ce qu'il faut
 
