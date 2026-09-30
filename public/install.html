@@ -8,20 +8,24 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!--ICONS-->
     <main id="app" class="install">
         <section>
             <h1>Blind Test<span>l'appli pour héberger la partie</span></h1>
             <div class="apk-card">
                 <p class="apk-title">Android, un seul fichier</p>
-                <a class="button-link primary-link" href="{{APK_URL}}">⬇️ Télécharger l'appli (APK)</a>
+                <a class="button-link primary-link" href="{{APK_URL}}"><svg class="icon" aria-hidden="true"><use href="#i-download" xlink:href="#i-download"></use></svg> Télécharger l'appli (APK)</a>
                 <span class="small">Ouvre le fichier téléchargé, autorise l'installation depuis ce navigateur, lance <b>Blind Test</b>, choisis un code hôte : c'est prêt. Le jeu et l'appli se mettent à jour tout seuls.</span>
             </div>
+            <!--QR-->
             <div class="join-card">{{QR}}<p class="join-url">{{URL}}</p></div>
-            <p class="hint">Cette page, à scanner depuis le téléphone à équiper. Les invités, eux, n'installent rien : ils scannent le QR code de la salle.</p>
+            <p class="hint">À scanner depuis le téléphone à équiper.</p>
+            <!--/QR-->
+            <p class="hint">Les invités, eux, n'installent rien : ils scannent le QR code de la salle.</p>
             <ol class="steps">
                 <li><b>Installe et ouvre l'appli.</b> Elle demande un code hôte (les chiffres qui te donnent la main) et, si tu veux, des identifiants Spotify. Accepte l'exclusion de l'optimisation de batterie, sinon Android coupe le serveur écran éteint.</li>
-                <li><b>Même Wi-Fi pour tout le monde</b>, ou ton partage de connexion. L'adresse à taper sur le navigateur de la TV est affichée dans le lobby (ligne <b>📺 Écran TV</b>).</li>
-                <li><b>Colle un lien de playlist ou cherche-la par nom</b> dans le panneau ⚙️ (bouton en bas à droite), règle la partie, puis Lancer. Les invités scannent le QR code du lobby et répondent sur leur téléphone.</li>
+                <li><b>Même Wi-Fi pour tout le monde</b>, ou ton partage de connexion. L'adresse à taper sur le navigateur de la TV est affichée dans le lobby (ligne <b>Écran TV</b>).</li>
+                <li><b>Colle un lien de playlist ou cherche-la par nom</b> dans le panneau de réglages (bouton engrenage en bas à droite), règle la partie, puis Lancer. Les invités scannent le QR code du lobby et répondent sur leur téléphone.</li>
             </ol>
             <p><a class="ghost-link" href="{{BACK}}">{{BACK_LABEL}}</a></p>
         </section>

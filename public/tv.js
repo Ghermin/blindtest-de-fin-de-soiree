@@ -3,7 +3,6 @@
 
     const $ = (id) => document.getElementById(id);
     const screens = ['missing', 'lobby', 'countdown', 'guess', 'reveal', 'podium'];
-    const medals = ['🥇', '🥈', '🥉'];
     const roomMatch = location.pathname.match(/^\/r\/([A-Za-z0-9]{3,12})\/tv$/);
     const room = roomMatch ? roomMatch[1].toUpperCase() : '';
 
@@ -16,9 +15,51 @@
     let audio = null;
     let playerSrc = '';
     let renderedChoices = '';
+    let lastHint = '';
     const seen = new Map();
     const player = new Audio();
     player.preload = 'auto';
+
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+
+    function icon(name, extra) {
+        const element = document.createElementNS(SVG_NS, 'svg');
+        element.setAttribute('class', extra ? `icon ${extra}` : 'icon');
+        element.setAttribute('aria-hidden', 'true');
+        const use = document.createElementNS(SVG_NS, 'use');
+        use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#i-${name}`);
+        use.setAttribute('href', `#i-${name}`);
+        element.appendChild(use);
+        return element;
+    }
+
+    function label(element, name, text) {
+        element.textContent = '';
+        if (name) element.appendChild(icon(name));
+        if (text) element.appendChild(document.createTextNode((name ? ' ' : '') + text));
+    }
+
+    function renderHint(element, lines, previous) {
+        const signature = lines.map((line) => `${line.icon}:${line.text}`).join('|');
+        if (signature === previous) return previous;
+        element.textContent = '';
+        for (const line of lines) {
+            const row = document.createElement('span');
+            row.className = 'hint-line';
+            row.appendChild(icon(line.icon));
+            row.appendChild(document.createTextNode(' ' + line.text));
+            element.appendChild(row);
+        }
+        element.classList.remove('fresh');
+        void element.offsetWidth;
+        if (lines.length) element.classList.add('fresh');
+        return signature;
+    }
+
+    function rankMark(index) {
+        if (index > 2) return document.createTextNode(String(index + 1));
+        return icon(index ? 'medal' : 'crown', `medal-${index + 1}`);
+    }
 
     function now() {
         return Date.now() + offset;
@@ -33,11 +74,11 @@
     }
 
     function formatHint(hint) {
-        if (!hint) return '';
+        if (!hint) return [];
         const lines = [];
-        if (hint.title) lines.push(`🎵 ${spaced(hint.title)}`);
-        if (hint.artist) lines.push(`🎤 ${spaced(hint.artist)}`);
-        return lines.join('\n');
+        if (hint.title) lines.push({ icon: 'music', text: spaced(hint.title) });
+        if (hint.artist) lines.push({ icon: 'mic', text: spaced(hint.artist) });
+        return lines;
     }
 
     function configLabel(options) {
@@ -50,8 +91,8 @@
 
     function playlistLabel(playlist) {
         if (!playlist) return '';
-        if (!playlist.ready) return `📀 ${playlist.name} · recherche des extraits ${playlist.resolved}/${playlist.total}…`;
-        return `📀 ${playlist.name} · ${playlist.resolved} titres${playlist.missing ? `, ${playlist.missing} sans extrait` : ''}`;
+        if (!playlist.ready) return `${playlist.name} · recherche des extraits ${playlist.resolved}/${playlist.total}…`;
+        return `${playlist.name} · ${playlist.resolved} titres${playlist.missing ? `, ${playlist.missing} sans extrait` : ''}`;
     }
 
     function enableSound() {
@@ -150,13 +191,15 @@
             item.classList.toggle('offline', entry.online === false);
             const rank = document.createElement('span');
             rank.className = 'rank';
-            rank.textContent = medals[index] || String(index + 1);
+            rank.appendChild(rankMark(index));
             const name = document.createElement('span');
             name.className = 'name';
             name.textContent = entry.team ? `${entry.name} · ${entry.team}` : entry.name;
             const marks = document.createElement('span');
             marks.className = 'marks';
-            marks.textContent = [entry.found.title ? '🎵' : '', entry.found.artist ? '🎤' : '', entry.online === false ? '💤' : ''].join('');
+            if (entry.found.title) marks.appendChild(icon('music'));
+            if (entry.found.artist) marks.appendChild(icon('mic'));
+            if (entry.online === false) marks.appendChild(icon('moon', 'offline-mark'));
             const score = document.createElement('span');
             score.className = 'score';
             score.textContent = String(entry.score);
@@ -214,7 +257,8 @@
         state.players.slice(0, 3).forEach((entry, index) => {
             const item = document.createElement('li');
             const name = document.createElement('span');
-            name.textContent = `${medals[index]} ${entry.name}`;
+            name.appendChild(rankMark(index));
+            name.appendChild(document.createTextNode(' ' + entry.name));
             const score = document.createElement('b');
             score.textContent = `${entry.score} pts`;
             item.append(name, score);
@@ -222,14 +266,14 @@
         });
         const stats = state.stats || {};
         const lines = [];
-        if (stats.fastest) lines.push(`⚡ Plus rapide : ${stats.fastest.name} en ${String(stats.fastest.seconds).replace('.', ',')} s sur « ${stats.fastest.track} »`);
-        if (stats.firsts) lines.push(`🥇 Le plus souvent premier : ${stats.firsts.name} (${stats.firsts.count}×)`);
-        if (stats.wildest) lines.push(`😅 Réponse la plus hors sujet : « ${stats.wildest.guess} » de ${stats.wildest.name} pour « ${stats.wildest.track} »`);
+        if (stats.fastest) lines.push({ icon: 'zap', text: `Plus rapide : ${stats.fastest.name} en ${String(stats.fastest.seconds).replace('.', ',')} s sur « ${stats.fastest.track} »` });
+        if (stats.firsts) lines.push({ icon: 'award', text: `Le plus souvent premier : ${stats.firsts.name} (${stats.firsts.count}×)` });
+        if (stats.wildest) lines.push({ icon: 'laugh', text: `Réponse la plus hors sujet : « ${stats.wildest.guess} » de ${stats.wildest.name} pour « ${stats.wildest.track} »` });
         const statsList = $('tv-stats');
         statsList.innerHTML = '';
         for (const line of lines) {
             const item = document.createElement('li');
-            item.textContent = line;
+            label(item, line.icon, line.text);
             statsList.appendChild(item);
         }
         statsList.hidden = !lines.length;
@@ -238,7 +282,8 @@
     function loop() {
         if (state.phase === 'countdown') {
             const left = Math.max(0, Math.ceil((state.paused ? state.pauseRemaining : state.phaseEndsAt - now()) / 1000));
-            $('tv-count').textContent = left || '🎶';
+            if (left) $('tv-count').textContent = String(left);
+            else if (!$('tv-count').firstElementChild) label($('tv-count'), 'music', '');
         }
         if (state.phase === 'guess') {
             const remaining = state.paused ? state.pauseRemaining : Math.max(0, state.phaseEndsAt - now());
@@ -269,7 +314,7 @@
         renderJoinUrl(url.replace(/^https?:\/\//, ''));
         $('tv-code').textContent = `Code : ${state.room || room}`;
         $('tv-lobby-url').textContent = url;
-        $('tv-playlist').textContent = playlistLabel(state.playlist);
+        label($('tv-playlist'), state.playlist ? 'disc-3' : null, playlistLabel(state.playlist));
         $('tv-config').textContent = configLabel(state.options);
         $('tv-notice').textContent = state.notice || '';
         $('tv-paused').hidden = !state.paused;
@@ -288,13 +333,7 @@
             loop();
         } else if (state.phase === 'guess') {
             show('guess');
-            const hint = formatHint(state.hint);
-            if (hint !== $('tv-hint').textContent) {
-                $('tv-hint').textContent = hint;
-                $('tv-hint').classList.remove('fresh');
-                void $('tv-hint').offsetWidth;
-                if (hint) $('tv-hint').classList.add('fresh');
-            }
+            lastHint = renderHint($('tv-hint'), formatHint(state.hint), lastHint);
             $('tv-mode').textContent = { both: 'Titre + artiste', title: 'Titre seul', artist: 'Artiste seul' }[state.mode] || '';
             const choices = state.choices || [];
             $('tv-choices').hidden = !choices.length;

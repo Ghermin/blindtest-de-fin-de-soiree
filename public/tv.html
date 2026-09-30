@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/tv.css">
 </head>
 <body>
+    <!--ICONS-->
     <main class="stage">
         <section id="tv-missing" hidden>
             <h1>Blind Test<span>de fin de soirée</span></h1>
@@ -51,13 +52,13 @@
         </section>
 
         <section id="tv-podium" hidden>
-            <h1>🏆 Podium</h1>
+            <h1><svg class="icon" aria-hidden="true"><use href="#i-trophy" xlink:href="#i-trophy"></use></svg> Podium</h1>
             <ol id="tv-podium-list" class="podium"></ol>
             <ul id="tv-stats" class="tv-stats"></ul>
             <p class="muted">L'hôte peut relancer une partie depuis son téléphone</p>
         </section>
         <div id="tv-paused" class="pause-overlay" hidden>
-            <div class="pause-badge" aria-hidden="true">⏸</div>
+            <div class="pause-badge" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#i-pause" xlink:href="#i-pause"></use></svg></div>
             <p class="pause-title">Pause</p>
             <p class="lead">L'hôte reprend quand il veut</p>
         </div>
@@ -68,7 +69,7 @@
         <ul id="tv-teams" class="tv-teams" hidden></ul>
         <ol id="tv-ranking" class="ranking"></ol>
         <p id="tv-empty" class="muted">Personne n'a encore rejoint</p>
-        <button id="tv-sound" class="sound" type="button" hidden>🔊 Activer le son sur cet écran</button>
+        <button id="tv-sound" class="sound" type="button" hidden><svg class="icon" aria-hidden="true"><use href="#i-volume-2" xlink:href="#i-volume-2"></use></svg> Activer le son sur cet écran</button>
         <div class="join">
             <img id="tv-qr" alt="QR code pour rejoindre la partie">
             <div>

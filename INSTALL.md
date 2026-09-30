@@ -1,4 +1,4 @@
-# Installation pas à pas 📱
+# Installation pas à pas
 
 Le jeu tourne sur **ton téléphone Android**, dans l'appli Blind Test. Rien à
 installer chez les invités : ils scannent un QR code. Rien à installer sur la
@@ -17,30 +17,31 @@ TV : son navigateur ouvre une adresse.
 
 L'appli se met à jour toute seule : le contenu du jeu à chaque lancement, et
 l'appli elle-même te propose d'installer la nouvelle version quand il y en a
-une (aussi dans le panneau ⚙️, section **Appli → Mettre à jour l'appli**).
+une (aussi dans le panneau de réglages, section **Appli → Mettre à jour
+l'appli**).
 
 ## 2. À chaque soirée (30 s)
 
 1. Connecte ton téléphone au Wi-Fi du lieu, ou active ton **partage de
    connexion** et fais-y connecter la TV et les invités. Évite le réseau invité
    d'une box, qui isole souvent les appareils entre eux.
-2. Ouvre **Blind Test** : la salle s'affiche, déjà en mode hôte (le bouton ⚙️
-   en bas à droite est là). Pseudo → **Rejoindre**.
-3. Sur la TV, ouvre le navigateur et tape l'adresse de la ligne **📺 Écran TV**
+2. Ouvre **Blind Test** : la salle s'affiche, déjà en mode hôte (le bouton
+   engrenage en bas à droite est là). Pseudo → **Rejoindre**.
+3. Sur la TV, ouvre le navigateur et tape l'adresse de la ligne **Écran TV**
    du lobby (par exemple `http://192.168.1.23:3000/r/MAISON/tv`). Valide
    **Activer le son** avec la télécommande. Mets la page en favori.
 4. Les invités scannent le QR code (dans le lobby de ton téléphone ou sur la
    TV), entrent un pseudo et une équipe s'ils veulent.
-5. Bouton ⚙️ → colle un lien ou tape un nom de playlist → **OK** → choisis
-   dans la liste → **▶ Lancer**. Le panneau se ferme d'un glissement vers le
-   bas, d'un tap à côté ou avec ✕. Pas de bouton ⚙️ (page ouverte depuis le QR
-   code, autre navigateur) ? **Je suis l'hôte** → ton code, sur l'écran de
-   connexion ou dans le lobby.
-6. Sur le podium : **🔁 Rejouer** relance avec les mêmes réglages,
-   **⚙️ Modifier la partie** ramène au lobby avec le panneau ouvert.
-7. Pendant la partie, une barre en haut du téléphone : **⏸ Pause** (chrono,
-   indices et extrait gelés partout, **▶ Reprendre** pour repartir),
-   **⏭ Passer**, **⏹ Terminer** (podium), **↩ Lobby**.
+5. Bouton engrenage → colle un lien ou tape un nom de playlist → **OK** →
+   choisis dans la liste → **Lancer**. Le panneau se ferme d'un glissement
+   vers le bas, d'un tap à côté ou avec la croix. Pas de bouton engrenage
+   (page ouverte depuis le QR code, autre navigateur) ? **Je suis l'hôte** →
+   ton code, sur l'écran de connexion ou dans le lobby.
+6. Sur le podium : **Rejouer** relance avec les mêmes réglages,
+   **Modifier la partie** ramène au lobby avec le panneau ouvert.
+7. Pendant la partie, une barre en haut du téléphone : **Pause** (chrono,
+   indices et extrait gelés partout ; un grand bouton lecture au milieu de
+   l'écran pour reprendre), **Passer**, **Terminer** (podium), **Lobby**.
 8. Les réglages du panneau (manches, durée, titre ou artiste, **clavier ou
    QCM**, **chacun pour soi ou un téléphone par équipe**, indices) s'appliquent
    tout de suite et s'affichent à tous dans le lobby. En QCM, quatre
@@ -51,12 +52,12 @@ Pour tester tout de suite, une playlist Deezer publique :
 `https://www.deezer.com/fr/playlist/1743878062` (Soirée 80), ou tape « années
 80 » dans le champ.
 
-Sans écran pour la TV : **🔈 Son sur ce téléphone : oui** dans le panneau hôte
+Sans écran pour la TV : **Son sur ce téléphone : oui** dans le panneau hôte
 et une enceinte Bluetooth sur ton téléphone.
 
 La notification « Blind Test » reste affichée tant que la partie peut être
-jouée ; **Arrêter** dessus (ou ⚙️ → **Appli → Arrêter le serveur**) coupe le
-serveur.
+jouée ; **Arrêter** dessus (ou engrenage → **Appli → Arrêter le serveur**)
+coupe le serveur.
 
 ## 3. Spotify (optionnel, 5 min, une seule fois)
 
@@ -73,11 +74,12 @@ playlists** (privées comprises, en entier si tu les possèdes).
    `http://127.0.0.1:3000/auth/spotify/callback` (clique **Add**), **Web API**
    coché, **Save**. Dans **Settings**, copie le **Client ID** et le secret.
    Spotify exige un abonnement Premium sur le compte qui crée l'app.
-2. Dans l'appli : ⚙️ → **Appli → Réglages de l'appli**, colle le Client ID et
-   le secret, **Enregistrer**. L'appli se ferme : rouvre-la pour les appliquer.
-3. Dans le panneau hôte de ta salle : **🎧 Connecter mon compte Spotify** →
+2. Dans l'appli : engrenage → **Appli → Réglages de l'appli**, colle le Client
+   ID et le secret, **Enregistrer**. L'appli se ferme : rouvre-la pour les
+   appliquer.
+3. Dans le panneau hôte de ta salle : **Connecter mon compte Spotify** →
    ton navigateur s'ouvre, Spotify demande l'autorisation → tu reviens sur la
-   salle. Le bouton **📚 Mes playlists** liste alors tes playlists.
+   salle. Le bouton **Mes playlists** liste alors tes playlists.
 
 L'autorisation dure 6 mois, puis le panneau hôte te redemande de connecter le
 compte.
@@ -91,7 +93,7 @@ publiques passent toutes, en entier.
 ## 4. Installer sur un autre téléphone (l'hôte d'une autre maison)
 
 Envoie-lui **https://ghermin.github.io/blindtest-de-fin-de-soiree/** ou, depuis
-ta salle, panneau hôte → **📲 Installer sur un autre téléphone** : la page
+ta salle, panneau hôte → **Installer sur un autre téléphone** : la page
 affiche un QR code à scanner. L'autre téléphone (Android) télécharge l'appli,
 choisit son code hôte, et a exactement la même chose que toi.
 
@@ -112,4 +114,4 @@ choisit son code hôte, et a exactement la même chose que toi.
 | « Clé hôte incorrecte » | C'est le code hôte choisi dans les réglages de l'appli |
 | Pas reconnu comme hôte | Ouvre la salle dans l'appli (elle porte la clé), ou **Je suis l'hôte** → ton code |
 | Spotify : « INVALID_CLIENT: Invalid redirect URI » | Ajoute `http://127.0.0.1:3000/auth/spotify/callback` dans les Redirect URIs de ton app Spotify |
-| La mise à jour de l'appli ne s'installe pas | La première fois, Android demande d'autoriser Blind Test à installer des applis (**Paramètres**, active l'option) et Play Protect propose une analyse (**Installer sans analyser** convient) ; relance ensuite ⚙️ → **Appli → Mettre à jour l'appli** |
+| La mise à jour de l'appli ne s'installe pas | La première fois, Android demande d'autoriser Blind Test à installer des applis (**Paramètres**, active l'option) et Play Protect propose une analyse (**Installer sans analyser** convient) ; relance ensuite engrenage → **Appli → Mettre à jour l'appli** |
