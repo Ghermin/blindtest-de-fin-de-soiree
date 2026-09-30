@@ -18,6 +18,8 @@ module.exports = {
     trustProxy: process.env.BLINDTEST_TRUST_PROXY === '1',
     dataDir: process.env.BLINDTEST_DATA_DIR || path.join(__dirname, '..', 'data'),
     country: (process.env.BLINDTEST_COUNTRY || 'FR').toUpperCase(),
+    repo: process.env.BLINDTEST_REPO || 'https://github.com/Ghermin/blindtest-de-fin-de-soiree',
+    branch: process.env.BLINDTEST_BRANCH || 'main',
     spotify: {
         clientId: process.env.SPOTIFY_CLIENT_ID || '',
         clientSecret: process.env.SPOTIFY_CLIENT_SECRET || ''

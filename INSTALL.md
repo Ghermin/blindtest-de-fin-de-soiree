@@ -101,6 +101,17 @@ de plus de 100 titres te manque, copie-la dans Spotify (⋮ → **Ajouter à une
 playlist** → **Nouvelle playlist**) et charge la copie. Les playlists Deezer
 publiques passent toutes, en entier.
 
+## 4. Installer sur un autre téléphone (l'hôte d'une autre maison)
+
+Depuis ta salle : panneau hôte → **📲 Installer sur un autre téléphone**. La
+page affiche un QR code ; l'autre téléphone (Android, sur le même Wi-Fi) le
+scanne et suit les étapes : installer Termux et Termux:Widget depuis F-Droid,
+coller la commande (bouton **Copier**, elle contient déjà le jeton du dépôt),
+répondre au code hôte. Il a ensuite le même widget « Blind Test » que toi, avec
+les mises à jour automatiques.
+
+À distance, envoie la commande de la section 1 par message, avec un jeton.
+
 ## Si ça coince
 
 | Problème | Solution |

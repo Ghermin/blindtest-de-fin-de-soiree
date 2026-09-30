@@ -766,3 +766,66 @@ form.stack > button {
 body.paused .spinning {
     animation-play-state: paused;
 }
+
+.install .join-card svg {
+    width: 200px;
+    height: 200px;
+    display: block;
+    margin: 0 auto;
+}
+
+.steps {
+    text-align: left;
+    padding-left: 22px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.steps li::marker {
+    color: var(--accent2);
+    font-weight: 700;
+}
+
+.links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.button-link {
+    display: inline-block;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--card);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.small {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.cmd {
+    margin: 8px 0;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-all;
+    user-select: all;
+}
+
+.ghost-link {
+    color: var(--muted);
+}
