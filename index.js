@@ -8,6 +8,7 @@ const spotify = require('./src/spotify.js');
 const deezer = require('./src/deezer.js');
 const rooms = require('./src/rooms.js');
 const qr = require('./src/qr.js');
+const icons = require('./src/icons.js');
 const ratelimit = require('./src/ratelimit.js');
 
 const PUBLIC = path.join(__dirname, 'public');
@@ -106,12 +107,14 @@ async function serveInstall(response) {
     const home = rooms.get(config.homeRoom);
     const link = config.pagesUrl || `${baseUrl()}/install`;
     try {
-        const html = (await fs.readFile(path.join(PUBLIC, 'install.html'), 'utf8'))
+        const html = icons.inject(await fs.readFile(path.join(PUBLIC, 'install.html'), 'utf8'))
+            .replace('<!--QR-->', '')
+            .replace('<!--/QR-->', '')
             .replace('{{QR}}', qr.svg(link))
             .replace('{{URL}}', escapeHtml(link))
             .replace('{{APK_URL}}', escapeHtml(config.apkUrl))
             .replace('{{BACK}}', home ? `/r/${home.code}` : '/')
-            .replace('{{BACK_LABEL}}', '← Retour à la salle');
+            .replace('{{BACK_LABEL}}', `${icons.markup('arrow-left')} Retour à la salle`);
         response.writeHead(200, { ...HEADERS, 'Content-Type': 'text/html; charset=utf-8' });
         response.end(html);
     } catch {
@@ -121,7 +124,8 @@ async function serveInstall(response) {
 
 async function serveFile(response, name, type, cache) {
     try {
-        const content = await fs.readFile(path.join(PUBLIC, name));
+        let content = await fs.readFile(path.join(PUBLIC, name));
+        if (type.startsWith('text/html')) content = icons.inject(content.toString('utf8'));
         response.writeHead(200, { ...HEADERS, 'Content-Type': type, 'Cache-Control': cache || 'no-store' });
         response.end(content);
     } catch {

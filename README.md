@@ -1,4 +1,4 @@
-# 🎧 Blind Test de fin de soirée
+# Blind Test de fin de soirée
 
 Blind test multijoueur qui tourne **dans une appli Android, sur le téléphone de
 l'hôte**. Les invités rejoignent en scannant un QR code et répondent sur leur
@@ -6,7 +6,7 @@ téléphone, la TV affiche le classement, le chrono, les indices et joue les
 extraits de 30 secondes. Marche chez toi comme chez la famille : il suffit
 d'être sur le même Wi-Fi, ou sur le partage de connexion du téléphone.
 
-> 📱 **Installer : https://ghermin.github.io/blindtest-de-fin-de-soiree/**
+> **Installer : https://ghermin.github.io/blindtest-de-fin-de-soiree/**
 > (un APK à ouvrir, deux minutes). Le pas à pas et le dépannage :
 > [INSTALL.md](INSTALL.md).
 
@@ -25,7 +25,7 @@ d'être sur le même Wi-Fi, ou sur le partage de connexion du téléphone.
 ## Jouer
 
 - Chacun entre un pseudo et, s'il veut, une équipe. On peut rejoindre en cours
-  de partie. Un téléphone qui a fermé la page apparaît en 💤 et ne bloque pas
+  de partie. Un téléphone qui a fermé la page est marqué d'une lune et ne bloque pas
   la fin de manche.
 - Réglages, appliqués en direct et visibles de tous dans le lobby : manches,
   durée, titre et/ou artiste, **clavier ou QCM** (quatre propositions, une
@@ -87,6 +87,8 @@ en cache.
   chaque changement, publié dans la release `apk`, et l'appli propose
   elle-même ses mises à jour.
 - `docs/` : la page d'installation (GitHub Pages), générée par `npm run pages`.
+- `public/icons.svg` : les icônes [Lucide](https://lucide.dev) (licence ISC),
+  regroupées par `npm run sprite`, qui génère aussi celles du menu Android.
 
 ```bash
 npm test        # matching, indices, QR code, extraits, partie, salles

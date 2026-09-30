@@ -15,19 +15,20 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <p id="sound-help" class="sound-help" role="status" hidden>🔈 Touche l'écran pour activer le son</p>
+    <!--ICONS-->
+    <p id="sound-help" class="sound-help" role="status" hidden><svg class="icon" aria-hidden="true"><use href="#i-volume-2" xlink:href="#i-volume-2"></use></svg> Touche l'écran pour activer le son</p>
     <main id="app">
         <section id="screen-home" hidden>
             <div class="hero">
                 <div class="vinyl small spinning"></div>
                 <h1>Blind Test<span>de fin de soirée</span></h1>
             </div>
-            <button id="home-create" class="primary">Créer une salle ✨</button>
+            <button id="home-create" class="primary"><svg class="icon" aria-hidden="true"><use href="#i-sparkles" xlink:href="#i-sparkles"></use></svg> Créer une salle</button>
             <form id="home-join-form">
                 <input id="home-code" type="text" maxlength="12" placeholder="Code de la salle" aria-label="Code de la salle" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go" required>
                 <button type="submit">Rejoindre</button>
             </form>
-            <button id="home-house" class="ghost" hidden>Salle de la maison 🏠</button>
+            <button id="home-house" class="ghost" hidden><svg class="icon" aria-hidden="true"><use href="#i-house" xlink:href="#i-house"></use></svg> Salle de la maison</button>
             <p id="home-feedback" class="feedback" role="status"></p>
         </section>
 
@@ -41,10 +42,10 @@
                 <input id="join-name" type="text" maxlength="20" placeholder="Ton pseudo" aria-label="Ton pseudo" autocomplete="nickname" enterkeyhint="next" required>
                 <input id="join-team" type="text" maxlength="14" placeholder="Équipe (optionnel)" aria-label="Équipe, optionnel" autocomplete="off" enterkeyhint="go">
                 <p id="join-mode" class="config-line" hidden></p>
-                <button type="submit" class="primary">Rejoindre 🎉</button>
+                <button type="submit" class="primary"><svg class="icon" aria-hidden="true"><use href="#i-party-popper" xlink:href="#i-party-popper"></use></svg> Rejoindre</button>
             </form>
             <p id="join-feedback" role="status"></p>
-            <button id="become-host" class="ghost">Je suis l'hôte 🔑</button>
+            <button id="become-host" class="ghost"><svg class="icon" aria-hidden="true"><use href="#i-key-round" xlink:href="#i-key-round"></use></svg> Je suis l'hôte</button>
         </section>
 
         <section id="screen-lobby" hidden>
@@ -61,9 +62,9 @@
             <p id="lobby-tv" class="config-line" hidden></p>
             <p class="hint">L'hôte choisit la playlist et lance la partie. Le son sort de l'écran TV ou du téléphone de l'hôte.</p>
             <div class="lobby-actions">
-                <button id="lobby-host" type="button" class="ghost">Je suis l'hôte 🔑</button>
-                <button id="lobby-setup" type="button" class="ghost" hidden>⚙️ Playlist et réglages</button>
-                <button id="lobby-back" type="button" class="ghost">← Changer de pseudo</button>
+                <button id="lobby-host" type="button" class="ghost"><svg class="icon" aria-hidden="true"><use href="#i-key-round" xlink:href="#i-key-round"></use></svg> Je suis l'hôte</button>
+                <button id="lobby-setup" type="button" class="ghost" hidden><svg class="icon" aria-hidden="true"><use href="#i-sliders-horizontal" xlink:href="#i-sliders-horizontal"></use></svg> Playlist et réglages</button>
+                <button id="lobby-back" type="button" class="ghost"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left" xlink:href="#i-arrow-left"></use></svg> Changer de pseudo</button>
             </div>
             <p class="credit">Extraits musicaux : Spotify · Deezer · Apple Music</p>
         </section>
@@ -85,7 +86,7 @@
                 <div id="choices" class="choices" hidden></div>
                 <form id="guess-form">
                     <input id="guess-input" type="text" maxlength="80" placeholder="Titre ou artiste…" aria-label="Ta réponse" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send">
-                    <button type="submit" class="primary" aria-label="Envoyer">➤</button>
+                    <button type="submit" class="primary" aria-label="Envoyer"><svg class="icon" aria-hidden="true"><use href="#i-send-horizontal" xlink:href="#i-send-horizontal"></use></svg></button>
                 </form>
                 <p id="guess-feedback" role="status"></p>
                 <ul id="live-teams" class="teams-bar" hidden></ul>
@@ -103,33 +104,33 @@
         </section>
 
         <section id="screen-podium" hidden>
-            <h2>🏆 Podium</h2>
+            <h2><svg class="icon" aria-hidden="true"><use href="#i-trophy" xlink:href="#i-trophy"></use></svg> Podium</h2>
             <ul id="podium-teams" class="teams-bar" hidden></ul>
             <ol id="podium-list"></ol>
             <ul id="podium-stats" class="stats" hidden></ul>
             <div id="podium-actions" class="lobby-actions" hidden>
-                <button id="podium-replay" type="button" class="primary">🔁 Rejouer</button>
-                <button id="podium-setup" type="button">⚙️ Modifier la partie</button>
+                <button id="podium-replay" type="button" class="primary"><svg class="icon" aria-hidden="true"><use href="#i-rotate-ccw" xlink:href="#i-rotate-ccw"></use></svg> Rejouer</button>
+                <button id="podium-setup" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sliders-horizontal" xlink:href="#i-sliders-horizontal"></use></svg> Modifier la partie</button>
             </div>
             <p id="podium-guest" class="hint">L'hôte peut relancer une partie, ou changer la playlist et les réglages, depuis son téléphone.</p>
         </section>
     </main>
 
     <div id="pause-overlay" class="pause-overlay" hidden>
-        <button id="pause-resume" type="button" class="pause-main" aria-label="Reprendre">▶</button>
+        <button id="pause-resume" type="button" class="pause-main" aria-label="Reprendre"><svg class="icon" aria-hidden="true"><use href="#i-play" xlink:href="#i-play"></use></svg></button>
         <p class="pause-title">Pause</p>
         <p id="pause-text" class="pause-text"></p>
         <div id="pause-actions" class="host-actions pause-actions" hidden>
-            <button id="pause-skip" type="button">⏭ Passer</button>
-            <button id="pause-stop" type="button">⏹ Terminer</button>
-            <button id="pause-lobby" type="button">↩ Lobby</button>
+            <button id="pause-skip" type="button"><svg class="icon" aria-hidden="true"><use href="#i-skip-forward" xlink:href="#i-skip-forward"></use></svg> Passer</button>
+            <button id="pause-stop" type="button"><svg class="icon" aria-hidden="true"><use href="#i-square" xlink:href="#i-square"></use></svg> Terminer</button>
+            <button id="pause-lobby" type="button"><svg class="icon" aria-hidden="true"><use href="#i-corner-up-left" xlink:href="#i-corner-up-left"></use></svg> Lobby</button>
         </div>
     </div>
     <div id="host-bar" class="host-bar" hidden>
-        <button id="bar-pause" type="button">⏸ Pause</button>
-        <button id="bar-skip" type="button">⏭ Passer</button>
-        <button id="bar-stop" type="button">⏹ Terminer</button>
-        <button id="bar-lobby" type="button">↩ Lobby</button>
+        <button id="bar-pause" type="button"><svg class="icon" aria-hidden="true"><use href="#i-pause" xlink:href="#i-pause"></use></svg> Pause</button>
+        <button id="bar-skip" type="button"><svg class="icon" aria-hidden="true"><use href="#i-skip-forward" xlink:href="#i-skip-forward"></use></svg> Passer</button>
+        <button id="bar-stop" type="button"><svg class="icon" aria-hidden="true"><use href="#i-square" xlink:href="#i-square"></use></svg> Terminer</button>
+        <button id="bar-lobby" type="button"><svg class="icon" aria-hidden="true"><use href="#i-corner-up-left" xlink:href="#i-corner-up-left"></use></svg> Lobby</button>
     </div>
     <button id="host-toggle" aria-label="Réglages de la partie" aria-controls="host-panel" aria-expanded="false" hidden><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
     <div id="host-backdrop" class="backdrop" hidden></div>
@@ -138,14 +139,14 @@
             <div class="sheet-handle" aria-hidden="true"></div>
             <div class="host-header">
                 <h3>Panneau hôte</h3>
-                <button id="host-close" type="button" aria-label="Fermer le panneau">✕</button>
+                <button id="host-close" type="button" aria-label="Fermer le panneau"><svg class="icon" aria-hidden="true"><use href="#i-x" xlink:href="#i-x"></use></svg></button>
             </div>
         </div>
         <p class="sheet-title">Playlist</p>
         <p id="host-spotify" class="host-line" hidden></p>
         <div id="host-spotify-actions" class="host-actions" hidden>
-            <button id="host-connect" type="button">🎧 Connecter mon compte Spotify</button>
-            <button id="host-playlists" type="button" hidden>📚 Mes playlists</button>
+            <button id="host-connect" type="button"><svg class="icon" aria-hidden="true"><use href="#i-headphones" xlink:href="#i-headphones"></use></svg> Connecter mon compte Spotify</button>
+            <button id="host-playlists" type="button" hidden><svg class="icon" aria-hidden="true"><use href="#i-list-music" xlink:href="#i-list-music"></use></svg> Mes playlists</button>
         </div>
         <form id="playlist-form">
             <input id="playlist-url" type="text" placeholder="Lien de playlist, ou nom à chercher (années 80, rap…)" aria-label="Lien de playlist, ou nom de playlist à chercher" autocomplete="off" enterkeyhint="search">
@@ -160,28 +161,28 @@
             <div class="setting"><span>Manches</span><div class="segmented" data-option="rounds" role="group" aria-label="Manches"><button type="button" data-value="5">5</button><button type="button" data-value="10">10</button><button type="button" data-value="15">15</button><button type="button" data-value="20">20</button></div></div>
             <div class="setting"><span>Durée d'une manche</span><div class="segmented" data-option="guessSeconds" role="group" aria-label="Durée"><button type="button" data-value="15">15 s</button><button type="button" data-value="20">20 s</button><button type="button" data-value="30">30 s</button></div></div>
             <div class="setting"><span>À deviner</span><div class="segmented" data-option="mode" role="group" aria-label="À deviner"><button type="button" data-value="both">Titre + artiste</button><button type="button" data-value="title">Titre</button><button type="button" data-value="artist">Artiste</button></div></div>
-            <div class="setting"><span>Réponses</span><div class="segmented" data-option="answers" role="group" aria-label="Réponses"><button type="button" data-value="text">⌨️ Clavier</button><button type="button" data-value="choices">🔘 QCM</button></div></div>
-            <div class="setting"><span>Jeu</span><div class="segmented" data-option="play" role="group" aria-label="Jeu"><button type="button" data-value="solo">🙋 Chacun pour soi</button><button type="button" data-value="teams">👥 1 téléphone par équipe</button></div></div>
+            <div class="setting"><span>Réponses</span><div class="segmented" data-option="answers" role="group" aria-label="Réponses"><button type="button" data-value="text"><svg class="icon" aria-hidden="true"><use href="#i-keyboard" xlink:href="#i-keyboard"></use></svg> Clavier</button><button type="button" data-value="choices"><svg class="icon" aria-hidden="true"><use href="#i-list-checks" xlink:href="#i-list-checks"></use></svg> QCM</button></div></div>
+            <div class="setting"><span>Jeu</span><div class="segmented" data-option="play" role="group" aria-label="Jeu"><button type="button" data-value="solo"><svg class="icon" aria-hidden="true"><use href="#i-user" xlink:href="#i-user"></use></svg> Chacun pour soi</button><button type="button" data-value="teams"><svg class="icon" aria-hidden="true"><use href="#i-users" xlink:href="#i-users"></use></svg> 1 téléphone par équipe</button></div></div>
             <div class="setting" id="setting-hints"><span>Indices</span><div class="segmented" data-option="hints" role="group" aria-label="Indices"><button type="button" data-value="true">Oui</button><button type="button" data-value="false">Non</button></div></div>
         </div>
         <p class="sheet-title">Partie</p>
         <div class="host-actions">
-            <button id="host-start" class="primary">▶ Lancer</button>
-            <button id="host-pause">⏸ Pause</button>
-            <button id="host-skip">⏭ Passer</button>
-            <button id="host-stop">⏹ Stop</button>
-            <button id="host-lobby">↩ Lobby</button>
+            <button id="host-start" class="primary"><svg class="icon" aria-hidden="true"><use href="#i-play" xlink:href="#i-play"></use></svg> Lancer</button>
+            <button id="host-pause"><svg class="icon" aria-hidden="true"><use href="#i-pause" xlink:href="#i-pause"></use></svg> Pause</button>
+            <button id="host-skip"><svg class="icon" aria-hidden="true"><use href="#i-skip-forward" xlink:href="#i-skip-forward"></use></svg> Passer</button>
+            <button id="host-stop"><svg class="icon" aria-hidden="true"><use href="#i-square" xlink:href="#i-square"></use></svg> Stop</button>
+            <button id="host-lobby"><svg class="icon" aria-hidden="true"><use href="#i-corner-up-left" xlink:href="#i-corner-up-left"></use></svg> Lobby</button>
         </div>
         <p class="sheet-title" id="host-app-title" hidden>Appli</p>
         <div id="host-app" class="host-actions" hidden>
-            <button id="app-update" type="button">⬆️ Mettre à jour l'appli</button>
-            <button id="app-settings" type="button">⚙️ Réglages de l'appli</button>
-            <button id="app-quit" type="button">⏹ Arrêter le serveur</button>
+            <button id="app-update" type="button"><svg class="icon" aria-hidden="true"><use href="#i-download" xlink:href="#i-download"></use></svg> Mettre à jour l'appli</button>
+            <button id="app-settings" type="button"><svg class="icon" aria-hidden="true"><use href="#i-settings" xlink:href="#i-settings"></use></svg> Réglages de l'appli</button>
+            <button id="app-quit" type="button"><svg class="icon" aria-hidden="true"><use href="#i-power" xlink:href="#i-power"></use></svg> Arrêter le serveur</button>
         </div>
         <p class="sheet-title">Son et plus</p>
         <div class="host-actions">
-            <button id="host-speaker" type="button">🔈 Son sur ce téléphone : non</button>
-            <button id="host-install" type="button">📲 Installer sur un autre téléphone</button>
+            <button id="host-speaker" type="button"><svg class="icon" aria-hidden="true"><use href="#i-volume-x" xlink:href="#i-volume-x"></use></svg> Son sur ce téléphone : non</button>
+            <button id="host-install" type="button"><svg class="icon" aria-hidden="true"><use href="#i-smartphone" xlink:href="#i-smartphone"></use></svg> Installer sur un autre téléphone</button>
         </div>
         <p class="hint">Le son sort de l'écran TV de la salle. Sans écran, active-le sur ce téléphone et branche une enceinte.</p>
         <p id="host-key" class="hint"></p>

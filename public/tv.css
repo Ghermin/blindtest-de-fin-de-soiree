@@ -351,7 +351,7 @@ p {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: min(4rem, 8vh);
+    font-size: min(4.5rem, 9vh);
     background: linear-gradient(135deg, var(--accent), #ff6ba9);
     color: var(--bg);
     box-shadow: 0 1rem 3rem rgba(255, 61, 139, 0.45);
@@ -662,6 +662,65 @@ p {
 
 body.paused .spinning {
     animation-play-state: paused;
+}
+
+.sprite {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.icon {
+    width: 1.15em;
+    height: 1.15em;
+    flex-shrink: 0;
+    vertical-align: -0.2em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+h1 .icon,
+.medal-1 {
+    color: var(--gold);
+}
+
+.medal-2 {
+    color: #cdd5e3;
+}
+
+.medal-3 {
+    color: #d9a066;
+}
+
+.podium li:first-child .medal-1 {
+    color: var(--bg);
+}
+
+.ranking .rank .icon {
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.ranking .marks {
+    display: inline-flex;
+    gap: 0.15em;
+    color: var(--accent2);
+}
+
+.marks .offline-mark {
+    color: var(--muted);
+}
+
+.hint-line {
+    display: block;
+}
+
+.tv-stats li .icon {
+    color: var(--accent2);
 }
 
 @media (prefers-reduced-motion: reduce) {

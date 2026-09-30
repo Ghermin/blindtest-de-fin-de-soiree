@@ -12,6 +12,7 @@
         "start": "node index.js",
         "test": "node --test",
         "icons": "node scripts/icons.js",
+        "sprite": "node scripts/sprite.js",
         "pages": "node scripts/pages.js",
         "lint": "eslint ."
     },
@@ -19,6 +20,7 @@
         "@eslint/js": "^10.0.1",
         "eslint": "^10.11.0",
         "globals": "^17.12.0",
-        "jsqr": "^1.4.0"
+        "jsqr": "^1.4.0",
+        "lucide-static": "^1.49.0"
     }
 }

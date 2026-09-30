@@ -23,6 +23,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -199,16 +200,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showMenu() {
-        val items = arrayOf(
-            "📺  " + getString(R.string.menu_tv),
-            "🔄  " + getString(R.string.menu_reload),
-            "⚙️  " + getString(R.string.menu_settings),
-            "⬆️  " + getString(R.string.menu_update),
-            "⏹  " + getString(R.string.menu_quit)
+        val items = listOf(
+            R.string.menu_tv to R.drawable.ic_menu_tv,
+            R.string.menu_reload to R.drawable.ic_menu_reload,
+            R.string.menu_settings to R.drawable.ic_menu_settings,
+            R.string.menu_update to R.drawable.ic_menu_update,
+            R.string.menu_quit to R.drawable.ic_menu_power
         )
+        val adapter = object : ArrayAdapter<Pair<Int, Int>>(this, R.layout.item_menu, items) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getView(position, convertView, parent) as TextView
+                val (title, picto) = items[position]
+                view.setText(title)
+                view.setCompoundDrawablesRelativeWithIntrinsicBounds(picto, 0, 0, 0)
+                return view
+            }
+        }
         val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.app_name)
-            .setItems(items) { _, index ->
+            .setAdapter(adapter) { _, index ->
                 when (index) {
                     0 -> showTvAddress()
                     1 -> webView.reload()

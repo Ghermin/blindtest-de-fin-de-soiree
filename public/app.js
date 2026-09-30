@@ -36,6 +36,7 @@
     let lastPhase = '';
     let wakeLock = null;
     let lastChips = '';
+    let lastHint = '';
     let source = null;
     let sourceToken = null;
     let lastMessage = 0;
@@ -46,6 +47,56 @@
     const seen = new Map();
     const player = new Audio();
     player.preload = 'auto';
+
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+
+    function icon(name, extra) {
+        const element = document.createElementNS(SVG_NS, 'svg');
+        element.setAttribute('class', extra ? `icon ${extra}` : 'icon');
+        element.setAttribute('aria-hidden', 'true');
+        const use = document.createElementNS(SVG_NS, 'use');
+        use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#i-${name}`);
+        use.setAttribute('href', `#i-${name}`);
+        element.appendChild(use);
+        return element;
+    }
+
+    function label(element, name, text) {
+        element.textContent = '';
+        if (name) element.appendChild(icon(name));
+        if (text) element.appendChild(document.createTextNode((name ? ' ' : '') + text));
+    }
+
+    function renderHint(element, lines, previous) {
+        const signature = lines.map((line) => `${line.icon}:${line.text}`).join('|');
+        if (signature === previous) return previous;
+        element.textContent = '';
+        for (const line of lines) {
+            const row = document.createElement('span');
+            row.className = 'hint-line';
+            row.appendChild(icon(line.icon));
+            row.appendChild(document.createTextNode(' ' + line.text));
+            element.appendChild(row);
+        }
+        element.classList.remove('fresh');
+        void element.offsetWidth;
+        if (lines.length) element.classList.add('fresh');
+        return signature;
+    }
+
+    function rankMark(index) {
+        if (index > 2) return document.createTextNode(`${index + 1}.`);
+        return icon(index ? 'medal' : 'crown', `medal-${index + 1}`);
+    }
+
+    function renderSpeaker() {
+        label($('host-speaker'), speaker ? 'volume-2' : 'volume-x', `Son sur ce téléphone : ${speaker ? 'oui' : 'non'}`);
+    }
+
+    function renderHostButton() {
+        if (isHost) label($('become-host'), 'check', 'Hôte activé (re-clique pour désactiver)');
+        else label($('become-host'), 'key-round', 'Je suis l\'hôte');
+    }
 
     if (room && location.hash.startsWith('#host=')) {
         hostKey = decodeURIComponent(location.hash.slice(6));
@@ -130,7 +181,7 @@
     function setSpeaker(value) {
         speaker = value;
         storage.set(`bt_speaker_${room}`, speaker ? '1' : '0');
-        $('host-speaker').textContent = `🔈 Son sur ce téléphone : ${speaker ? 'oui' : 'non'}`;
+        renderSpeaker();
         if (!speaker) $('sound-help').hidden = true;
         syncAudio();
     }
@@ -140,16 +191,16 @@
     }
 
     function formatHint(hint) {
-        if (!hint) return '';
+        if (!hint) return [];
         const lines = [];
-        if (hint.title) lines.push(`🎵 ${spaced(hint.title)}`);
-        if (hint.artist) lines.push(`🎤 ${spaced(hint.artist)}`);
-        return lines.join('\n');
+        if (hint.title) lines.push({ icon: 'music', text: spaced(hint.title) });
+        if (hint.artist) lines.push({ icon: 'mic', text: spaced(hint.artist) });
+        return lines;
     }
 
     function playlistLabel(playlist, long) {
         if (!playlist) return long ? 'Aucune playlist chargée' : '';
-        const base = `📀 ${playlist.name}${playlist.partial ? ' (100 premiers titres)' : ''}`;
+        const base = `${playlist.name}${playlist.partial ? ' (100 premiers titres)' : ''}`;
         if (!playlist.ready) return `${base} · recherche des extraits ${playlist.resolved}/${playlist.total}…`;
         const missing = playlist.missing ? `, ${playlist.missing} sans extrait` : '';
         return long ? `${base} · ${playlist.resolved} extraits prêts${missing}` : `${base} · ${playlist.resolved} titres`;
@@ -163,11 +214,16 @@
             if (!seen.has(key)) item.classList.add('fresh');
             else if (seen.get(key) < entry.score) item.classList.add('bump');
             seen.set(key, entry.score);
-            const found = [entry.found.title ? '🎵' : '', entry.found.artist ? '🎤' : ''].join('');
             const gained = withGains && entry.gained ? ` +${entry.gained}` : '';
             const team = entry.team ? ` [${entry.team}]` : '';
             const offline = entry.online === false;
-            item.textContent = `${entry.name}${team} — ${entry.score}${gained} ${found}${offline ? ' 💤' : ''}`;
+            item.textContent = `${entry.name}${team} — ${entry.score}${gained}`;
+            const marks = document.createElement('span');
+            marks.className = 'marks';
+            if (entry.found.title) marks.appendChild(icon('music'));
+            if (entry.found.artist) marks.appendChild(icon('mic'));
+            if (offline) marks.appendChild(icon('moon', 'offline-mark'));
+            if (marks.childNodes.length) item.appendChild(marks);
             item.classList.toggle('offline', offline);
             if (entry.lastGuess) {
                 const guess = document.createElement('span');
@@ -242,15 +298,16 @@
                 myChoice = { id, correct: true };
                 if (result.title) myFound.title = true;
                 if (result.artist) myFound.artist = true;
-                feedback(`✅ Bonne réponse ! +${result.gained} pts`, true);
+                feedback(`Bonne réponse ! +${result.gained} pts`, true, 'circle-check');
                 if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
             } else if (result.accepted) {
                 myChoice = { id, correct: false };
-                feedback('❌ Raté, la réponse arrive à la révélation', false);
+                feedback('Raté, la réponse arrive à la révélation', false, 'circle-x');
                 if (navigator.vibrate) navigator.vibrate(120);
             } else {
                 myChoice = null;
-                feedback(result.reason === 'paused' ? '⏸ Pause' : 'Trop tard pour cette manche', false);
+                if (result.reason === 'paused') feedback('Pause', false, 'pause');
+                else feedback('Trop tard pour cette manche', false, 'hourglass');
             }
         } catch (error) {
             myChoice = null;
@@ -264,13 +321,24 @@
         $('countdown-big').hidden = state.phase !== 'countdown';
         $('guess-zone').hidden = state.phase !== 'guess';
         $('round-label').textContent = `Manche ${state.round}/${state.rounds}`;
-        $('mode-label').textContent = { both: '🎵 titre + 🎤 artiste', title: '🎵 titre', artist: '🎤 artiste' }[state.mode];
+        const mode = $('mode-label');
+        mode.textContent = '';
+        if (state.mode !== 'artist') {
+            mode.appendChild(icon('music'));
+            mode.appendChild(document.createTextNode(' titre'));
+        }
+        if (state.mode === 'both') mode.appendChild(document.createTextNode(' + '));
+        if (state.mode !== 'title') {
+            mode.appendChild(icon('mic'));
+            mode.appendChild(document.createTextNode(' artiste'));
+        }
 
         if (state.phase === 'countdown') {
             clearInterval(countdownTimer);
             const tick = () => {
                 const left = Math.max(0, Math.ceil((state.paused ? state.pauseRemaining : state.phaseEndsAt - now()) / 1000));
-                $('countdown-big').textContent = left || '🎶';
+                if (left) $('countdown-big').textContent = String(left);
+                else if (!$('countdown-big').firstElementChild) label($('countdown-big'), 'music', '');
             };
             tick();
             countdownTimer = setInterval(tick, 100);
@@ -286,20 +354,20 @@
             $('my-found').hidden = Boolean(choices);
             if (choices) renderChoices(choices);
             const chips = [];
-            if (state.mode !== 'artist') chips.push(myFound.title ? '✅ Titre trouvé' : '🎵 Titre ?');
-            if (state.mode !== 'title') chips.push(myFound.artist ? '✅ Artiste trouvé' : '🎤 Artiste ?');
-            const signature = chips.join('|');
+            if (state.mode !== 'artist') chips.push(myFound.title ? { icon: 'circle-check', text: 'Titre trouvé', done: true } : { icon: 'music', text: 'Titre ?' });
+            if (state.mode !== 'title') chips.push(myFound.artist ? { icon: 'circle-check', text: 'Artiste trouvé', done: true } : { icon: 'mic', text: 'Artiste ?' });
+            const signature = chips.map((chip) => chip.icon + chip.text).join('|');
             if (signature !== lastChips) {
                 lastChips = signature;
-                $('my-found').innerHTML = chips.map((chip) => `<li${chip.startsWith('✅') ? ' class="fresh"' : ''}>${chip}</li>`).join('');
+                $('my-found').textContent = '';
+                for (const chip of chips) {
+                    const item = document.createElement('li');
+                    if (chip.done) item.className = 'fresh';
+                    label(item, chip.icon, chip.text);
+                    $('my-found').appendChild(item);
+                }
             }
-            const hint = formatHint(state.hint);
-            if (hint !== $('hint').textContent) {
-                $('hint').textContent = hint;
-                $('hint').classList.remove('fresh');
-                void $('hint').offsetWidth;
-                if (hint) $('hint').classList.add('fresh');
-            }
+            lastHint = renderHint($('hint'), formatHint(state.hint), lastHint);
             renderTeams(state.teams, $('live-teams'));
             renderPlayers(state.players, $('live-scores'), true);
             cancelAnimationFrame(timerFrame);
@@ -330,7 +398,6 @@
     }
 
     function renderPodium() {
-        const medals = ['🥇', '🥈', '🥉'];
         renderTeams(state.teams, $('podium-teams'));
         const list = $('podium-list');
         list.innerHTML = '';
@@ -338,19 +405,19 @@
             const item = document.createElement('li');
             const score = document.createElement('b');
             score.textContent = entry.score;
-            item.append(`${medals[index] || '•'} ${entry.name}${entry.team ? ` [${entry.team}]` : ''} — `, score, ' pts');
+            item.append(rankMark(index), ` ${entry.name}${entry.team ? ` [${entry.team}]` : ''} — `, score, ' pts');
             list.appendChild(item);
         });
         const stats = state.stats || {};
         const lines = [];
-        if (stats.fastest) lines.push(`⚡ Plus rapide : ${stats.fastest.name} en ${String(stats.fastest.seconds).replace('.', ',')} s sur « ${stats.fastest.track} »`);
-        if (stats.firsts) lines.push(`🥇 Le plus souvent premier : ${stats.firsts.name} (${stats.firsts.count}×)`);
-        if (stats.wildest) lines.push(`😅 Réponse la plus hors sujet : « ${stats.wildest.guess} » de ${stats.wildest.name} pour « ${stats.wildest.track} »`);
+        if (stats.fastest) lines.push({ icon: 'zap', text: `Plus rapide : ${stats.fastest.name} en ${String(stats.fastest.seconds).replace('.', ',')} s sur « ${stats.fastest.track} »` });
+        if (stats.firsts) lines.push({ icon: 'award', text: `Le plus souvent premier : ${stats.firsts.name} (${stats.firsts.count}×)` });
+        if (stats.wildest) lines.push({ icon: 'laugh', text: `Réponse la plus hors sujet : « ${stats.wildest.guess} » de ${stats.wildest.name} pour « ${stats.wildest.track} »` });
         const statsList = $('podium-stats');
         statsList.innerHTML = '';
         for (const line of lines) {
             const item = document.createElement('li');
-            item.textContent = line;
+            label(item, line.icon, line.text);
             statsList.appendChild(item);
         }
         statsList.hidden = !lines.length;
@@ -380,33 +447,33 @@
         document.body.classList.toggle('has-bar', isHost && running && !paused);
         document.body.classList.toggle('paused', paused);
         $('pause-overlay').hidden = !paused;
-        $('pause-resume').textContent = isHost ? '▶' : '⏸';
+        label($('pause-resume'), isHost ? 'play' : 'pause', '');
         $('pause-resume').disabled = !isHost;
         $('pause-text').textContent = isHost ? 'Touche pour reprendre la manche' : 'L\'hôte reprend quand il veut';
         $('pause-actions').hidden = !isHost;
-        $('bar-pause').textContent = state.paused ? '▶ Reprendre' : '⏸ Pause';
-        $('host-pause').textContent = state.paused ? '▶ Reprendre' : '⏸ Pause';
+        label($('bar-pause'), state.paused ? 'play' : 'pause', state.paused ? 'Reprendre' : 'Pause');
+        label($('host-pause'), state.paused ? 'play' : 'pause', state.paused ? 'Reprendre' : 'Pause');
         $('guess-input').disabled = paused;
         document.body.classList.toggle('is-host', isHost);
-        $('host-playlist-info').textContent = playlistLabel(state.playlist, true);
+        label($('host-playlist-info'), state.playlist ? 'disc-3' : null, playlistLabel(state.playlist, true));
         renderOptions();
 
         if (!token) {
             const teams = Boolean(state.options && state.options.play === 'teams');
             $('join-name').placeholder = teams ? 'Nom de votre équipe' : 'Ton pseudo';
             $('join-team').hidden = teams;
-            $('join-mode').textContent = teams ? '👥 Un téléphone par équipe : entrez le nom de votre équipe, vous répondez ensemble.' : '';
+            label($('join-mode'), teams ? 'users' : null, teams ? 'Un téléphone par équipe : entrez le nom de votre équipe, vous répondez ensemble.' : '');
             $('join-mode').hidden = !teams;
             show('join');
         } else if (state.phase === 'lobby') {
             show('lobby');
-            $('lobby-playlist').textContent = playlistLabel(state.playlist, false);
+            label($('lobby-playlist'), state.playlist ? 'disc-3' : null, playlistLabel(state.playlist, false));
             $('lobby-config').textContent = configLabel(state.options);
             $('lobby-notice').textContent = state.notice || '';
             $('lobby-notice').hidden = !state.notice;
             $('lobby-url').textContent = state.joinUrl || '';
             $('lobby-tv').hidden = !isHost || !state.joinUrl;
-            $('lobby-tv').textContent = state.joinUrl ? `📺 Écran TV : ${state.joinUrl}/tv` : '';
+            label($('lobby-tv'), state.joinUrl ? 'tv' : null, state.joinUrl ? `Écran TV : ${state.joinUrl}/tv` : '');
             renderTeams(state.teams, $('lobby-teams'));
             renderPlayers(state.players, $('lobby-players'), false);
         } else if (state.phase === 'countdown' || state.phase === 'guess') {
@@ -440,16 +507,16 @@
         });
     }
 
-    function feedback(message, ok) {
+    function feedback(message, ok, name) {
         const element = $('guess-feedback');
         element.className = '';
         void element.offsetWidth;
-        element.textContent = message;
+        label(element, name, message);
         element.className = ok ? 'ok' : 'ko';
     }
 
-    function hostFeedback(message) {
-        $('host-feedback').textContent = message;
+    function hostFeedback(message, warn) {
+        label($('host-feedback'), warn && message ? 'triangle-alert' : null, message);
     }
 
     async function hostAction(route, data) {
@@ -459,7 +526,7 @@
             hostFeedback('');
             return true;
         } catch (error) {
-            hostFeedback('⚠ ' + error.message);
+            hostFeedback(error.message, true);
             return false;
         }
     }
@@ -478,8 +545,8 @@
             const account = status.spotify || {};
             $('host-spotify').hidden = !account.configured;
             $('host-spotify-actions').hidden = !account.configured;
-            $('host-spotify').textContent = account.connected ? `🎧 Spotify : ${account.account ? account.account.name : 'compte connecté'}` : '🎧 Spotify : compte non connecté (liens publics OK ; connecte-le pour tes playlists privées)';
-            $('host-connect').textContent = account.connected ? '🎧 Changer de compte Spotify' : '🎧 Connecter mon compte Spotify';
+            label($('host-spotify'), 'headphones', account.connected ? `Spotify : ${account.account ? account.account.name : 'compte connecté'}` : 'Spotify : compte non connecté (liens publics OK ; connecte-le pour tes playlists privées)');
+            label($('host-connect'), 'headphones', account.connected ? 'Changer de compte Spotify' : 'Connecter mon compte Spotify');
             $('host-playlists').hidden = !account.connected;
             const container = $('host-presets');
             container.innerHTML = '';
@@ -487,12 +554,12 @@
             for (const preset of status.presets) {
                 const button = document.createElement('button');
                 button.type = 'button';
-                button.textContent = `📀 ${preset.name}`;
+                label(button, 'disc-3', preset.name);
                 button.addEventListener('click', () => hostAction(`${api}/host/playlist`, { url: preset.url }));
                 container.appendChild(button);
             }
         } catch (error) {
-            hostFeedback('⚠ ' + error.message);
+            hostFeedback(error.message, true);
         }
     }
 
@@ -520,8 +587,8 @@
         $('join-room').textContent = `Salle ${room}`;
         if (myName) $('join-name').value = myName;
         if (myTeam) $('join-team').value = myTeam;
-        if (isHost) $('become-host').textContent = 'Hôte activé ✔ (re-clique pour désactiver)';
-        $('host-speaker').textContent = `🔈 Son sur ce téléphone : ${speaker ? 'oui' : 'non'}`;
+        renderHostButton();
+        renderSpeaker();
         show('join');
         connect();
     }
@@ -577,12 +644,12 @@
         $('guess-input').value = '';
         try {
             const result = await post(`${api}/guess`, { token, text });
-            if (result.title && result.artist) feedback(`🔥 Titre + artiste ! +${result.gained} pts`, true);
-            else if (result.title) feedback(`🎵 Titre ! +${result.gained} pts`, true);
-            else if (result.artist) feedback(`🎤 Artiste ! +${result.gained} pts`, true);
-            else if (result.reason === 'throttle') feedback('Doucement… ⏳', false);
-            else if (result.reason === 'paused') feedback('⏸ Pause', false);
-            else if (result.accepted) feedback('❌ Non, essaie encore', false);
+            if (result.title && result.artist) feedback(`Titre + artiste ! +${result.gained} pts`, true, 'flame');
+            else if (result.title) feedback(`Titre ! +${result.gained} pts`, true, 'music');
+            else if (result.artist) feedback(`Artiste ! +${result.gained} pts`, true, 'mic');
+            else if (result.reason === 'throttle') feedback('Doucement…', false, 'hourglass');
+            else if (result.reason === 'paused') feedback('Pause', false, 'pause');
+            else if (result.accepted) feedback('Non, essaie encore', false, 'circle-x');
             if (result.gained && navigator.vibrate) navigator.vibrate(result.title && result.artist ? [60, 40, 60] : 40);
             if (result.title) myFound.title = true;
             if (result.artist) myFound.artist = true;
@@ -607,7 +674,7 @@
         }
         isHost = !isHost;
         storage.set(`bt_host_${room}`, isHost ? '1' : '0');
-        $('become-host').textContent = isHost ? 'Hôte activé ✔ (re-clique pour désactiver)' : 'Je suis l\'hôte 🔑';
+        renderHostButton();
         render();
     }
 
@@ -710,9 +777,9 @@
         $('host-app-title').hidden = false;
         $('host-app').hidden = false;
         try {
-            $('app-update').textContent = `⬆️ Mettre à jour l'appli (${native.version()})`;
+            label($('app-update'), 'download', `Mettre à jour l'appli (${native.version()})`);
         } catch (_error) {
-            $('app-update').textContent = '⬆️ Mettre à jour l\'appli';
+            label($('app-update'), 'download', 'Mettre à jour l\'appli');
         }
         $('app-update').addEventListener('click', () => native.checkUpdate());
         $('app-settings').addEventListener('click', () => native.openSettings());
@@ -751,7 +818,7 @@
             const { playlists } = await post(`${api}/host/playlists`, null, 'GET');
             renderPlaylists(playlists, 'Aucune playlist sur ce compte');
         } catch (error) {
-            hostFeedback('⚠ ' + error.message);
+            hostFeedback(error.message, true);
         }
     });
 
@@ -777,7 +844,7 @@
             $('playlist-url').blur();
             list.scrollIntoView({ block: 'nearest' });
         } catch (error) {
-            hostFeedback('⚠ ' + error.message);
+            hostFeedback(error.message, true);
         }
     });
     $('host-start').addEventListener('click', async () => {

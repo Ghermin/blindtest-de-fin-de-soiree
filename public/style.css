@@ -32,6 +32,7 @@ select {
     --accent2: #35e0c8;
     --ok: #4ade80;
     --ko: #f87171;
+    --gold: #ffd166;
 }
 
 body {
@@ -403,7 +404,7 @@ body.has-bar {
 .pause-main {
     width: 124px;
     height: 124px;
-    padding: 0 0 0 8px;
+    padding: 0;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -536,6 +537,9 @@ body.has-bar {
     padding: 0;
     border-radius: 50%;
     font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 body.is-host #app {
@@ -1058,3 +1062,67 @@ body.paused .spinning {
     color: var(--bg);
     font-weight: 700;
 }
+
+.sprite {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.icon {
+    width: 1.15em;
+    height: 1.15em;
+    flex-shrink: 0;
+    vertical-align: -0.2em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+h2 .icon,
+.medal-1 {
+    color: var(--gold);
+}
+
+.medal-2 {
+    color: #cdd5e3;
+}
+
+.medal-3 {
+    color: #d9a066;
+}
+
+.pause-main .icon {
+    width: 56px;
+    height: 56px;
+}
+
+.marks {
+    display: inline-flex;
+    gap: 2px;
+    margin-left: 8px;
+    vertical-align: -0.2em;
+    color: var(--accent2);
+}
+
+.marks .offline-mark {
+    color: var(--muted);
+}
+
+.hint-line {
+    display: block;
+}
+
+.stats li .icon,
+.sound-help .icon,
+.notice .icon {
+    color: var(--accent2);
+}
+
+#host-feedback .icon {
+    color: var(--ko);
+}
+
