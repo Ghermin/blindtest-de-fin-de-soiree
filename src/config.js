@@ -21,6 +21,7 @@ module.exports = {
     repo: process.env.BLINDTEST_REPO || 'https://github.com/Ghermin/blindtest-de-fin-de-soiree',
     branch: process.env.BLINDTEST_BRANCH || 'main',
     pagesUrl: process.env.BLINDTEST_PAGES_URL || 'https://ghermin.github.io/blindtest-de-fin-de-soiree/',
+    apkUrl: process.env.BLINDTEST_APK_URL || 'https://github.com/Ghermin/blindtest-de-fin-de-soiree/releases/latest/download/blindtest.apk',
     spotify: {
         clientId: process.env.SPOTIFY_CLIENT_ID || '',
         clientSecret: process.env.SPOTIFY_CLIENT_SECRET || ''

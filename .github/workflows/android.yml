@@ -1,0 +1,100 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'index.js'
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'presets.example.json'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Cache nodejs-mobile
+        id: libnode
+        uses: actions/cache@v4
+        with:
+          path: android/app/libnode
+          key: nodejs-mobile-v18.20.4-arm64-v8a
+
+      - name: Fetch nodejs-mobile
+        if: steps.libnode.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL -o /tmp/nodejs-mobile.zip https://github.com/nodejs-mobile/nodejs-mobile/releases/download/v18.20.4/nodejs-mobile-v18.20.4-android.zip
+          mkdir -p android/app/libnode
+          unzip -q /tmp/nodejs-mobile.zip 'bin/arm64-v8a/*' 'include/*' -d android/app/libnode
+          ls -la android/app/libnode/bin/arm64-v8a
+
+      - name: Bundle the node project
+        run: |
+          rm -rf android/app/src/main/assets/nodejs-project
+          mkdir -p android/app/src/main/assets/nodejs-project
+          cp -r index.js src public package.json presets.example.json android/app/src/main/assets/nodejs-project/
+
+      - name: Signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > android/keystore.p12
+            echo "SIGNED=1" >> "$GITHUB_ENV"
+          else
+            echo "Pas de clé de signature : APK signé en debug"
+          fi
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build the APK
+        working-directory: android
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          ARGS="-PversionCode=${{ github.run_number }} -PversionName=$(date +%Y.%m.%d).${{ github.run_number }}"
+          if [ "$SIGNED" = "1" ]; then
+            ARGS="$ARGS -PstoreFile=$PWD/keystore.p12 -PstorePassword=$STORE_PASSWORD -PkeyAlias=$KEY_ALIAS -PkeyPassword=$STORE_PASSWORD"
+          fi
+          gradle --no-daemon --console=plain assembleRelease $ARGS
+          cp app/build/outputs/apk/release/app-release.apk ../blindtest.apk
+          ls -la ../blindtest.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blindtest-apk
+          path: blindtest.apk
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk
+          name: Blind Test — appli Android
+          body: |
+            APK construit automatiquement à chaque mise à jour du jeu. Sur Android, ouvre `blindtest.apk`, autorise l'installation, puis lance **Blind Test**.
+            Une nouvelle version s'installe par-dessus l'ancienne. Le contenu du jeu se met aussi à jour tout seul au lancement.
+          files: blindtest.apk
+          make_latest: true

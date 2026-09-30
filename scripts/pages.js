@@ -18,6 +18,7 @@ const html = template
     .replace('{{URL}}', escapeHtml(config.pagesUrl))
     .replace('{{COMMAND}}', escapeHtml(install.command()))
     .replace('{{TOKEN_NOTE}}', 'Le code du jeu est public : rien à saisir d’autre, et les mises à jour se font toutes seules à chaque lancement.')
+    .replace('{{APK_URL}}', escapeHtml(config.apkUrl))
     .replace('{{BACK}}', escapeHtml(config.repo))
     .replace('{{BACK_LABEL}}', 'Voir le code sur GitHub');
 fs.writeFileSync(path.join(OUT, 'index.html'), html);

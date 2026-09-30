@@ -113,6 +113,7 @@ async function serveInstall(response) {
             .replace('{{URL}}', escapeHtml(link))
             .replace('{{COMMAND}}', escapeHtml(install.command()))
             .replace('{{TOKEN_NOTE}}', 'Le code du jeu est public : rien d\'autre à saisir, et les mises à jour se font toutes seules à chaque lancement.')
+            .replace('{{APK_URL}}', escapeHtml(config.apkUrl))
             .replace('{{BACK}}', home ? `/r/${home.code}` : '/')
             .replace('{{BACK_LABEL}}', '← Retour à la salle');
         response.writeHead(200, { ...HEADERS, 'Content-Type': 'text/html; charset=utf-8' });

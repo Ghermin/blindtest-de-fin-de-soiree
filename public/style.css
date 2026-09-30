@@ -912,3 +912,25 @@ body.paused .spinning {
 .ghost-link {
     color: var(--muted);
 }
+
+.apk-card {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(53, 224, 200, 0.08);
+    border: 1px solid rgba(53, 224, 200, 0.35);
+    text-align: left;
+}
+
+.apk-title {
+    margin: 0 0 10px;
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.button-link.primary-link {
+    background: linear-gradient(90deg, var(--accent), #ff6ba9);
+    color: var(--bg);
+    font-weight: 700;
+}

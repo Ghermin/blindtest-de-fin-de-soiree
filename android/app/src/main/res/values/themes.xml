@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#12081F</color>
+    <color name="card">#2A1650</color>
+    <color name="text">#F3ECFF</color>
+    <color name="muted">#B9A6E0</color>
+    <color name="accent">#FF3D8B</color>
+    <color name="accent2">#35E0C8</color>
+
+    <style name="Theme.BlindTest" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorPrimaryDark">@color/bg</item>
+        <item name="colorAccent">@color/accent2</item>
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="android:textColorSecondary">@color/muted</item>
+    </style>
+</resources>
