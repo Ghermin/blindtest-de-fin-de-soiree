@@ -65,6 +65,21 @@
         return Date.now() + offset;
     }
 
+    function attempt(fn, fallback) {
+        try {
+            return fn();
+        } catch (_error) {
+            return fallback;
+        }
+    }
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        const dark = theme !== 'light';
+        label($('tv-theme'), dark ? 'sun' : 'moon', '');
+        $('tv-theme').setAttribute('aria-label', theme === 'light' ? 'Passer en thème sombre' : 'Passer en thème clair');
+    }
+
     function show(name) {
         for (const screen of screens) $('tv-' + screen).hidden = screen !== name;
     }
@@ -404,6 +419,12 @@
         return startRoom();
     }
 
+    applyTheme(attempt(() => localStorage.getItem('bt_tv_theme'), '') === 'light' ? 'light' : 'dark');
+    $('tv-theme').addEventListener('click', () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        attempt(() => localStorage.setItem('bt_tv_theme', next));
+        applyTheme(next);
+    });
     $('tv-sound').addEventListener('click', enableSound);
     document.addEventListener('pointerdown', () => {
         if (!$('tv-sound').hidden) enableSound();

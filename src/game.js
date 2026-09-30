@@ -24,6 +24,7 @@ function shuffle(list) {
 function freshPlayer(base) {
     return {
         token: base.token || randomUUID(),
+        id: base.id || randomUUID().slice(0, 8),
         name: base.name,
         team: base.team || '',
         score: base.score || 0,
@@ -46,6 +47,7 @@ class Game extends EventEmitter {
         this.code = options.code || '';
         this.timings = options.timings || {};
         this.players = new Map();
+        this.teamList = new Set();
         this.playlist = null;
         this.allTracks = [];
         this.played = new Set();
@@ -93,7 +95,8 @@ class Game extends EventEmitter {
 
     join(name, token, team) {
         const cleaned = String(name || '').trim().slice(0, 20);
-        const cleanedTeam = String(team || '').trim().slice(0, 14);
+        const cleanedTeam = this.canonicalTeam(team);
+        if (cleanedTeam) this.teamList.add(cleanedTeam);
         if (token && this.players.has(token)) {
             const player = this.players.get(token);
             if (cleaned && cleaned !== player.name) player.name = this.uniqueName(cleaned, token);
@@ -137,6 +140,95 @@ class Game extends EventEmitter {
 
     leave(token) {
         if (this.players.delete(token)) this.changed();
+    }
+
+    canonicalTeam(name) {
+        const cleaned = String(name || '').trim().slice(0, 14);
+        if (!cleaned) return '';
+        const lower = cleaned.toLowerCase();
+        for (const existing of this.teamList) {
+            if (existing.toLowerCase() === lower) return existing;
+        }
+        return cleaned;
+    }
+
+    findPlayer(id) {
+        const player = [...this.players.values()].find((entry) => entry.id === id);
+        if (!player) throw new Error('Joueur introuvable');
+        return player;
+    }
+
+    kick(id) {
+        const player = this.findPlayer(id);
+        this.players.delete(player.token);
+        this.log(`Joueur retiré par l'hôte : ${player.name}`);
+        this.changed();
+        if (this.phase === 'guess' && !this.paused && this.everyoneDone()) this.schedule(1500, () => this.endGuess());
+        return player;
+    }
+
+    resetPlayers() {
+        for (const player of this.players.values()) {
+            Object.assign(player, { score: 0, gained: 0, found: { title: false, artist: false }, answered: false, lastGuess: '', firsts: 0, fastestMs: 0, fastestTrack: '' });
+        }
+        this.wildest = null;
+        this.stats = null;
+    }
+
+    resetScores() {
+        this.resetPlayers();
+        this.backToLobby();
+        this.log('Scores remis à zéro');
+    }
+
+    clearPlayers() {
+        const tokens = [...this.players.keys()];
+        this.players.clear();
+        this.resetPlayers();
+        this.backToLobby();
+        this.log('Salle vidée par l\'hôte');
+        return tokens;
+    }
+
+    addTeam(name) {
+        const team = this.canonicalTeam(name);
+        if (!team) throw new Error('Il faut un nom d\'équipe');
+        this.teamList.add(team);
+        this.changed();
+        return team;
+    }
+
+    renameTeam(from, to) {
+        const source = this.canonicalTeam(from);
+        if (!source || !this.teamList.has(source)) throw new Error('Équipe introuvable');
+        const target = String(to || '').trim().slice(0, 14);
+        if (!target) return this.removeTeam(source);
+        this.teamList.delete(source);
+        this.teamList.add(target);
+        for (const player of this.players.values()) {
+            if (player.team === source) player.team = target;
+        }
+        this.changed();
+        return target;
+    }
+
+    removeTeam(name) {
+        const team = this.canonicalTeam(name);
+        this.teamList.delete(team);
+        for (const player of this.players.values()) {
+            if (player.team === team) player.team = '';
+        }
+        this.changed();
+        return '';
+    }
+
+    assignTeam(id, name) {
+        const player = this.findPlayer(id);
+        const team = this.canonicalTeam(name);
+        if (team) this.teamList.add(team);
+        player.team = team;
+        this.changed();
+        return player;
     }
 
     async setPlaylist(input) {
@@ -219,11 +311,7 @@ class Game extends EventEmitter {
         if (fresh.length < rounds) this.played.clear();
         this.queue = shuffle(fresh.length >= rounds ? fresh : playable).slice(0, rounds);
         for (const track of this.queue) this.played.add(track.uri);
-        for (const player of this.players.values()) {
-            Object.assign(player, { score: 0, gained: 0, found: { title: false, artist: false }, answered: false, lastGuess: '', firsts: 0, fastestMs: 0, fastestTrack: '' });
-        }
-        this.wildest = null;
-        this.stats = null;
+        this.resetPlayers();
         this.roundIndex = 0;
         this.paused = false;
         this.generation++;
@@ -582,7 +670,7 @@ class Game extends EventEmitter {
     publicState() {
         const showTrack = this.phase === 'reveal' || this.phase === 'podium';
         const players = [...this.players.values()].sort((a, b) => b.score - a.score);
-        const teams = new Map();
+        const teams = new Map([...this.teamList].map((name) => [name, { name, score: 0, members: 0 }]));
         for (const player of players) {
             if (!player.team) continue;
             const team = teams.get(player.team) || { name: player.team, score: 0, members: 0 };
@@ -611,6 +699,7 @@ class Game extends EventEmitter {
             audio: this.audio,
             playlist: this.playlist,
             players: players.map((player) => ({
+                id: player.id,
                 name: player.name,
                 team: player.team,
                 score: player.score,
@@ -620,7 +709,7 @@ class Game extends EventEmitter {
                 answered: Boolean(player.answered),
                 ...(showTrack ? { lastGuess: player.lastGuess } : {})
             })),
-            teams: [...teams.values()].sort((a, b) => b.score - a.score),
+            teams: [...teams.values()].sort((a, b) => b.score - a.score || b.members - a.members || a.name.localeCompare(b.name)),
             stats: this.phase === 'podium' ? this.stats : null,
             track: showTrack && this.track ? {
                 name: this.track.name,
@@ -639,8 +728,9 @@ class Game extends EventEmitter {
             playlist: this.playlist,
             allTracks: this.allTracks,
             played: [...this.played],
+            teams: [...this.teamList],
             stats: this.stats,
-            players: [...this.players.values()].map(({ token, name, team, score, firsts, fastestMs, fastestTrack }) => ({ token, name, team, score, firsts, fastestMs, fastestTrack }))
+            players: [...this.players.values()].map(({ token, id, name, team, score, firsts, fastestMs, fastestTrack }) => ({ token, id, name, team, score, firsts, fastestMs, fastestTrack }))
         };
     }
 
@@ -652,6 +742,7 @@ class Game extends EventEmitter {
         const playable = this.playable().length;
         this.playlist = data.playlist ? { ...data.playlist, resolved: playable, missing: this.allTracks.length - playable, ready: true } : null;
         this.played = new Set(data.played || []);
+        this.teamList = new Set(data.teams || []);
         this.stats = data.stats || null;
         for (const entry of data.players || []) {
             if (entry && entry.token && entry.name) this.players.set(entry.token, freshPlayer(entry));

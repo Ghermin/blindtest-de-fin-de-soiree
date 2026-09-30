@@ -98,6 +98,108 @@
         else label($('become-host'), 'key-round', 'Je suis l\'hôte');
     }
 
+    let joinTeamsSignature = '';
+    let hostPlayersSignature = '';
+    let hostTeamsSignature = '';
+
+    function markJoinTeam() {
+        const value = $('join-team').value.trim().toLowerCase();
+        for (const chip of $('join-teams').querySelectorAll('.team-pick')) chip.setAttribute('aria-pressed', String(chip.dataset.team.toLowerCase() === value));
+    }
+
+    function renderJoinTeams(teamsMode) {
+        const container = $('join-teams');
+        const names = teamsMode ? [] : (state.teams || []).map((team) => team.name);
+        container.hidden = !names.length;
+        const signature = names.join('|');
+        if (signature === joinTeamsSignature) return;
+        joinTeamsSignature = signature;
+        container.textContent = '';
+        for (const name of names) {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'team-pick';
+            chip.dataset.team = name;
+            label(chip, 'flag', name);
+            chip.addEventListener('click', () => {
+                const input = $('join-team');
+                input.value = input.value.trim().toLowerCase() === name.toLowerCase() ? '' : name;
+                markJoinTeam();
+            });
+            container.appendChild(chip);
+        }
+        markJoinTeam();
+    }
+
+    function renderHostPlayers() {
+        const players = state.players || [];
+        const teamsMode = Boolean(state.options && state.options.play === 'teams');
+        $('host-players-empty').hidden = players.length > 0;
+        const signature = players.map((player) => `${player.id}:${player.name}:${player.team}:${player.score}:${player.online}`).join('|') + (teamsMode ? '!' : '');
+        if (signature === hostPlayersSignature) return;
+        hostPlayersSignature = signature;
+        const list = $('host-players');
+        list.textContent = '';
+        for (const player of players) {
+            const item = document.createElement('li');
+            if (player.online === false) item.classList.add('offline');
+            const info = document.createElement('span');
+            info.className = 'player-info';
+            const name = document.createElement('b');
+            name.textContent = player.name;
+            const meta = document.createElement('span');
+            meta.className = 'player-meta';
+            meta.textContent = `${player.team ? `${player.team} · ` : ''}${player.score} pts${player.online === false ? ' · parti' : ''}`;
+            info.append(name, meta);
+            item.appendChild(info);
+            if (!teamsMode) {
+                const team = document.createElement('button');
+                team.type = 'button';
+                team.className = 'icon-button';
+                team.setAttribute('aria-label', `Équipe de ${player.name}`);
+                team.appendChild(icon('flag'));
+                team.addEventListener('click', () => {
+                    const value = prompt(`Équipe de ${player.name} (vide = aucune)`, player.team || '');
+                    if (value !== null) hostAction(`${api}/host/teams`, { action: 'assign', id: player.id, team: value });
+                });
+                item.appendChild(team);
+            }
+            const kick = document.createElement('button');
+            kick.type = 'button';
+            kick.className = 'icon-button danger';
+            kick.setAttribute('aria-label', `Retirer ${player.name}`);
+            kick.appendChild(icon('user-x'));
+            kick.addEventListener('click', () => {
+                if (confirm(`Retirer ${player.name} de la partie ?`)) hostAction(`${api}/host/kick`, { id: player.id });
+            });
+            item.appendChild(kick);
+            list.appendChild(item);
+        }
+    }
+
+    function renderHostTeams() {
+        const teams = state.teams || [];
+        const signature = teams.map((team) => `${team.name}:${team.members}:${team.score}`).join('|');
+        $('host-teams').hidden = !teams.length;
+        if (signature === hostTeamsSignature) return;
+        hostTeamsSignature = signature;
+        const container = $('host-teams');
+        container.textContent = '';
+        for (const team of teams) {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'team-pick';
+            label(chip, 'flag', `${team.name} · ${team.members} ${team.members > 1 ? 'joueurs' : 'joueur'} · ${team.score} pts`);
+            chip.addEventListener('click', () => {
+                const value = prompt(`Renommer l'équipe ${team.name} (vide = supprimer)`, team.name);
+                if (value === null) return;
+                if (!value.trim() && !confirm(`Supprimer l'équipe ${team.name} ? Ses joueurs restent dans la partie, sans équipe.`)) return;
+                hostAction(`${api}/host/teams`, { action: 'rename', name: team.name, to: value });
+            });
+            container.appendChild(chip);
+        }
+    }
+
     if (room && location.hash.startsWith('#host=')) {
         hostKey = decodeURIComponent(location.hash.slice(6));
         storage.set(`bt_hostkey_${room}`, hostKey);
@@ -457,6 +559,10 @@
         document.body.classList.toggle('is-host', isHost);
         label($('host-playlist-info'), state.playlist ? 'disc-3' : null, playlistLabel(state.playlist, true));
         renderOptions();
+        if (isHost) {
+            renderHostPlayers();
+            renderHostTeams();
+        }
 
         if (!token) {
             const teams = Boolean(state.options && state.options.play === 'teams');
@@ -464,6 +570,7 @@
             $('join-team').hidden = teams;
             label($('join-mode'), teams ? 'users' : null, teams ? 'Un téléphone par équipe : entrez le nom de votre équipe, vous répondez ensemble.' : '');
             $('join-mode').hidden = !teams;
+            renderJoinTeams(teams);
             show('join');
         } else if (state.phase === 'lobby') {
             show('lobby');
@@ -505,6 +612,13 @@
         source.addEventListener('ping', () => {
             lastMessage = Date.now();
         });
+        source.addEventListener('kicked', () => {
+            token = '';
+            storage.remove(`bt_token_${room}`);
+            $('join-feedback').textContent = 'L\'hôte t\'a retiré de la partie';
+            render();
+            connect();
+        });
     }
 
     function feedback(message, ok, name) {
@@ -531,11 +645,16 @@
         }
     }
 
+    function showSheet(name) {
+        $('host-panel').hidden = name !== 'host';
+        $('settings-panel').hidden = name !== 'settings';
+        $('host-backdrop').hidden = !name;
+        $('host-toggle').setAttribute('aria-expanded', String(Boolean(name)));
+        if (name === 'host') refreshHost();
+    }
+
     function toggleHostPanel(open) {
-        $('host-panel').hidden = !open;
-        $('host-backdrop').hidden = !open;
-        $('host-toggle').setAttribute('aria-expanded', String(open));
-        if (open) refreshHost();
+        showSheet(open ? 'host' : null);
     }
 
     async function refreshHost() {
@@ -693,10 +812,11 @@
 
     $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
     $('host-close').addEventListener('click', () => toggleHostPanel(false));
-    $('host-backdrop').addEventListener('click', () => toggleHostPanel(false));
-    (() => {
-        const panel = $('host-panel');
-        const grab = $('sheet-grab');
+    $('host-backdrop').addEventListener('click', () => showSheet(null));
+    $('open-settings').addEventListener('click', () => showSheet('settings'));
+    $('settings-back').addEventListener('click', () => showSheet('host'));
+    $('settings-close').addEventListener('click', () => showSheet(null));
+    function sheetGestures(panel, grab) {
         let pointerId = null;
         let pointerStart = 0;
         let pointerDelta = 0;
@@ -722,7 +842,7 @@
             pointerId = null;
             panel.style.transition = '';
             panel.style.transform = '';
-            if (pointerDelta > 80) toggleHostPanel(false);
+            if (pointerDelta > 80) showSheet(null);
         };
         grab.addEventListener('pointerup', pointerRelease);
         grab.addEventListener('pointercancel', pointerRelease);
@@ -751,12 +871,25 @@
             dragging = false;
             panel.style.transition = '';
             panel.style.transform = '';
-            if (delta > 110) toggleHostPanel(false);
+            if (delta > 110) showSheet(null);
         };
         panel.addEventListener('touchend', release);
         panel.addEventListener('touchcancel', release);
-    })();
+    }
+    sheetGestures($('host-panel'), $('sheet-grab'));
+    sheetGestures($('settings-panel'), $('settings-grab'));
     $('host-speaker').addEventListener('click', () => setSpeaker(!speaker));
+    $('join-team').addEventListener('input', markJoinTeam);
+    $('host-team-add').addEventListener('click', () => {
+        const value = prompt('Nom de la nouvelle équipe');
+        if (value && value.trim()) hostAction(`${api}/host/teams`, { action: 'add', name: value });
+    });
+    $('host-reset').addEventListener('click', () => {
+        if (confirm('Remettre tous les scores à zéro et revenir au lobby ?')) hostAction(`${api}/host/reset`);
+    });
+    $('host-clear').addEventListener('click', () => {
+        if (confirm('Vider la salle ? Tout le monde, toi compris, devra rejoindre à nouveau.')) hostAction(`${api}/host/clear`);
+    });
     for (const group of document.querySelectorAll('.segmented[data-option]')) {
         group.addEventListener('click', (event) => {
             const button = event.target.closest('button[data-value]');

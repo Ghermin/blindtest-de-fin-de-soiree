@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="dark">
+    <meta name="color-scheme" content="dark light">
     <title>Blind Test — écran TV</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/tv.css">
@@ -65,7 +65,10 @@
     </main>
 
     <aside class="side">
-        <h2>Classement</h2>
+        <div class="side-head">
+            <h2>Classement</h2>
+            <button id="tv-theme" class="theme-toggle" type="button" aria-label="Passer en thème clair"><svg class="icon" aria-hidden="true"><use href="#i-sun" xlink:href="#i-sun"></use></svg></button>
+        </div>
         <ul id="tv-teams" class="tv-teams" hidden></ul>
         <ol id="tv-ranking" class="ranking"></ol>
         <p id="tv-empty" class="muted">Personne n'a encore rejoint</p>

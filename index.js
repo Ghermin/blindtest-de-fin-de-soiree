@@ -61,6 +61,15 @@ function broadcast(room) {
     for (const client of room.clients) client.write(payload);
 }
 
+function dropClients(room, tokens) {
+    const wanted = new Set(tokens.filter(Boolean));
+    for (const client of [...room.clients]) {
+        if (!wanted.has(client.playerToken)) continue;
+        client.write('event: kicked\ndata: {}\n\n');
+        client.end();
+    }
+}
+
 function attach(room) {
     if (room.attached) return room;
     room.attached = true;
@@ -216,6 +225,27 @@ async function handleHost(request, response, room, action, body) {
         game.backToLobby();
         return send(response, 200, { ok: true });
     }
+    if (action === '/host/kick' && post) {
+        const player = game.kick(String(body.id || ''));
+        dropClients(room, [player.token]);
+        return send(response, 200, { ok: true });
+    }
+    if (action === '/host/reset' && post) {
+        game.resetScores();
+        return send(response, 200, { ok: true });
+    }
+    if (action === '/host/clear' && post) {
+        dropClients(room, game.clearPlayers());
+        return send(response, 200, { ok: true });
+    }
+    if (action === '/host/teams' && post) {
+        if (body.action === 'add') game.addTeam(body.name);
+        else if (body.action === 'rename') game.renameTeam(body.name, body.to);
+        else if (body.action === 'remove') game.removeTeam(body.name);
+        else if (body.action === 'assign') game.assignTeam(String(body.id || ''), body.team);
+        else throw new Error('Action inconnue');
+        return send(response, 200, { teams: game.publicState().teams });
+    }
     return send(response, 404, { error: 'Route inconnue' });
 }
 
@@ -303,6 +333,7 @@ function handleEvents(request, response, url) {
     const token = url.searchParams.get('token') || '';
     response.writeHead(200, { ...HEADERS, 'Content-Type': 'text/event-stream', Connection: 'keep-alive' });
     response.write(`event: state\ndata: ${JSON.stringify(snapshot(room))}\n\n`);
+    response.playerToken = token || '';
     room.clients.add(response);
     room.lastActivity = Date.now();
     if (token) room.game.connect(token);
