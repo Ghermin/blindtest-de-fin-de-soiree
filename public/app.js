@@ -624,11 +624,41 @@
     $('host-backdrop').addEventListener('click', () => toggleHostPanel(false));
     (() => {
         const panel = $('host-panel');
+        const grab = $('sheet-grab');
+        let pointerId = null;
+        let pointerStart = 0;
+        let pointerDelta = 0;
+        grab.addEventListener('pointerdown', (event) => {
+            if (event.target.closest('button')) return;
+            pointerId = event.pointerId;
+            pointerStart = event.clientY;
+            pointerDelta = 0;
+            panel.style.transition = 'none';
+            try {
+                grab.setPointerCapture(pointerId);
+            } catch (_error) {
+                pointerId = event.pointerId;
+            }
+        });
+        grab.addEventListener('pointermove', (event) => {
+            if (event.pointerId !== pointerId) return;
+            pointerDelta = Math.max(0, event.clientY - pointerStart);
+            panel.style.transform = pointerDelta ? `translateY(${pointerDelta}px)` : '';
+        });
+        const pointerRelease = (event) => {
+            if (event.pointerId !== pointerId) return;
+            pointerId = null;
+            panel.style.transition = '';
+            panel.style.transform = '';
+            if (pointerDelta > 80) toggleHostPanel(false);
+        };
+        grab.addEventListener('pointerup', pointerRelease);
+        grab.addEventListener('pointercancel', pointerRelease);
         let startY = 0;
         let delta = 0;
         let dragging = false;
         panel.addEventListener('touchstart', (event) => {
-            if (panel.scrollTop > 0 || event.touches.length !== 1) return;
+            if (panel.scrollTop > 0 || event.touches.length !== 1 || grab.contains(event.target)) return;
             startY = event.touches[0].clientY;
             delta = 0;
             dragging = true;
