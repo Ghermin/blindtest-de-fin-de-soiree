@@ -271,3 +271,43 @@ test('les options sont validées, visibles dans l\'état et conservées à la sa
     copy.restore(JSON.parse(JSON.stringify(game.toJSON())));
     assert.strictEqual(copy.options.play, 'teams');
 });
+
+test('l\'hôte peut retirer un joueur, remettre les scores à zéro et vider la salle', () => {
+    const game = make();
+    const tom = game.join('Tom');
+    const lea = game.join('Léa', undefined, 'Rouges');
+    game.players.get(tom.token).score = 400;
+    const kicked = game.kick(tom.id);
+    assert.strictEqual(kicked.token, tom.token);
+    assert.ok(!game.players.has(tom.token));
+    assert.throws(() => game.kick('nope'), /introuvable/);
+    game.players.get(lea.token).score = 900;
+    game.phase = 'podium';
+    game.resetScores();
+    assert.strictEqual(game.phase, 'lobby');
+    assert.strictEqual(game.players.get(lea.token).score, 0);
+    assert.deepStrictEqual(game.clearPlayers(), [lea.token]);
+    assert.strictEqual(game.players.size, 0);
+});
+
+test('les équipes déclarées par l\'hôte sont proposées, renommables et sauvegardées', () => {
+    const game = make();
+    game.addTeam('Rouges');
+    const tom = game.join('Tom', undefined, 'rouges');
+    assert.strictEqual(tom.team, 'Rouges');
+    assert.deepStrictEqual(game.publicState().teams.map((team) => [team.name, team.members]), [['Rouges', 1]]);
+    game.addTeam('Bleus');
+    assert.deepStrictEqual(game.publicState().teams.map((team) => team.name), ['Rouges', 'Bleus']);
+    game.renameTeam('Rouges', 'Verts');
+    assert.strictEqual(game.players.get(tom.token).team, 'Verts');
+    game.assignTeam(tom.id, 'Bleus');
+    assert.strictEqual(game.players.get(tom.token).team, 'Bleus');
+    game.removeTeam('Bleus');
+    assert.strictEqual(game.players.get(tom.token).team, '');
+    assert.deepStrictEqual(game.publicState().teams.map((team) => team.name), ['Verts']);
+    assert.throws(() => game.renameTeam('Inconnue', 'X'), /introuvable/);
+    const copy = make();
+    copy.restore(JSON.parse(JSON.stringify(game.toJSON())));
+    assert.deepStrictEqual([...copy.teamList], ['Verts']);
+    assert.strictEqual([...copy.players.values()][0].id, tom.id);
+});

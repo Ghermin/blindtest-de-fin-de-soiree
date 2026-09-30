@@ -24,9 +24,9 @@ d'être sur le même Wi-Fi, ou sur le partage de connexion du téléphone.
 
 ## Jouer
 
-- Chacun entre un pseudo et, s'il veut, une équipe. On peut rejoindre en cours
-  de partie. Un téléphone qui a fermé la page est marqué d'une lune et ne bloque pas
-  la fin de manche.
+- Chacun entre un pseudo et, s'il veut, rejoint une équipe existante ou en
+  crée une. On peut rejoindre en cours de partie. Un téléphone qui a fermé la
+  page est marqué d'une lune et ne bloque pas la fin de manche.
 - Réglages, appliqués en direct et visibles de tous dans le lobby : manches,
   durée, titre et/ou artiste, **clavier ou QCM** (quatre propositions, une
   réponse par manche), **chacun pour soi ou un téléphone par équipe**, indices.
@@ -34,6 +34,10 @@ d'être sur le même Wi-Fi, ou sur le partage de connexion du téléphone.
   dernière réponse de chacun s'affiche), manche suivante, podium avec les
   statistiques de la soirée. Pendant la partie l'hôte peut mettre en pause,
   passer, terminer ou revenir au lobby ; sur le podium, rejouer ou modifier.
+- L'hôte gère les équipes (créer, renommer, déplacer un joueur), retire un
+  joueur parti, remet les scores à zéro ou vide la salle. Un panneau
+  Paramètres à part regroupe ce qui concerne l'appli. Thème clair ou sombre :
+  celui du téléphone ; sur la TV, un bouton soleil ou lune.
 
 Les réponses tolèrent accents, majuscules, ponctuation, articles, « feat. »,
 « (Remastered) », une petite faute de frappe, titre et artiste dans la même
