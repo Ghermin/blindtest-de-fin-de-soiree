@@ -341,3 +341,60 @@ test('la précision de la réponse module les points et peut être améliorée e
     const leaArtist = game.guess(lea.token, 'jackson');
     assert.ok(leaArtist.approx && leaArtist.gained >= 540 && leaArtist.gained <= 550, String(leaArtist.gained));
 });
+
+test('un titre n\'est marqué joué qu\'une fois lancé, et ne revient pas tant qu\'il en reste', async () => {
+    const game = make();
+    const tom = game.join('Tom');
+    game.connect(tom.token);
+    await game.setPlaylist('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
+    await until(() => game.playlist.ready, 1000);
+    game.start({ rounds: 3, mode: 'title' });
+    await until(() => game.phase === 'countdown', 1000);
+    const heard = game.track.uri;
+    assert.deepStrictEqual([...game.played], [heard]);
+    game.backToLobby();
+    assert.strictEqual(game.publicState().playlist.remaining, 2);
+    game.start({ rounds: 3, mode: 'title' });
+    assert.strictEqual(game.queue.length, 2);
+    assert.ok(game.queue.every((track) => track.uri !== heard));
+    game.stop();
+});
+
+test('quand tous les titres ont été entendus, l\'historique de la playlist repart de zéro', async () => {
+    const game = make();
+    const tom = game.join('Tom');
+    game.connect(tom.token);
+    await game.setPlaylist('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
+    await until(() => game.playlist.ready, 1000);
+    for (const track of TRACKS) game.played.add(track.uri);
+    game.played.add('deezer:track:autre');
+    assert.strictEqual(game.publicState().playlist.remaining, 0);
+    game.start({ rounds: 2, mode: 'title' });
+    assert.strictEqual(game.queue.length, 2);
+    await until(() => game.phase === 'countdown', 1000);
+    assert.deepStrictEqual([...game.played], ['deezer:track:autre', game.track.uri]);
+    game.stop();
+});
+
+test('recharger une playlist conserve les titres déjà entendus', async () => {
+    const game = make();
+    await game.setPlaylist('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
+    await until(() => game.playlist.ready, 1000);
+    game.played.add(TRACKS[0].uri);
+    await game.setPlaylist('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
+    await until(() => game.playlist.ready, 1000);
+    assert.ok(game.played.has(TRACKS[0].uri));
+    assert.strictEqual(game.publicState().playlist.remaining, 2);
+});
+
+test('la révélation montre la pochette du titre, celle de l\'extrait à défaut, celle de la playlist en dernier', () => {
+    const game = make();
+    game.playlist = { id: 'p1', source: 'spotify', name: 'Test', image: 'https://img/playlist.jpg', total: 3, resolved: 3, missing: 0, ready: true };
+    game.phase = 'reveal';
+    game.track = { ...TRACKS[0], image: 'https://img/album.jpg', match: { source: 'deezer', id: 1, image: 'https://img/deezer.jpg' } };
+    assert.strictEqual(game.publicState().track.image, 'https://img/album.jpg');
+    game.track = { ...TRACKS[1], match: { source: 'deezer', id: 2, image: 'https://img/deezer.jpg' } };
+    assert.strictEqual(game.publicState().track.image, 'https://img/deezer.jpg');
+    game.track = { ...TRACKS[2], match: { source: 'itunes', id: 3, url: 'https://x/3.m4a' } };
+    assert.strictEqual(game.publicState().track.image, 'https://img/playlist.jpg');
+});

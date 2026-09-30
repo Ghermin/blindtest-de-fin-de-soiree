@@ -270,7 +270,9 @@
         const base = `${playlist.name}${playlist.partial ? ' (100 premiers titres)' : ''}`;
         if (!playlist.ready) return `${base} · recherche des extraits ${playlist.resolved}/${playlist.total}…`;
         const missing = playlist.missing ? `, ${playlist.missing} sans extrait` : '';
-        return long ? `${base} · ${playlist.resolved} extraits prêts${missing}` : `${base} · ${playlist.resolved} titres`;
+        const done = playlist.resolved - playlist.remaining;
+        const played = done > 0 ? `, ${done} déjà joué${done > 1 ? 's' : ''}` : '';
+        return long ? `${base} · ${playlist.resolved} extraits prêts${played}${missing}` : `${base} · ${playlist.resolved} titres${played}`;
     }
 
     function renderPlayers(list, element, withGains) {

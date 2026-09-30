@@ -95,23 +95,40 @@ async function itunesSearch(track) {
         title: item.trackName || '',
         artist: item.artistName || '',
         durationMs: item.trackTimeMillis || 0,
-        url: item.previewUrl || ''
+        url: item.previewUrl || '',
+        image: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '600x600bb') : null
     }));
 }
 
-async function resolve(track) {
-    if (track.match) return track.match;
+async function cover(track, match) {
+    if (match.source === 'deezer' && match.id) return (await deezer.track(match.id)).image;
+    const found = pick(track, await deezer.search(query(track)));
+    return found ? found.image : null;
+}
+
+async function withCover(track, match) {
+    if (track.image || match.image) return match;
     const cached = loadCache()[track.uri];
-    if (cached && cached.source) return { source: cached.source, id: cached.id, url: cached.url };
+    if (cached && cached.image) return { ...match, image: cached.image };
+    const image = await cover(track, match).catch(() => null);
+    if (!image) return match;
+    remember(track.uri, cached && cached.source ? { ...cached, image } : { image });
+    return { ...match, image };
+}
+
+async function resolve(track) {
+    if (track.match) return withCover(track, track.match);
+    const cached = loadCache()[track.uri];
+    if (cached && cached.source) return withCover(track, { source: cached.source, id: cached.id, url: cached.url, image: cached.image || null });
     const fromDeezer = pick(track, await deezer.search(query(track)).catch(() => []));
     if (fromDeezer) {
-        const match = { source: 'deezer', id: fromDeezer.id };
+        const match = { source: 'deezer', id: fromDeezer.id, image: fromDeezer.image || null };
         remember(track.uri, match);
         return match;
     }
     const fromItunes = pick(track, await itunesSearch(track).catch(() => []));
     if (fromItunes) {
-        const match = { source: 'itunes', id: fromItunes.id, url: fromItunes.url };
+        const match = { source: 'itunes', id: fromItunes.id, url: fromItunes.url, image: fromItunes.image || null };
         remember(track.uri, match);
         return match;
     }
