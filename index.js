@@ -190,6 +190,7 @@ async function handleHost(request, response, room, action, body) {
         spotify.forgetUser();
         return send(response, 200, { ok: true });
     }
+    if (action === '/host/options' && post) return send(response, 200, { options: game.setOptions(body) });
     if (action === '/host/start' && post) {
         game.start(body);
         return send(response, 200, { ok: true });

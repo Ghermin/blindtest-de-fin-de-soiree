@@ -58,6 +58,12 @@ sur le téléphone à installer, tout y est avec un bouton pour copier la comman
    indices et extrait gelés partout, **▶ Reprendre** pour repartir), **⏭ Passer**
    la manche, **⏹ Terminer** (podium avec les scores du moment), **↩ Lobby**
    pour changer de playlist ou de réglages.
+8. Les réglages du panneau (manches, durée, titre ou artiste, **clavier ou
+   QCM**, **chacun pour soi ou un téléphone par équipe**, indices) s'appliquent
+   tout de suite et s'affichent à tous dans le lobby. En QCM, quatre
+   propositions à toucher et une seule réponse par manche : parfait pour ceux
+   qui n'aiment pas taper. En mode équipe, chaque téléphone entre le nom de son
+   équipe et tout le monde répond dessus.
 
 Pour tester tout de suite, une playlist Deezer publique :
 `https://www.deezer.com/fr/playlist/1743878062` (Soirée 80).

@@ -41,6 +41,8 @@
     let lastMessage = 0;
     let playerSrc = '';
     let installUrl = '/install';
+    let myChoice = null;
+    let renderedChoices = '';
     const seen = new Map();
     const player = new Audio();
     player.preload = 'auto';
@@ -188,6 +190,76 @@
         }
     }
 
+    function configLabel(options) {
+        if (!options) return '';
+        const parts = [`${options.rounds} manches`, `${options.guessSeconds} s`, { both: 'titre + artiste', title: 'titre', artist: 'artiste' }[options.mode] || ''];
+        parts.push(options.answers === 'choices' ? 'QCM' : 'clavier');
+        if (options.play === 'teams') parts.push('1 téléphone par équipe');
+        if (options.hints && options.answers !== 'choices') parts.push('indices');
+        return parts.filter(Boolean).join(' · ');
+    }
+
+    function renderOptions() {
+        const options = (state && state.options) || {};
+        for (const group of document.querySelectorAll('.segmented[data-option]')) {
+            const value = String(options[group.dataset.option]);
+            for (const button of group.querySelectorAll('button')) {
+                const active = button.dataset.value === value;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-pressed', String(active));
+            }
+        }
+        $('setting-hints').hidden = options.answers === 'choices';
+    }
+
+    function renderChoices(choices) {
+        const container = $('choices');
+        const signature = choices.map((choice) => choice.id + choice.label).join('|') + (myChoice ? `!${myChoice.id}${myChoice.correct}` : '') + (state.paused ? '#' : '');
+        if (signature === renderedChoices) return;
+        renderedChoices = signature;
+        container.innerHTML = '';
+        choices.forEach((choice, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'choice';
+            button.disabled = Boolean(myChoice) || Boolean(state.paused);
+            if (myChoice && myChoice.id === choice.id) button.classList.add(myChoice.correct ? 'right' : 'wrong');
+            const letter = document.createElement('b');
+            letter.textContent = 'ABCD'[index] || String(index + 1);
+            button.append(letter, ` ${choice.label}`);
+            button.addEventListener('click', () => answerChoice(choice.id));
+            container.appendChild(button);
+        });
+    }
+
+    async function answerChoice(id) {
+        if (myChoice) return;
+        myChoice = { id, correct: false, pending: true };
+        for (const button of $('choices').querySelectorAll('button')) button.disabled = true;
+        try {
+            const result = await post(`${api}/guess`, { token, text: id });
+            if (result.correct) {
+                myChoice = { id, correct: true };
+                if (result.title) myFound.title = true;
+                if (result.artist) myFound.artist = true;
+                feedback(`✅ Bonne réponse ! +${result.gained} pts`, true);
+                if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+            } else if (result.accepted) {
+                myChoice = { id, correct: false };
+                feedback('❌ Raté, la réponse arrive à la révélation', false);
+                if (navigator.vibrate) navigator.vibrate(120);
+            } else {
+                myChoice = null;
+                feedback(result.reason === 'paused' ? '⏸ Pause' : 'Trop tard pour cette manche', false);
+            }
+        } catch (error) {
+            myChoice = null;
+            feedback(error.message, false);
+        }
+        renderedChoices = '';
+        render();
+    }
+
     function renderGuess() {
         $('countdown-big').hidden = state.phase !== 'countdown';
         $('guess-zone').hidden = state.phase !== 'guess';
@@ -207,6 +279,12 @@
         }
 
         if (state.phase === 'guess') {
+            const choices = state.choices || null;
+            $('choices').hidden = !choices;
+            $('guess-form').hidden = Boolean(choices);
+            $('hint').hidden = Boolean(choices);
+            $('my-found').hidden = Boolean(choices);
+            if (choices) renderChoices(choices);
             const chips = [];
             if (state.mode !== 'artist') chips.push(myFound.title ? '✅ Titre trouvé' : '🎵 Titre ?');
             if (state.mode !== 'title') chips.push(myFound.artist ? '✅ Artiste trouvé' : '🎤 Artiste ?');
@@ -283,6 +361,8 @@
         if (state.round !== lastRound) {
             lastRound = state.round;
             myFound = { title: false, artist: false };
+            myChoice = null;
+            renderedChoices = '';
             lastChips = '';
             $('guess-feedback').textContent = '';
             $('guess-feedback').className = '';
@@ -304,12 +384,19 @@
         $('guess-input').disabled = Boolean(state.paused);
         document.body.classList.toggle('is-host', isHost);
         $('host-playlist-info').textContent = playlistLabel(state.playlist, true);
+        renderOptions();
 
         if (!token) {
+            const teams = Boolean(state.options && state.options.play === 'teams');
+            $('join-name').placeholder = teams ? 'Nom de votre équipe' : 'Ton pseudo';
+            $('join-team').hidden = teams;
+            $('join-mode').textContent = teams ? '👥 Un téléphone par équipe : entrez le nom de votre équipe, vous répondez ensemble.' : '';
+            $('join-mode').hidden = !teams;
             show('join');
         } else if (state.phase === 'lobby') {
             show('lobby');
             $('lobby-playlist').textContent = playlistLabel(state.playlist, false);
+            $('lobby-config').textContent = configLabel(state.options);
             $('lobby-notice').textContent = state.notice || '';
             $('lobby-notice').hidden = !state.notice;
             $('lobby-url').textContent = state.joinUrl || '';
@@ -318,7 +405,7 @@
         } else if (state.phase === 'countdown' || state.phase === 'guess') {
             show('game');
             renderGuess();
-            if (state.phase === 'guess' && lastPhase !== 'guess') $('guess-input').focus({ preventScroll: true });
+            if (state.phase === 'guess' && lastPhase !== 'guess' && !state.choices) $('guess-input').focus({ preventScroll: true });
         } else if (state.phase === 'reveal') {
             show('reveal');
             renderReveal();
@@ -368,15 +455,6 @@
             hostFeedback('⚠ ' + error.message);
             return false;
         }
-    }
-
-    function startOptions() {
-        return {
-            rounds: Number($('opt-rounds').value),
-            mode: $('opt-mode').value,
-            guessSeconds: Number($('opt-duration').value),
-            hints: $('opt-hints').value === 'on'
-        };
     }
 
     function toggleHostPanel(open) {
@@ -541,6 +619,18 @@
     $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
     $('host-close').addEventListener('click', () => toggleHostPanel(false));
     $('host-speaker').addEventListener('click', () => setSpeaker(!speaker));
+    for (const group of document.querySelectorAll('.segmented[data-option]')) {
+        group.addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-value]');
+            if (!button) return;
+            const key = group.dataset.option;
+            let value = button.dataset.value;
+            if (key === 'hints') value = value === 'true';
+            else if (key === 'rounds' || key === 'guessSeconds') value = Number(value);
+            if (navigator.vibrate) navigator.vibrate(10);
+            hostAction(`${api}/host/options`, { [key]: value });
+        });
+    }
     $('host-install').addEventListener('click', () => {
         location.href = installUrl;
     });
@@ -605,11 +695,11 @@
         }
     });
     $('host-start').addEventListener('click', async () => {
-        if (await hostAction(`${api}/host/start`, startOptions())) toggleHostPanel(false);
+        if (await hostAction(`${api}/host/start`)) toggleHostPanel(false);
     });
     $('podium-replay').addEventListener('click', async () => {
         toggleHostPanel(true);
-        if (await hostAction(`${api}/host/start`, startOptions())) toggleHostPanel(false);
+        if (await hostAction(`${api}/host/start`)) toggleHostPanel(false);
     });
     $('podium-setup').addEventListener('click', async () => {
         toggleHostPanel(true);

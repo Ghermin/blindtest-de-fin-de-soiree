@@ -519,3 +519,29 @@ p {
 body.paused .spinning {
     animation-play-state: paused;
 }
+
+.tv-choices {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    width: 100%;
+    max-width: 44rem;
+}
+
+.tv-choices li {
+    background: var(--card);
+    border-radius: 1rem;
+    padding: 0.8rem 1rem;
+    font-size: 1.3rem;
+    text-align: left;
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.tv-choices b {
+    color: #35e0c8;
+}

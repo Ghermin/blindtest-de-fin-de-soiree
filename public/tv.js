@@ -15,6 +15,7 @@
     let lastPhase = '';
     let audio = null;
     let playerSrc = '';
+    let renderedChoices = '';
     const seen = new Map();
     const player = new Audio();
     player.preload = 'auto';
@@ -37,6 +38,14 @@
         if (hint.title) lines.push(`🎵 ${spaced(hint.title)}`);
         if (hint.artist) lines.push(`🎤 ${spaced(hint.artist)}`);
         return lines.join('\n');
+    }
+
+    function configLabel(options) {
+        if (!options) return '';
+        const parts = [options.rounds + ' manches', options.guessSeconds + ' s', { both: 'titre + artiste', title: 'titre', artist: 'artiste' }[options.mode] || ''];
+        parts.push(options.answers === 'choices' ? 'QCM' : 'clavier');
+        if (options.play === 'teams') parts.push('1 téléphone par équipe');
+        return parts.filter(Boolean).join(' · ');
     }
 
     function playlistLabel(playlist) {
@@ -248,6 +257,7 @@
         $('tv-code').textContent = `Code : ${state.room || room}`;
         $('tv-lobby-url').textContent = url;
         $('tv-playlist').textContent = playlistLabel(state.playlist);
+        $('tv-config').textContent = configLabel(state.options);
         $('tv-notice').textContent = state.notice || '';
         $('tv-paused').hidden = !state.paused;
         document.body.classList.toggle('paused', Boolean(state.paused));
@@ -273,6 +283,21 @@
                 if (hint) $('tv-hint').classList.add('fresh');
             }
             $('tv-mode').textContent = { both: 'Titre + artiste', title: 'Titre seul', artist: 'Artiste seul' }[state.mode] || '';
+            const choices = state.choices || [];
+            $('tv-choices').hidden = !choices.length;
+            const signature = choices.map((choice) => choice.label).join('|');
+            if (signature !== renderedChoices) {
+                renderedChoices = signature;
+                $('tv-choices').innerHTML = '';
+                choices.forEach((choice, index) => {
+                    const item = document.createElement('li');
+                    const letter = document.createElement('b');
+                    letter.textContent = 'ABCD'[index] || String(index + 1);
+                    item.appendChild(letter);
+                    item.appendChild(document.createTextNode(' ' + choice.label));
+                    $('tv-choices').appendChild(item);
+                });
+            }
             loop();
         } else if (state.phase === 'reveal') {
             show('reveal');
