@@ -86,6 +86,8 @@ jobs:
           fi
           gradle --no-daemon --console=plain assembleRelease $ARGS
           cp app/build/outputs/apk/release/app-release.apk ../blindtest.apk
+          printf '{"versionCode": %s, "versionName": "%s", "sha": "%s"}\n' "${{ github.run_number }}" "$(date +%Y.%m.%d).${{ github.run_number }}" "$GITHUB_SHA" > ../version.json
+          cat ../version.json
           ls -la ../blindtest.apk
 
       - uses: actions/upload-artifact@v4
@@ -101,5 +103,7 @@ jobs:
           body: |
             APK construit automatiquement à chaque mise à jour du jeu. Sur Android, ouvre `blindtest.apk`, autorise l'installation, puis lance **Blind Test**.
             Une nouvelle version s'installe par-dessus l'ancienne. Le contenu du jeu se met aussi à jour tout seul au lancement.
-          files: blindtest.apk
+          files: |
+            blindtest.apk
+            version.json
           make_latest: true

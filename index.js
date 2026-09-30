@@ -8,7 +8,6 @@ const spotify = require('./src/spotify.js');
 const deezer = require('./src/deezer.js');
 const rooms = require('./src/rooms.js');
 const qr = require('./src/qr.js');
-const install = require('./src/install.js');
 const ratelimit = require('./src/ratelimit.js');
 
 const PUBLIC = path.join(__dirname, 'public');
@@ -22,8 +21,7 @@ const ASSETS = {
     '/apple-touch-icon.png': 'image/png',
     '/icon-192.png': 'image/png',
     '/icon-512.png': 'image/png',
-    '/shortcut-icon.png': 'image/png',
-    '/install.js': 'application/javascript; charset=utf-8'
+    '/shortcut-icon.png': 'image/png'
 };
 
 const HEADERS = {
@@ -111,8 +109,6 @@ async function serveInstall(response) {
         const html = (await fs.readFile(path.join(PUBLIC, 'install.html'), 'utf8'))
             .replace('{{QR}}', qr.svg(link))
             .replace('{{URL}}', escapeHtml(link))
-            .replace('{{COMMAND}}', escapeHtml(install.command()))
-            .replace('{{TOKEN_NOTE}}', 'Le code du jeu est public : rien d\'autre à saisir, et les mises à jour se font toutes seules à chaque lancement.')
             .replace('{{APK_URL}}', escapeHtml(config.apkUrl))
             .replace('{{BACK}}', home ? `/r/${home.code}` : '/')
             .replace('{{BACK_LABEL}}', '← Retour à la salle');

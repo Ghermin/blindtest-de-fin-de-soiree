@@ -1,83 +1,61 @@
 # Installation pas à pas 📱
 
-Le jeu tourne sur **ton téléphone Android**. Rien à installer chez les
-invités : ils scannent un QR code. Rien à installer sur la TV : son navigateur
-ouvre une adresse.
+Le jeu tourne sur **ton téléphone Android**, dans l'appli Blind Test. Rien à
+installer chez les invités : ils scannent un QR code. Rien à installer sur la
+TV : son navigateur ouvre une adresse.
 
-## 1. Installer une fois (5 min)
+## 1. Installer une fois (2 min)
 
-Le plus simple : l'**appli Android**. Ouvre
-**https://ghermin.github.io/blindtest-de-fin-de-soiree/** sur le téléphone,
-télécharge l'APK, installe-le, lance Blind Test, choisis un code hôte. Terminé :
-le jeu se met à jour tout seul à chaque lancement, et l'appli demande à être
-exclue de l'optimisation de batterie (accepte, sinon Android coupe le serveur
-écran éteint). Dans l'appli, le bouton **⋯** en bas à gauche donne l'adresse à
-taper sur la TV, recharge la page, rouvre les réglages (code hôte, Spotify) ou
-arrête le serveur. La notification « Blind Test » reste affichée tant que la
-partie peut être jouée. La suite de cette section décrit l'autre voie, Termux,
-qui donne le même résultat.
+1. Sur le téléphone, ouvre **https://ghermin.github.io/blindtest-de-fin-de-soiree/**
+   et touche **Télécharger l'appli (APK)**. Android demande d'autoriser ce
+   navigateur à installer des applis : accepte, puis **Installer**.
+2. Lance **Blind Test**. Choisis un **code hôte** (les chiffres qui te donnent
+   la main sur ce téléphone), laisse Spotify vide si tu n'as pas d'identifiants
+   (voir plus bas), touche **C'est parti**.
+3. Accepte **« Toujours autoriser en arrière-plan »** : sinon Android coupe le
+   serveur quand l'écran s'éteint.
 
-### Ce qu'il faut
-
-- Un **Android** (un iPhone ne peut pas héberger le jeu) et Internet.
-
-### Les étapes
-
-1. Installe **Termux** depuis F-Droid (https://f-droid.org/packages/com.termux/)
-   ou ses versions GitHub, pas celui du Play Store, abandonné. Installe aussi
-   **Termux:Widget** (même source) pour le raccourci d'écran d'accueil.
-2. Ouvre Termux et colle :
-
-   ```
-   curl -fsSL https://raw.githubusercontent.com/Ghermin/blindtest-de-fin-de-soiree/main/deploy/termux.sh -o termux.sh && bash termux.sh
-   ```
-
-   Le script télécharge Node et le jeu, puis demande ton **code hôte** (les
-   chiffres pour prendre la main depuis ton téléphone) et, si tu en as, les
-   identifiants Spotify (Entrée pour passer, voir plus bas).
-3. Android : **Paramètres → Applications → Termux → Batterie → Non restreinte**,
-   sinon Android tue le serveur écran éteint.
-4. Écran d'accueil : appui long → **Widgets** → **Termux:Widget** → pose le
-   raccourci, il liste **Blind Test**.
+L'appli se met à jour toute seule : le contenu du jeu à chaque lancement, et
+l'appli elle-même te propose d'installer la nouvelle version quand il y en a
+une (aussi dans le menu **⋯ → Mettre à jour l'appli**).
 
 ## 2. À chaque soirée (30 s)
 
 1. Connecte ton téléphone au Wi-Fi du lieu, ou active ton **partage de
    connexion** et fais-y connecter la TV et les invités. Évite le réseau invité
    d'une box, qui isole souvent les appareils entre eux.
-2. Touche **Blind Test** (ou tape `blindtest` dans Termux). Termux se met à
-   jour si besoin, affiche l'adresse de la salle, ton code hôte et un QR code,
-   puis **Chrome s'ouvre sur ta salle, déjà en mode hôte** (la manette 🎛️ est
-   là). Laisse Termux en arrière-plan.
-3. Sur la TV, ouvre le navigateur, tape l'adresse « Écran TV » affichée dans
-   Termux (par exemple `http://192.168.1.23:3000/r/MAISON/tv`), valide
-   **Activer le son** avec la télécommande. Mets la page en favori.
-4. Les invités scannent le QR code (dans Termux, dans le lobby de ton
-   téléphone ou sur la TV), entrent un pseudo et une équipe s'ils veulent.
-5. Toi, dans Chrome : pseudo → **Rejoindre** → manette 🎛️ → colle un lien ou
-   tape un nom de playlist → **OK** → choisis dans la liste → **▶ Lancer**. Pas
-   de manette (autre navigateur, page ouverte depuis le QR
-   code) ? **Je suis l'hôte** → ton code, sur l'écran de connexion ou dans le
-   lobby à côté de « Changer de pseudo ».
+2. Ouvre **Blind Test** : la salle s'affiche, déjà en mode hôte (la manette 🎛️
+   est là). Pseudo → **Rejoindre**.
+3. Sur la TV, ouvre le navigateur et tape l'adresse **Écran TV** affichée dans
+   le lobby (par exemple `http://192.168.1.23:3000/r/MAISON/tv`), aussi dans le
+   menu **⋯ → Adresse pour la TV**. Valide **Activer le son** avec la
+   télécommande. Mets la page en favori.
+4. Les invités scannent le QR code (dans le lobby de ton téléphone ou sur la
+   TV), entrent un pseudo et une équipe s'ils veulent.
+5. Manette 🎛️ → colle un lien ou tape un nom de playlist → **OK** → choisis
+   dans la liste → **▶ Lancer**. Pas de manette (page ouverte depuis le QR
+   code, autre navigateur) ? **Je suis l'hôte** → ton code, sur l'écran de
+   connexion ou dans le lobby.
 6. Sur le podium : **🔁 Rejouer** relance avec les mêmes réglages,
-   **⚙️ Modifier la partie** ramène au lobby avec le panneau ouvert (playlist,
-   manches, durée, indices).
-7. Pendant la partie, une barre en haut de ton téléphone : **⏸ Pause** (chrono,
-   indices et extrait gelés partout, **▶ Reprendre** pour repartir), **⏭ Passer**
-   la manche, **⏹ Terminer** (podium avec les scores du moment), **↩ Lobby**
-   pour changer de playlist ou de réglages.
+   **⚙️ Modifier la partie** ramène au lobby avec le panneau ouvert.
+7. Pendant la partie, une barre en haut du téléphone : **⏸ Pause** (chrono,
+   indices et extrait gelés partout, **▶ Reprendre** pour repartir),
+   **⏭ Passer**, **⏹ Terminer** (podium), **↩ Lobby**.
 8. Les réglages du panneau (manches, durée, titre ou artiste, **clavier ou
    QCM**, **chacun pour soi ou un téléphone par équipe**, indices) s'appliquent
    tout de suite et s'affichent à tous dans le lobby. En QCM, quatre
-   propositions à toucher et une seule réponse par manche : parfait pour ceux
-   qui n'aiment pas taper. En mode équipe, chaque téléphone entre le nom de son
-   équipe et tout le monde répond dessus.
+   propositions à toucher et une seule réponse par manche. En mode équipe,
+   chaque téléphone entre le nom de son équipe et tout le monde répond dessus.
 
 Pour tester tout de suite, une playlist Deezer publique :
-`https://www.deezer.com/fr/playlist/1743878062` (Soirée 80).
+`https://www.deezer.com/fr/playlist/1743878062` (Soirée 80), ou tape « années
+80 » dans le champ.
 
 Sans écran pour la TV : **🔈 Son sur ce téléphone : oui** dans le panneau hôte
 et une enceinte Bluetooth sur ton téléphone.
+
+La notification « Blind Test » reste affichée tant que la partie peut être
+jouée ; **Arrêter** dessus (ou **⋯ → Arrêter et quitter**) coupe le serveur.
 
 ## 3. Spotify (optionnel, 5 min, une seule fois)
 
@@ -94,41 +72,35 @@ playlists** (privées comprises, en entier si tu les possèdes).
    `http://127.0.0.1:3000/auth/spotify/callback` (clique **Add**), **Web API**
    coché, **Save**. Dans **Settings**, copie le **Client ID** et le secret.
    Spotify exige un abonnement Premium sur le compte qui crée l'app.
-2. Dans Termux : `bash ~/blindtest/deploy/termux.sh`, Entrée sur le code hôte,
-   colle le Client ID puis le secret.
+2. Dans l'appli : **⋯ → Réglages**, colle le Client ID et le secret, valide.
+   L'appli redémarre pour les appliquer.
 3. Dans le panneau hôte de ta salle : **🎧 Connecter mon compte Spotify** →
-   Spotify demande l'autorisation → tu reviens dans ta salle. Le bouton
-   **📚 Mes playlists** liste alors tes playlists, privées comprises.
+   ton navigateur s'ouvre, Spotify demande l'autorisation → tu reviens sur la
+   salle. Le bouton **📚 Mes playlists** liste alors tes playlists.
 
-Seul ton téléphone peut connecter le compte (l'adresse de retour est locale).
-Les invités n'ont rien à faire. L'autorisation dure 6 mois, puis le panneau
-hôte te redemande de connecter le compte.
+L'autorisation dure 6 mois, puis le panneau hôte te redemande de connecter le
+compte.
 
 **Règle Spotify (mars 2026)** : l'API officielle ne livre les titres complets
 que des playlists **que tu possèdes** ou auxquelles tu collabores. Pour les
 autres, le jeu passe par la page publique du lecteur intégré, limitée aux 100
-premiers titres et susceptible de changer sans préavis. Si une playlist suivie
-de plus de 100 titres te manque, copie-la dans Spotify (⋮ → **Ajouter à une
-playlist** → **Nouvelle playlist**) et charge la copie. Les playlists Deezer
+premiers titres et susceptible de changer sans préavis. Les playlists Deezer
 publiques passent toutes, en entier.
 
 ## 4. Installer sur un autre téléphone (l'hôte d'une autre maison)
 
 Envoie-lui **https://ghermin.github.io/blindtest-de-fin-de-soiree/** ou, depuis
 ta salle, panneau hôte → **📲 Installer sur un autre téléphone** : la page
-affiche un QR code à scanner. L'autre téléphone (Android) suit les étapes :
-installer Termux et Termux:Widget depuis F-Droid, coller la commande (bouton
-**Copier**), répondre au code hôte. Il a ensuite le même widget « Blind Test »
-que toi, avec les mises à jour automatiques.
+affiche un QR code à scanner. L'autre téléphone (Android) télécharge l'appli,
+choisit son code hôte, et a exactement la même chose que toi.
 
 ## Si ça coince
 
 | Problème | Solution |
 |---|---|
 | Les invités ne voient pas la page | Même Wi-Fi que ton téléphone, pas le réseau invité ; sinon ton partage de connexion |
-| La partie se coupe écran éteint | Termux → Batterie → Non restreinte, et garde Termux ouvert en arrière-plan |
-| « Impossible d'accéder au dépôt » | Pas d'Internet sur le téléphone au moment de l'installation : réessaie connecté |
-| « Pas de mise à jour (hors ligne ?) » | Le jeu se lance quand même avec la version déjà installée |
+| La partie se coupe écran éteint | Paramètres → Applications → Blind Test → Batterie → Non restreinte |
+| L'appli reste sur « Démarrage du serveur… » | **⋯ → Arrêter et quitter**, puis relance l'appli |
 | « Recherche des extraits en cours » | Patiente, le compteur avance dans le panneau hôte |
 | « Pas assez d'extraits trouvés » | Titres trop rares : essaie la même playlist côté Deezer |
 | « Playlist Spotify introuvable ou privée » | Vérifie le lien ; la playlist privée d'un autre compte est inaccessible : Deezer, ou une copie dans ton compte |
@@ -136,7 +108,7 @@ que toi, avec les mises à jour automatiques.
 | « Spotify a expiré l'autorisation » | Reconnecte ton compte dans le panneau hôte, Spotify coupe l'accès au bout de 6 mois |
 | Pas de son sur l'écran TV | **Activer le son** sur cet écran (les navigateurs exigent un geste) |
 | Deux appareils jouent le son | Désactive **Son sur ce téléphone** dans le panneau hôte |
-| « Clé hôte incorrecte » | C'est le code hôte affiché au lancement dans Termux |
-| Pas reconnu comme hôte sur mon téléphone | Ouvre la salle par le Chrome lancé automatiquement (il porte la clé), ou **Je suis l'hôte** → ton code ; l'adresse change avec le réseau, donc le navigateur oublie le statut d'un lieu à l'autre |
-| Chrome s'ouvre sur une salle vide | Rejoins avec ton pseudo, puis **Je suis l'hôte** |
+| « Clé hôte incorrecte » | C'est le code hôte choisi dans les réglages de l'appli |
+| Pas reconnu comme hôte | Ouvre la salle dans l'appli (elle porte la clé), ou **Je suis l'hôte** → ton code |
 | Spotify : « INVALID_CLIENT: Invalid redirect URI » | Ajoute `http://127.0.0.1:3000/auth/spotify/callback` dans les Redirect URIs de ton app Spotify |
+| La mise à jour de l'appli ne s'installe pas | Paramètres → Applications → Blind Test → Installer des applis inconnues → autoriser, puis **⋯ → Mettre à jour l'appli** |

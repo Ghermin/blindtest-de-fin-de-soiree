@@ -48,7 +48,7 @@ function forgetUser() {
 
 async function tokenRequest(params) {
     if (!configured()) {
-        throw new Error('Identifiants Spotify absents : renseigne SPOTIFY_CLIENT_ID et SPOTIFY_CLIENT_SECRET (bash ~/blindtest/deploy/termux.sh)');
+        throw new Error('Identifiants Spotify absents : renseigne-les dans les réglages de l\'appli (Client ID et secret)');
     }
     const response = await http.request(`${ACCOUNTS}/api/token`, {
         method: 'POST',

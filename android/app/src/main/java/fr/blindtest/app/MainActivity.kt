@@ -68,6 +68,59 @@ class MainActivity : AppCompatActivity() {
         startServer()
         askBatteryOnce()
         handler.post(poller)
+        checkForUpdate(false)
+    }
+
+    private fun checkForUpdate(manual: Boolean) {
+        Thread {
+            val current = AppUpdater.currentVersion(this)
+            val release = try {
+                AppUpdater.check()
+            } catch (ignored: Exception) {
+                null
+            }
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                when {
+                    release != null && release.versionCode > current.first -> proposeUpdate(release)
+                    manual && release == null -> Toast.makeText(this, R.string.update_check_failed, Toast.LENGTH_LONG).show()
+                    manual -> Toast.makeText(this, getString(R.string.update_none, current.second), Toast.LENGTH_LONG).show()
+                }
+            }
+        }.start()
+    }
+
+    private fun proposeUpdate(release: AppUpdater.Release) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.update_title)
+            .setMessage(getString(R.string.update_message, release.versionName, AppUpdater.currentVersion(this).second))
+            .setPositiveButton(R.string.update_install) { _, _ -> downloadAndInstall(release) }
+            .setNegativeButton(R.string.update_later, null)
+            .show()
+    }
+
+    private fun downloadAndInstall(release: AppUpdater.Release) {
+        val progress = AlertDialog.Builder(this)
+            .setMessage(getString(R.string.update_downloading, 0))
+            .setCancelable(false)
+            .create()
+        progress.show()
+        Thread {
+            try {
+                val file = AppUpdater.download(this, release) { percent ->
+                    runOnUiThread { progress.setMessage(getString(R.string.update_downloading, percent)) }
+                }
+                runOnUiThread {
+                    progress.dismiss()
+                    AppUpdater.install(this, file)
+                }
+            } catch (error: Exception) {
+                runOnUiThread {
+                    progress.dismiss()
+                    Toast.makeText(this, getString(R.string.update_failed, error.message ?: ""), Toast.LENGTH_LONG).show()
+                }
+            }
+        }.start()
     }
 
     private fun startServer() {
@@ -147,6 +200,7 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.menu_tv),
             getString(R.string.menu_reload),
             getString(R.string.menu_settings),
+            getString(R.string.menu_update),
             getString(R.string.menu_quit)
         )
         AlertDialog.Builder(this)
@@ -156,7 +210,8 @@ class MainActivity : AppCompatActivity() {
                     0 -> showTvAddress()
                     1 -> webView.reload()
                     2 -> startActivity(Intent(this, SetupActivity::class.java))
-                    3 -> quit()
+                    3 -> checkForUpdate(true)
+                    4 -> quit()
                 }
             }
             .show()

@@ -31,4 +31,13 @@
     <string name="save">C\'est parti 🎉</string>
     <string name="cancel">Annuler</string>
     <string name="restart_needed">Réglages enregistrés, relance l\'appli pour les appliquer.</string>
+    <string name="menu_update">Mettre à jour l\'appli</string>
+    <string name="update_title">Nouvelle version de l\'appli</string>
+    <string name="update_message">La version %1$s est disponible (tu as la %2$s). Le téléchargement prend quelques secondes ; la première fois, Android demandera d\'autoriser Blind Test à installer des applis.</string>
+    <string name="update_install">Installer</string>
+    <string name="update_later">Plus tard</string>
+    <string name="update_none">L\'appli est à jour (version %1$s).</string>
+    <string name="update_check_failed">Impossible de vérifier les mises à jour (pas d\'Internet ?).</string>
+    <string name="update_downloading">Téléchargement de la mise à jour… %1$d %%</string>
+    <string name="update_failed">Mise à jour impossible : %1$s</string>
 </resources>

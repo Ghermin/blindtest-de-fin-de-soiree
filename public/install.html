@@ -10,42 +10,21 @@
 <body>
     <main id="app" class="install">
         <section>
-            <h1>Blind Test<span>installer sur un autre téléphone</span></h1>
-            <div class="join-card">{{QR}}<p class="join-url">{{URL}}</p></div>
-            <p class="hint">Ouvre cette page sur le téléphone à installer (Android), par exemple en scannant ce code.</p>
+            <h1>Blind Test<span>l'appli pour héberger la partie</span></h1>
             <div class="apk-card">
-                <p class="apk-title">Le plus simple : l'appli Android</p>
+                <p class="apk-title">Android, un seul fichier</p>
                 <a class="button-link primary-link" href="{{APK_URL}}">⬇️ Télécharger l'appli (APK)</a>
-                <span class="small">Ouvre le fichier téléchargé, autorise l'installation depuis ce navigateur, lance <b>Blind Test</b>, choisis un code hôte : c'est prêt. Le jeu se met à jour tout seul à chaque lancement.</span>
+                <span class="small">Ouvre le fichier téléchargé, autorise l'installation depuis ce navigateur, lance <b>Blind Test</b>, choisis un code hôte : c'est prêt. Le jeu et l'appli se mettent à jour tout seuls.</span>
             </div>
-            <p class="hint">Sinon, la version Termux (même résultat, quelques manipulations de plus) :</p>
+            <div class="join-card">{{QR}}<p class="join-url">{{URL}}</p></div>
+            <p class="hint">Cette page, à scanner depuis le téléphone à équiper. Les invités, eux, n'installent rien : ils scannent le QR code de la salle.</p>
             <ol class="steps">
-                <li>
-                    <b>Installe Termux et Termux:Widget</b> depuis F-Droid, pas le Play Store :
-                    <span class="links">
-                        <a class="button-link" href="https://f-droid.org/packages/com.termux/" target="_blank" rel="noopener">Termux</a>
-                        <a class="button-link" href="https://f-droid.org/packages/com.termux.widget/" target="_blank" rel="noopener">Termux:Widget</a>
-                    </span>
-                    <span class="small">Sur chaque page, tout en bas : « Télécharger l'APK ». Android demandera d'autoriser ce navigateur à installer des applis.</span>
-                </li>
-                <li>
-                    <b>Ouvre Termux et colle cette commande</b> (appui long → Coller, puis Entrée) :
-                    <pre id="command" class="cmd">{{COMMAND}}</pre>
-                    <button id="copy" type="button" class="primary">📋 Copier la commande</button>
-                    <span id="copy-feedback" class="small" role="status"></span>
-                    <span class="small">{{TOKEN_NOTE}}</span>
-                </li>
-                <li>
-                    <b>Réponds aux questions</b> : le code hôte (les chiffres qui donnent la main sur ce téléphone), puis Entrée pour passer Spotify. Les playlists Deezer et les liens Spotify publics marchent sans rien.
-                </li>
-                <li>
-                    <b>Pose le widget</b> : appui long sur l'écran d'accueil → Widgets → Termux:Widget → « Blind Test ». Puis Paramètres → Applications → Termux → Batterie → Non restreinte.
-                </li>
+                <li><b>Installe et ouvre l'appli.</b> Elle demande un code hôte (les chiffres qui te donnent la main) et, si tu veux, des identifiants Spotify. Accepte l'exclusion de l'optimisation de batterie, sinon Android coupe le serveur écran éteint.</li>
+                <li><b>Même Wi-Fi pour tout le monde</b>, ou ton partage de connexion. Le bouton <b>⋯</b> en bas à gauche donne l'adresse à taper sur le navigateur de la TV.</li>
+                <li><b>Colle un lien de playlist ou cherche-la par nom</b> dans le panneau 🎛️, puis Lancer. Les invités scannent le QR code du lobby et répondent sur leur téléphone.</li>
             </ol>
-            <p class="hint">Ensuite, à chaque soirée : touche « Blind Test », le navigateur s'ouvre sur la salle en mode hôte, la TV ouvre l'adresse « Écran TV » affichée dans Termux, les invités scannent le QR code.</p>
             <p><a class="ghost-link" href="{{BACK}}">{{BACK_LABEL}}</a></p>
         </section>
     </main>
-    <script src="install.js"></script>
 </body>
 </html>

@@ -11,15 +11,14 @@ viennent des catalogues publics de Deezer et d'Apple Music. Pas besoin de
 Spotify Premium.
 
 > 📱 **Installer sur un téléphone : https://ghermin.github.io/blindtest-de-fin-de-soiree/**
-> (appli Android à télécharger, ou une commande à coller dans Termux). Le pas à pas
-> complet : [INSTALL.md](INSTALL.md).
+> (appli Android à télécharger). Le pas à pas complet : [INSTALL.md](INSTALL.md).
 
 ## Comment ça marche
 
-1. Sur son Android, l'hôte lance **Blind Test** (widget ou commande `blindtest`
-   dans Termux). Le téléphone devient le serveur, se met à jour depuis ce dépôt
-   s'il a Internet, affiche l'adresse de la salle et un QR code, et ouvre Chrome
-   sur la salle.
+1. Sur son Android, l'hôte ouvre l'appli **Blind Test** : elle embarque le
+   moteur Node (nodejs-mobile), devient le serveur, met à jour le jeu depuis ce
+   dépôt si elle a Internet et affiche la salle en mode hôte, avec l'adresse et
+   le QR code à donner aux autres.
 2. La TV ouvre l'adresse de la salle suivie de `/tv` dans son navigateur et
    valide **Activer le son**. Les invités scannent le QR code.
 3. L'hôte colle le lien d'une playlist **Spotify** ou **Deezer** publique, ou
@@ -67,7 +66,11 @@ Le navigateur d'une smart TV de 2019 ou plus récente suffit ; sinon une
 tablette, un portable, ou un deuxième téléphone qui diffuse son écran vers un
 Chromecast.
 
-## Configuration (`.env` sur le téléphone, réglée par l'assistant)
+## Configuration
+
+Dans l'appli, les réglages (code hôte, identifiants Spotify) se font à l'écran
+et sont passés au serveur en variables d'environnement. Pour lancer le serveur
+sur un ordinateur (`npm start`), un fichier `.env` (modèle `.env.example`) :
 
 | Variable | Rôle |
 |---|---|
