@@ -43,7 +43,7 @@ function create(options = {}) {
         lastActivity: Date.now(),
         clients: new Set()
     };
-    room.game = new Game({ code });
+    room.game = new Game({ code, timings: config.timings });
     room.game.on('update', () => {
         room.lastActivity = Date.now();
         scheduleSave();

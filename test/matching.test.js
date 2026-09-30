@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const { normalize, matchesTitle, matchesArtist, distance } = require('../src/matching.js');
+const { normalize, matchesTitle, matchesArtist, distance, titleQuality, artistQuality } = require('../src/matching.js');
 
 test('normalize enlève accents, casse et suffixes', () => {
     assert.strictEqual(normalize('Désenchantée'), 'desenchantee');
@@ -75,4 +75,18 @@ test('titre et artiste tapés dans la même réponse sont séparés', () => {
     assert.deepStrictEqual(splitGuess('alors on danse stromae', 'Alors on danse', ['Stromae']), { title: 'alors on danse', artist: 'stromae' });
     assert.strictEqual(splitGuess('runaway', 'Runaway', ['Bon Jovi']), null);
     assert.strictEqual(splitGuess('runaway bon jovi live', 'Runaway', ['Bon Jovi']), null);
+});
+
+test('la précision distingue réponse exacte, faute de frappe et mot-clé', () => {
+    assert.strictEqual(titleQuality('Billie Jean', 'Billie Jean'), 1);
+    assert.strictEqual(titleQuality('billie jean', 'Billie Jean (Remastered)'), 1);
+    assert.strictEqual(titleQuality('bilie jean', 'Billie Jean'), 0.9);
+    assert.strictEqual(titleQuality('jean billie', 'Billie Jean'), 0.9);
+    assert.strictEqual(titleQuality('billie', 'Billie Jean'), 0.7);
+    assert.strictEqual(titleQuality('thriller', 'Billie Jean'), 0);
+    assert.strictEqual(titleQuality('', 'Billie Jean'), 0);
+    assert.strictEqual(artistQuality('Michael Jackson', ['Michael Jackson']), 1);
+    assert.strictEqual(artistQuality('jackson', ['Michael Jackson']), 0.7);
+    assert.strictEqual(artistQuality('daft punk', ['Stromae', 'Daft Punk']), 1);
+    assert.strictEqual(artistQuality('prince', ['Michael Jackson']), 0);
 });

@@ -9,7 +9,17 @@ if (fs.existsSync(envFile)) {
     }
 }
 
+function parseJson(text) {
+    try {
+        return text ? JSON.parse(text) : {};
+    } catch (_invalid) {
+        return {};
+    }
+}
+
 module.exports = {
+    timings: parseJson(process.env.BLINDTEST_TIMINGS),
+    sourcesModule: process.env.BLINDTEST_SOURCES ? path.resolve(process.env.BLINDTEST_SOURCES) : '',
     port: Number(process.env.BLINDTEST_PORT || process.env.PORT) || 3000,
     host: process.env.BLINDTEST_HOST || '0.0.0.0',
     hostPin: process.env.BLINDTEST_HOST_PIN || '',

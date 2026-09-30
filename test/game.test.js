@@ -311,3 +311,33 @@ test('les équipes déclarées par l\'hôte sont proposées, renommables et sauv
     assert.deepStrictEqual([...copy.teamList], ['Verts']);
     assert.strictEqual([...copy.players.values()][0].id, tom.id);
 });
+
+test('la précision de la réponse module les points et peut être améliorée ensuite', () => {
+    const game = make();
+    const tom = game.join('Tom');
+    const lea = game.join('Léa');
+    game.track = TRACKS[1];
+    game.phase = 'guess';
+    game.guessStartedAt = Date.now();
+    const rough = game.guess(tom.token, 'billie');
+    assert.ok(rough.title && rough.approx);
+    assert.ok(rough.gained >= 440 && rough.gained <= 450, String(rough.gained));
+    assert.strictEqual(rough.precision.title, 0.7);
+    game.players.get(tom.token).lastGuessAt = 0;
+    const exact = game.guess(tom.token, 'billie jean');
+    assert.ok(exact.title && !exact.approx);
+    assert.ok(exact.gained >= 145 && exact.gained <= 150, String(exact.gained));
+    const typo = game.guess(lea.token, 'bilie jean');
+    assert.ok(typo.title && typo.approx);
+    assert.ok(typo.gained >= 440 && typo.gained <= 450, String(typo.gained));
+    game.players.get(tom.token).lastGuessAt = 0;
+    const artist = game.guess(tom.token, 'michael jackson');
+    assert.strictEqual(artist.artist, true);
+    assert.ok(artist.gained >= 790 && artist.gained <= 800, String(artist.gained));
+    game.players.get(tom.token).lastGuessAt = 0;
+    assert.strictEqual(game.guess(tom.token, 'michael jackson').gained, 0);
+    assert.strictEqual(game.players.get(tom.token).score, rough.gained + exact.gained + artist.gained);
+    game.players.get(lea.token).lastGuessAt = 0;
+    const leaArtist = game.guess(lea.token, 'jackson');
+    assert.ok(leaArtist.approx && leaArtist.gained >= 540 && leaArtist.gained <= 550, String(leaArtist.gained));
+});

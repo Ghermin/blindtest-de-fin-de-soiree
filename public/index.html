@@ -135,16 +135,14 @@
         <button id="bar-lobby" type="button"><svg class="icon" aria-hidden="true"><use href="#i-corner-up-left" xlink:href="#i-corner-up-left"></use></svg> Lobby</button>
     </div>
     <button id="host-toggle" aria-label="Réglages de la partie" aria-controls="host-panel" aria-expanded="false" hidden><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
+    <button id="more-toggle" aria-label="Paramètres de l'appli" aria-controls="settings-panel" aria-expanded="false" hidden><svg class="icon" aria-hidden="true"><use href="#i-ellipsis" xlink:href="#i-ellipsis"></use></svg></button>
     <div id="host-backdrop" class="backdrop" hidden></div>
     <aside id="host-panel" class="sheet" aria-label="Panneau hôte" hidden>
         <div id="sheet-grab" class="sheet-grab">
             <div class="sheet-handle" aria-hidden="true"></div>
             <div class="host-header">
                 <h3>Panneau hôte</h3>
-                <div class="header-actions">
-                    <button id="open-settings" type="button" class="icon-button" aria-label="Paramètres de l'appli"><svg class="icon" aria-hidden="true"><use href="#i-settings" xlink:href="#i-settings"></use></svg></button>
-                    <button id="host-close" type="button" class="icon-button" aria-label="Fermer le panneau"><svg class="icon" aria-hidden="true"><use href="#i-x" xlink:href="#i-x"></use></svg></button>
-                </div>
+                <button id="host-close" type="button" class="icon-button" aria-label="Fermer le panneau"><svg class="icon" aria-hidden="true"><use href="#i-x" xlink:href="#i-x"></use></svg></button>
             </div>
         </div>
         <p class="sheet-title">Playlist</p>
@@ -196,10 +194,7 @@
         <div id="settings-grab" class="sheet-grab">
             <div class="sheet-handle" aria-hidden="true"></div>
             <div class="host-header">
-                <div class="header-actions">
-                    <button id="settings-back" type="button" class="icon-button" aria-label="Retour au panneau hôte"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left" xlink:href="#i-arrow-left"></use></svg></button>
-                    <h3>Paramètres</h3>
-                </div>
+                <h3>Paramètres</h3>
                 <button id="settings-close" type="button" class="icon-button" aria-label="Fermer"><svg class="icon" aria-hidden="true"><use href="#i-x" xlink:href="#i-x"></use></svg></button>
             </div>
         </div>
@@ -223,6 +218,7 @@
         <p class="hint">Le thème clair ou sombre suit le réglage du téléphone. Sur l'écran TV, le bouton soleil ou lune en haut du classement le change.</p>
     </aside>
 
+    <script src="/ui.js"></script>
     <script src="/app.js"></script>
 </body>
 </html>

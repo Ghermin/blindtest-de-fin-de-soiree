@@ -13,6 +13,7 @@ const ratelimit = require('./src/ratelimit.js');
 
 const PUBLIC = path.join(__dirname, 'public');
 const ASSETS = {
+    '/ui.js': 'application/javascript; charset=utf-8',
     '/app.js': 'application/javascript; charset=utf-8',
     '/tv.js': 'application/javascript; charset=utf-8',
     '/style.css': 'text/css; charset=utf-8',

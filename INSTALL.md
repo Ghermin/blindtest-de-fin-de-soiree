@@ -18,7 +18,7 @@ TV : son navigateur ouvre une adresse.
 L'appli se met à jour toute seule : le contenu du jeu à chaque lancement, et
 l'appli elle-même te propose d'installer la nouvelle version quand il y en a
 une (aussi dans **Paramètres → Appli → Mettre à jour l'appli**, le bouton
-Paramètres est en haut du panneau hôte).
+« … » en bas à gauche).
 
 ## 2. À chaque soirée (30 s)
 
@@ -53,9 +53,10 @@ Paramètres est en haut du panneau hôte).
 9. Toujours dans le panneau hôte : la liste des **Joueurs** (déplacer dans une
    équipe, retirer quelqu'un qui a oublié de quitter), les **Équipes** (créer,
    renommer, supprimer), **Remettre les scores à zéro** et **Vider la salle**
-   pour repartir de zéro. Le bouton **Paramètres** en haut du panneau regroupe
-   ce qui concerne l'appli : mise à jour, réglages, son sur ce téléphone,
-   installation sur un autre téléphone, clé hôte.
+   pour repartir de zéro. Le bouton **…** en bas à gauche ouvre les
+   **Paramètres**, qui regroupent ce qui concerne l'appli : mise à jour,
+   réglages, son sur ce téléphone, installation sur un autre téléphone, clé
+   hôte.
 
 Pour tester tout de suite, une playlist Deezer publique :
 `https://www.deezer.com/fr/playlist/1743878062` (Soirée 80), ou tape « années
