@@ -40,6 +40,7 @@
             <form id="join-form" class="stack">
                 <input id="join-name" type="text" maxlength="20" placeholder="Ton pseudo" aria-label="Ton pseudo" autocomplete="nickname" enterkeyhint="next" required>
                 <input id="join-team" type="text" maxlength="14" placeholder="Équipe (optionnel)" aria-label="Équipe, optionnel" autocomplete="off" enterkeyhint="go">
+                <p id="join-mode" class="config-line" hidden></p>
                 <button type="submit" class="primary">Rejoindre 🎉</button>
             </form>
             <p id="join-feedback" role="status"></p>
@@ -50,6 +51,7 @@
             <h2>En attente du lancement…</h2>
             <p id="lobby-notice" class="notice" role="status" hidden></p>
             <p id="lobby-playlist" class="playlist-tag"></p>
+            <p id="lobby-config" class="config-line"></p>
             <ul id="lobby-teams" class="teams-bar" hidden></ul>
             <ul id="lobby-players" class="chips"></ul>
             <div class="join-card">
@@ -80,6 +82,7 @@
                 </div>
                 <ul id="my-found" class="chips"></ul>
                 <p id="hint" class="hint-pattern" role="status"></p>
+                <div id="choices" class="choices" hidden></div>
                 <form id="guess-form">
                     <input id="guess-input" type="text" maxlength="80" placeholder="Titre ou artiste…" aria-label="Ta réponse" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send">
                     <button type="submit" class="primary" aria-label="Envoyer">➤</button>
@@ -124,6 +127,7 @@
             <h3>Panneau hôte</h3>
             <button id="host-close" type="button" aria-label="Fermer le panneau">✕</button>
         </div>
+        <p class="sheet-title">Playlist</p>
         <p id="host-spotify" class="host-line" hidden></p>
         <div id="host-spotify-actions" class="host-actions" hidden>
             <button id="host-connect" type="button">🎧 Connecter mon compte Spotify</button>
@@ -137,31 +141,16 @@
         <div id="host-presets" class="host-actions" hidden></div>
         <p id="host-playlist-info"></p>
         <p id="host-feedback" role="status"></p>
-        <div class="host-settings">
-            <label>Manches
-                <select id="opt-rounds">
-                    <option>5</option><option selected>10</option><option>15</option><option>20</option>
-                </select>
-            </label>
-            <label>À deviner
-                <select id="opt-mode">
-                    <option value="both" selected>Titre + artiste</option>
-                    <option value="title">Titre seul</option>
-                    <option value="artist">Artiste seul</option>
-                </select>
-            </label>
-            <label>Durée
-                <select id="opt-duration">
-                    <option value="15">15 s</option><option value="20">20 s</option><option value="30" selected>30 s</option>
-                </select>
-            </label>
-            <label>Indices
-                <select id="opt-hints">
-                    <option value="on" selected>Oui</option>
-                    <option value="off">Non</option>
-                </select>
-            </label>
+        <p class="sheet-title">Réglages</p>
+        <div class="sheet-section">
+            <div class="setting"><span>Manches</span><div class="segmented" data-option="rounds" role="group" aria-label="Manches"><button type="button" data-value="5">5</button><button type="button" data-value="10">10</button><button type="button" data-value="15">15</button><button type="button" data-value="20">20</button></div></div>
+            <div class="setting"><span>Durée d'une manche</span><div class="segmented" data-option="guessSeconds" role="group" aria-label="Durée"><button type="button" data-value="15">15 s</button><button type="button" data-value="20">20 s</button><button type="button" data-value="30">30 s</button></div></div>
+            <div class="setting"><span>À deviner</span><div class="segmented" data-option="mode" role="group" aria-label="À deviner"><button type="button" data-value="both">Titre + artiste</button><button type="button" data-value="title">Titre</button><button type="button" data-value="artist">Artiste</button></div></div>
+            <div class="setting"><span>Réponses</span><div class="segmented" data-option="answers" role="group" aria-label="Réponses"><button type="button" data-value="text">⌨️ Clavier</button><button type="button" data-value="choices">🔘 QCM</button></div></div>
+            <div class="setting"><span>Jeu</span><div class="segmented" data-option="play" role="group" aria-label="Jeu"><button type="button" data-value="solo">🙋 Chacun pour soi</button><button type="button" data-value="teams">👥 1 téléphone par équipe</button></div></div>
+            <div class="setting" id="setting-hints"><span>Indices</span><div class="segmented" data-option="hints" role="group" aria-label="Indices"><button type="button" data-value="true">Oui</button><button type="button" data-value="false">Non</button></div></div>
         </div>
+        <p class="sheet-title">Partie</p>
         <div class="host-actions">
             <button id="host-start" class="primary">▶ Lancer</button>
             <button id="host-pause">⏸ Pause</button>
@@ -169,6 +158,7 @@
             <button id="host-stop">⏹ Stop</button>
             <button id="host-lobby">↩ Lobby</button>
         </div>
+        <p class="sheet-title">Son et plus</p>
         <div class="host-actions">
             <button id="host-speaker" type="button">🔈 Son sur ce téléphone : non</button>
             <button id="host-install" type="button">📲 Installer sur un autre téléphone</button>

@@ -5,7 +5,8 @@ const { hints } = require('./hints.js');
 const sources = require('./sources.js');
 const previews = require('./previews.js');
 
-const DEFAULTS = { rounds: 10, guessMs: 30000, countdownMs: 3000, revealMs: 8000, mode: 'both', hints: true };
+const DEFAULTS = { rounds: 10, guessMs: 30000, countdownMs: 3000, revealMs: 8000, mode: 'both', hints: true, answers: 'text', play: 'solo' };
+const OPTION_VALUES = { rounds: [5, 10, 15, 20], guessSeconds: [15, 20, 30], mode: ['both', 'title', 'artist'], answers: ['text', 'choices'], play: ['solo', 'teams'] };
 const POINTS = { find: 500, both: 200, first: 100, minSpeed: 0.3 };
 const MAX_PLAYERS = 60;
 const PREVIEW_MS = 30000;
@@ -28,6 +29,7 @@ function freshPlayer(base) {
         score: base.score || 0,
         gained: 0,
         found: { title: false, artist: false },
+        answered: false,
         lastGuess: '',
         lastGuessAt: 0,
         connections: 0,
@@ -49,6 +51,9 @@ class Game extends EventEmitter {
         this.played = new Set();
         this.queue = [];
         this.settings = { ...DEFAULTS, ...this.timings };
+        this.options = { rounds: 10, guessSeconds: 30, mode: 'both', hints: true, answers: 'text', play: 'solo' };
+        this.choices = null;
+        this.correctChoice = null;
         this.phase = 'lobby';
         this.roundIndex = 0;
         this.track = null;
@@ -174,6 +179,19 @@ class Game extends EventEmitter {
         return this.allTracks.filter((track) => track.match);
     }
 
+    setOptions(patch = {}) {
+        const next = { ...this.options };
+        if (patch.rounds !== undefined && OPTION_VALUES.rounds.includes(Number(patch.rounds))) next.rounds = Number(patch.rounds);
+        if (patch.guessSeconds !== undefined && OPTION_VALUES.guessSeconds.includes(Number(patch.guessSeconds))) next.guessSeconds = Number(patch.guessSeconds);
+        for (const key of ['mode', 'answers', 'play']) {
+            if (patch[key] !== undefined && OPTION_VALUES[key].includes(patch[key])) next[key] = patch[key];
+        }
+        if (patch.hints !== undefined) next.hints = Boolean(patch.hints);
+        this.options = next;
+        this.changed();
+        return this.options;
+    }
+
     start(options = {}) {
         if (!this.playlist) throw new Error('Choisis une playlist d\'abord');
         if (!this.players.size) throw new Error('Aucun joueur');
@@ -182,23 +200,27 @@ class Game extends EventEmitter {
             if (!this.playlist.ready) throw new Error(`Recherche des extraits en cours (${this.playlist.resolved}/${this.playlist.total}), patiente quelques secondes`);
             throw new Error('Pas assez d\'extraits trouvés pour cette playlist, essaie-en une autre');
         }
-        const rounds = Math.max(1, Math.min(Number(options.rounds) || DEFAULTS.rounds, playable.length, 50));
-        const guessSeconds = Math.max(10, Math.min(Number(options.guessSeconds) || 30, 30));
-        const mode = ['title', 'artist', 'both'].includes(options.mode) ? options.mode : 'both';
+        const wanted = { ...this.options, ...options };
+        const rounds = Math.max(1, Math.min(Number(wanted.rounds) || DEFAULTS.rounds, playable.length, 50));
+        const guessSeconds = Math.max(10, Math.min(Number(wanted.guessSeconds) || 30, 30));
+        const mode = ['title', 'artist', 'both'].includes(wanted.mode) ? wanted.mode : 'both';
+        const answers = wanted.answers === 'choices' ? 'choices' : 'text';
         this.settings = {
             ...DEFAULTS,
             ...this.timings,
             rounds,
             guessMs: this.timings.guessMs || guessSeconds * 1000,
             mode,
-            hints: options.hints !== false
+            answers,
+            play: wanted.play === 'teams' ? 'teams' : 'solo',
+            hints: wanted.hints !== false && answers !== 'choices'
         };
         const fresh = playable.filter((track) => !this.played.has(track.uri));
         if (fresh.length < rounds) this.played.clear();
         this.queue = shuffle(fresh.length >= rounds ? fresh : playable).slice(0, rounds);
         for (const track of this.queue) this.played.add(track.uri);
         for (const player of this.players.values()) {
-            Object.assign(player, { score: 0, gained: 0, found: { title: false, artist: false }, lastGuess: '', firsts: 0, fastestMs: 0, fastestTrack: '' });
+            Object.assign(player, { score: 0, gained: 0, found: { title: false, artist: false }, answered: false, lastGuess: '', firsts: 0, fastestMs: 0, fastestTrack: '' });
         }
         this.wildest = null;
         this.stats = null;
@@ -246,7 +268,9 @@ class Game extends EventEmitter {
             player.gained = 0;
             player.found = { title: false, artist: false };
             player.lastGuess = '';
+            player.answered = false;
         }
+        this.choices = this.settings.answers === 'choices' ? this.buildChoices(track) : null;
         this.log(`Manche ${this.roundIndex}/${this.queue.length} : ${track.name} — ${track.artists.join(', ')}`);
         this.phase = 'countdown';
         this.phaseEndsAt = Date.now() + this.settings.countdownMs;
@@ -421,8 +445,73 @@ class Game extends EventEmitter {
             player.gained = 0;
             player.found = { title: false, artist: false };
             player.lastGuess = '';
+            player.answered = false;
         }
         this.changed();
+    }
+
+    choiceLabel(track) {
+        const artist = (track.artists || [])[0] || '';
+        if (this.settings.mode === 'title') return track.name;
+        if (this.settings.mode === 'artist') return artist;
+        return `${track.name} — ${artist}`;
+    }
+
+    buildChoices(track) {
+        const correct = this.choiceLabel(track);
+        const seen = new Set([matching.normalize(correct)]);
+        const others = [];
+        for (const candidate of shuffle(this.allTracks.filter((entry) => entry.uri !== track.uri))) {
+            const label = this.choiceLabel(candidate);
+            const key = matching.normalize(label);
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            others.push(label);
+            if (others.length === 3) break;
+        }
+        const choices = shuffle([correct, ...others]).map((label, index) => ({ id: `c${index + 1}`, label }));
+        this.correctChoice = choices.find((choice) => choice.label === correct).id;
+        return choices;
+    }
+
+    answerChoice(player, id, now) {
+        if (player.answered) return { accepted: false, reason: 'answered' };
+        const choice = (this.choices || []).find((entry) => entry.id === id);
+        if (!choice) return { accepted: false, reason: 'invalid' };
+        player.answered = true;
+        player.lastGuess = choice.label;
+        const mode = this.settings.mode;
+        const result = { accepted: true, choice: choice.id, correct: choice.id === this.correctChoice, title: false, artist: false, gained: 0 };
+        if (result.correct) {
+            const elapsed = now - this.guessStartedAt;
+            const speed = 1 - (1 - POINTS.minSpeed) * Math.min(1, elapsed / this.settings.guessMs);
+            let points = Math.round(POINTS.find * speed);
+            if (!this.firstTitle) {
+                this.firstTitle = player.token;
+                player.firsts++;
+                points += POINTS.first;
+            }
+            if (mode !== 'artist') {
+                player.found.title = true;
+                result.title = true;
+            }
+            if (mode !== 'title') {
+                player.found.artist = true;
+                result.artist = true;
+            }
+            if (mode === 'both') points += POINTS.both;
+            result.gained = points;
+            const ms = Math.max(1, elapsed);
+            if (!player.fastestMs || ms < player.fastestMs) {
+                player.fastestMs = ms;
+                player.fastestTrack = this.track.name;
+            }
+            player.score += points;
+            player.gained += points;
+        }
+        this.changed();
+        if (!this.paused && this.everyoneDone()) this.schedule(1500, () => this.endGuess());
+        return result;
     }
 
     guess(token, text) {
@@ -433,6 +522,7 @@ class Game extends EventEmitter {
         const now = Date.now();
         if (now - player.lastGuessAt < 500) return { accepted: false, reason: 'throttle' };
         player.lastGuessAt = now;
+        if (this.settings.answers === 'choices') return this.answerChoice(player, String(text || ''), now);
         const cleaned = String(text || '').trim().slice(0, 80);
         if (!cleaned) return { accepted: false, reason: 'empty' };
         player.lastGuess = cleaned;
@@ -486,7 +576,7 @@ class Game extends EventEmitter {
         const mode = this.settings.mode;
         const online = [...this.players.values()].filter((player) => player.connections > 0);
         if (!online.length) return false;
-        return online.every((player) => (mode === 'artist' || player.found.title) && (mode === 'title' || player.found.artist));
+        return online.every((player) => player.answered || ((mode === 'artist' || player.found.title) && (mode === 'title' || player.found.artist)));
     }
 
     publicState() {
@@ -513,6 +603,11 @@ class Game extends EventEmitter {
             guessMs: this.settings.guessMs,
             notice: this.notice,
             hint: this.phase === 'guess' ? this.hint : null,
+            options: this.options,
+            answers: this.settings.answers,
+            play: this.settings.play,
+            choices: this.phase === 'guess' && this.settings.answers === 'choices' ? this.choices : null,
+            correctChoice: showTrack ? this.correctChoice : null,
             audio: this.audio,
             playlist: this.playlist,
             players: players.map((player) => ({
@@ -522,6 +617,7 @@ class Game extends EventEmitter {
                 gained: player.gained,
                 found: player.found,
                 online: player.connections > 0,
+                answered: Boolean(player.answered),
                 ...(showTrack ? { lastGuess: player.lastGuess } : {})
             })),
             teams: [...teams.values()].sort((a, b) => b.score - a.score),
@@ -537,6 +633,7 @@ class Game extends EventEmitter {
     toJSON() {
         return {
             settings: this.settings,
+            options: this.options,
             phase: this.phase,
             roundIndex: this.roundIndex,
             playlist: this.playlist,
@@ -550,6 +647,7 @@ class Game extends EventEmitter {
     restore(data) {
         if (!data) return;
         this.settings = { ...DEFAULTS, ...(data.settings || {}) };
+        this.options = { ...this.options, ...(data.options || {}) };
         this.allTracks = data.allTracks || [];
         const playable = this.playable().length;
         this.playlist = data.playlist ? { ...data.playlist, resolved: playable, missing: this.allTracks.length - playable, ready: true } : null;

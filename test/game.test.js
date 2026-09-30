@@ -233,3 +233,41 @@ test('la pause gèle la manche et refuse les réponses, la reprise termine la ma
     await until(() => game.phase === 'reveal', 2000);
     await until(() => game.phase === 'podium', 2000);
 });
+
+test('mode QCM : propositions, une seule réponse par joueur, points sur la bonne', async () => {
+    const game = make();
+    const tom = game.join('Tom');
+    const lea = game.join('Léa');
+    game.connect(tom.token);
+    game.connect(lea.token);
+    await game.setPlaylist('x');
+    await until(() => game.playlist.ready, 2000);
+    game.setOptions({ answers: 'choices', mode: 'title', hints: true });
+    assert.strictEqual(game.options.answers, 'choices');
+    game.start({ rounds: 1 });
+    await until(() => game.phase === 'guess', 2000);
+    const state = game.publicState();
+    assert.strictEqual(state.hint, null);
+    assert.strictEqual(state.choices.length, 3);
+    const right = state.choices.find((choice) => choice.label === game.track.name);
+    const wrong = state.choices.find((choice) => choice.label !== game.track.name);
+    assert.ok(right && wrong);
+    const miss = game.guess(tom.token, wrong.id);
+    assert.deepStrictEqual([miss.accepted, miss.correct, miss.gained], [true, false, 0]);
+    assert.strictEqual(game.guess(tom.token, right.id).accepted, false);
+    const hit = game.guess(lea.token, right.id);
+    assert.strictEqual(hit.correct, true);
+    assert.ok(hit.gained >= 500);
+    await until(() => game.phase === 'reveal', 3000);
+    assert.strictEqual(game.publicState().correctChoice, right.id);
+});
+
+test('les options sont validées, visibles dans l\'état et conservées à la sauvegarde', () => {
+    const game = make();
+    game.setOptions({ rounds: 15, guessSeconds: 99, mode: 'artist', answers: 'nope', play: 'teams', hints: false });
+    assert.deepStrictEqual(game.options, { rounds: 15, guessSeconds: 30, mode: 'artist', hints: false, answers: 'text', play: 'teams' });
+    assert.strictEqual(game.publicState().options.play, 'teams');
+    const copy = make();
+    copy.restore(JSON.parse(JSON.stringify(game.toJSON())));
+    assert.strictEqual(copy.options.play, 'teams');
+});
