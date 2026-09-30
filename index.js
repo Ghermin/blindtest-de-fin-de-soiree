@@ -8,6 +8,7 @@ const spotify = require('./src/spotify.js');
 const deezer = require('./src/deezer.js');
 const rooms = require('./src/rooms.js');
 const qr = require('./src/qr.js');
+const install = require('./src/install.js');
 const ratelimit = require('./src/ratelimit.js');
 
 const PUBLIC = path.join(__dirname, 'public');
@@ -20,7 +21,9 @@ const ASSETS = {
     '/manifest.webmanifest': 'application/manifest+json',
     '/apple-touch-icon.png': 'image/png',
     '/icon-192.png': 'image/png',
-    '/icon-512.png': 'image/png'
+    '/icon-512.png': 'image/png',
+    '/shortcut-icon.png': 'image/png',
+    '/install.js': 'application/javascript; charset=utf-8'
 };
 
 const HEADERS = {
@@ -95,6 +98,33 @@ function plain(response, status, text) {
 function redirect(response, location) {
     response.writeHead(302, { ...HEADERS, Location: location });
     response.end();
+}
+
+function escapeHtml(text) {
+    return String(text).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+}
+
+async function serveInstall(response, url) {
+    const home = rooms.get(config.homeRoom);
+    const key = url.searchParams.get('key') || '';
+    const trusted = Boolean(home && key && safeEqual(key, home.hostKey));
+    const token = trusted ? install.githubToken() : '';
+    const link = `${baseUrl()}/install${trusted ? `?key=${encodeURIComponent(key)}` : ''}`;
+    let note = 'Ouvre cette page depuis le panneau hôte (bouton « Installer sur un autre téléphone ») pour que la commande contienne le jeton du dépôt.';
+    if (token) note = 'La commande contient le jeton de lecture du dépôt : ne la partage qu\'avec le téléphone à installer.';
+    else if (trusted) note = 'Aucun jeton GitHub trouvé sur ce téléphone : si le dépôt est privé, il sera demandé pendant l\'installation.';
+    try {
+        const html = (await fs.readFile(path.join(PUBLIC, 'install.html'), 'utf8'))
+            .replace('{{QR}}', qr.svg(link))
+            .replace('{{URL}}', escapeHtml(link))
+            .replace('{{COMMAND}}', escapeHtml(install.command(token)))
+            .replace('{{TOKEN_NOTE}}', escapeHtml(note))
+            .replace('{{BACK}}', home ? `/r/${home.code}` : '/');
+        response.writeHead(200, { ...HEADERS, 'Content-Type': 'text/html; charset=utf-8' });
+        response.end(html);
+    } catch {
+        plain(response, 500, 'Erreur');
+    }
 }
 
 async function serveFile(response, name, type, cache) {
@@ -309,6 +339,7 @@ const server = http.createServer(async (request, response) => {
         return;
     }
     if (route === '/' || route === '/index.html') return serveFile(response, 'index.html', 'text/html; charset=utf-8');
+    if (route === '/install') return serveInstall(response, url);
     const page = route.match(/^\/r\/([A-Za-z0-9]{3,12})(\/tv|\/qr\.svg)?$/);
     if (page) {
         if (page[2] === '/qr.svg') {

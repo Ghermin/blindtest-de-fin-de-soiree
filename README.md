@@ -10,7 +10,8 @@ Zéro dépendance runtime : Node, `node:http`, SSE et du JS vanilla. Les extrait
 viennent des catalogues publics de Deezer et d'Apple Music. Pas besoin de
 Spotify Premium.
 
-> 📱 **Installation et soirée pas à pas : [INSTALL.md](INSTALL.md)**.
+> 📱 **Installation et soirée pas à pas : [INSTALL.md](INSTALL.md)**. Pour équiper
+> un autre téléphone : panneau hôte → 📲, un QR code et trois étapes.
 
 ## Comment ça marche
 

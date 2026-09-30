@@ -537,6 +537,9 @@
     $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
     $('host-close').addEventListener('click', () => toggleHostPanel(false));
     $('host-speaker').addEventListener('click', () => setSpeaker(!speaker));
+    $('host-install').addEventListener('click', () => {
+        location.href = `/install?key=${encodeURIComponent(hostKey)}`;
+    });
     $('host-connect').addEventListener('click', () => {
         location.href = `/auth/spotify?room=${encodeURIComponent(room)}&key=${encodeURIComponent(hostKey)}&back=${encodeURIComponent(location.origin)}`;
     });
