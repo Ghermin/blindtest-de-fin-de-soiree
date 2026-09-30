@@ -351,21 +351,93 @@ body.has-bar {
 .host-bar {
     position: fixed;
     top: calc(8px + env(safe-area-inset-top));
-    left: 8px;
-    right: 8px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 3;
     display: flex;
-    gap: 6px;
-    justify-content: center;
-    flex-wrap: wrap;
+    gap: 4px;
+    padding: 5px;
+    max-width: calc(100vw - 16px);
+    border-radius: 999px;
+    background: rgba(26, 13, 49, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .host-bar button {
-    padding: 8px 10px;
+    padding: 8px 12px;
     min-height: 36px;
     font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+}
+
+.host-bar #bar-pause {
+    background: linear-gradient(90deg, var(--accent), #ff6ba9);
+    color: var(--bg);
+    font-weight: 700;
+}
+
+.pause-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 24px;
+    text-align: center;
+    background: rgba(8, 3, 20, 0.74);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: fade-in 0.2s ease-out;
+}
+
+.pause-main {
+    width: 124px;
+    height: 124px;
+    padding: 0 0 0 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.2rem;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent), #ff6ba9);
+    color: var(--bg);
+    box-shadow: 0 12px 40px rgba(255, 61, 139, 0.45);
+}
+
+.pause-main:disabled {
+    padding: 0;
     background: var(--card);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    color: var(--text);
+    box-shadow: none;
+    opacity: 1;
+}
+
+.pause-title {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+}
+
+.pause-text {
+    margin: 0;
+    color: var(--muted);
+}
+
+.pause-actions {
+    justify-content: center;
+    margin-top: 10px;
 }
 
 #host-toggle {

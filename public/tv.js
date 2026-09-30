@@ -251,9 +251,22 @@
         if (state.phase === 'countdown' || state.phase === 'guess') frame = requestAnimationFrame(loop);
     }
 
+    function renderJoinUrl(text) {
+        const target = $('tv-url');
+        const cut = text.indexOf('/r/');
+        target.textContent = '';
+        if (cut < 0) {
+            target.textContent = text;
+            return;
+        }
+        target.appendChild(document.createTextNode(text.slice(0, cut)));
+        target.appendChild(document.createElement('wbr'));
+        target.appendChild(document.createTextNode(text.slice(cut)));
+    }
+
     function render() {
         const url = state.joinUrl || '';
-        $('tv-url').textContent = url.replace(/^https?:\/\//, '');
+        renderJoinUrl(url.replace(/^https?:\/\//, ''));
         $('tv-code').textContent = `Code : ${state.room || room}`;
         $('tv-lobby-url').textContent = url;
         $('tv-playlist').textContent = playlistLabel(state.playlist);

@@ -73,7 +73,6 @@
                 <span id="round-label"></span>
                 <span id="mode-label"></span>
             </header>
-            <p id="game-paused" class="notice" hidden>⏸ Pause, l'hôte reprend quand il veut</p>
             <div id="countdown-big" hidden></div>
             <div id="guess-zone" hidden>
                 <div class="vinyl spinning"><span>?</span></div>
@@ -116,6 +115,16 @@
         </section>
     </main>
 
+    <div id="pause-overlay" class="pause-overlay" hidden>
+        <button id="pause-resume" type="button" class="pause-main" aria-label="Reprendre">▶</button>
+        <p class="pause-title">Pause</p>
+        <p id="pause-text" class="pause-text"></p>
+        <div id="pause-actions" class="host-actions pause-actions" hidden>
+            <button id="pause-skip" type="button">⏭ Passer</button>
+            <button id="pause-stop" type="button">⏹ Terminer</button>
+            <button id="pause-lobby" type="button">↩ Lobby</button>
+        </div>
+    </div>
     <div id="host-bar" class="host-bar" hidden>
         <button id="bar-pause" type="button">⏸ Pause</button>
         <button id="bar-skip" type="button">⏭ Passer</button>
