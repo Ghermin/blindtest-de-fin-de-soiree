@@ -20,6 +20,7 @@
     <string name="copy">Copier l\'adresse TV</string>
     <string name="copied">Adresse copiée</string>
     <string name="setup_title">Bienvenue 🎧</string>
+    <string name="settings_title">Réglages ⚙️</string>
     <string name="setup_intro">Ce téléphone héberge la partie. Les invités et la TV se connectent en Wi-Fi ou sur ton partage de connexion, rien à installer chez eux.</string>
     <string name="pin_label">Code hôte</string>
     <string name="pin_help">Les chiffres qui te donnent la main sur ce téléphone. Garde-les pour toi.</string>
@@ -30,6 +31,7 @@
     <string name="spotify_secret_hint">Client secret</string>
     <string name="save">C\'est parti 🎉</string>
     <string name="cancel">Annuler</string>
+    <string name="save_settings">Enregistrer</string>
     <string name="restart_needed">Réglages enregistrés. L\'appli se ferme : rouvre-la pour les appliquer.</string>
     <string name="menu_update">Mettre à jour l\'appli</string>
     <string name="update_title">Nouvelle version de l\'appli</string>
