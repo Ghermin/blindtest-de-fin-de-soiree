@@ -14,6 +14,7 @@ class SetupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_setup)
+        Theming.apply(this)
         val settings = Settings(this)
         val pin = findViewById<EditText>(R.id.pin)
         val clientId = findViewById<EditText>(R.id.spotify_id)

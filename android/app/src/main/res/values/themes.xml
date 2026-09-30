@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg">#12081F</color>
-    <color name="sheet">#1A0D31</color>
-    <color name="card">#2A1650</color>
-    <color name="text">#F3ECFF</color>
-    <color name="muted">#B9A6E0</color>
-    <color name="accent">#FF3D8B</color>
-    <color name="accent2">#35E0C8</color>
-
-    <style name="Theme.BlindTest" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.BlindTest" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/accent</item>
         <item name="colorPrimaryDark">@color/bg</item>
         <item name="colorAccent">@color/accent2</item>
@@ -21,7 +13,7 @@
         <item name="android:alertDialogTheme">@style/Theme.BlindTest.Dialog</item>
     </style>
 
-    <style name="Theme.BlindTest.Dialog" parent="Theme.AppCompat.Dialog.Alert">
+    <style name="Theme.BlindTest.Dialog" parent="Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="android:windowBackground">@drawable/bg_dialog</item>
         <item name="android:backgroundDimAmount">0.6</item>
         <item name="android:textColorPrimary">@color/text</item>

@@ -2,7 +2,7 @@
     'use strict';
 
     const $ = (id) => document.getElementById(id);
-    const { attempt, icon, label, formatHint, renderHint, rankMark } = window.UI;
+    const { attempt, icon, label, formatHint, renderHint, rankMark, dialog } = window.UI;
     const screens = ['home', 'join', 'lobby', 'game', 'reveal', 'podium'];
     const roomMatch = location.pathname.match(/^\/r\/([A-Za-z0-9]{3,12})/);
     const room = roomMatch ? roomMatch[1].toUpperCase() : '';
@@ -91,6 +91,26 @@
         markJoinTeam();
     }
 
+    function askHostKey() {
+        return dialog({ title: 'Clé hôte', text: 'Le code hôte de la salle de la maison, ou la clé reçue à la création de la salle.', input: { placeholder: 'Clé hôte', maxLength: 12 }, confirm: 'Valider', icon: 'key-round' })
+            .then((value) => (value || '').trim());
+    }
+
+    function askTeamName(title) {
+        return dialog({ title, input: { placeholder: 'Nom de l\'équipe', maxLength: 14 }, confirm: 'Créer', icon: 'plus' });
+    }
+
+    async function chooseTeam(player) {
+        const choices = (state.teams || []).map((team) => ({ label: team.name, value: team.name, icon: 'flag', active: team.name === player.team }));
+        choices.push({ label: 'Sans équipe', value: '', icon: 'user', active: !player.team });
+        choices.push({ label: 'Nouvelle équipe…', value: '__new__', icon: 'plus' });
+        const choice = await dialog({ title: `Équipe de ${player.name}`, choices });
+        if (choice === null) return;
+        const team = choice === '__new__' ? await askTeamName('Nouvelle équipe') : choice;
+        if (!team && choice === '__new__') return;
+        hostAction(`${api}/host/teams`, { action: 'assign', id: player.id, team });
+    }
+
     function renderHostPlayers() {
         const players = state.players || [];
         const teamsMode = Boolean(state.options && state.options.play === 'teams');
@@ -118,10 +138,7 @@
                 team.className = 'icon-button';
                 team.setAttribute('aria-label', `Équipe de ${player.name}`);
                 team.appendChild(icon('flag'));
-                team.addEventListener('click', () => {
-                    const value = prompt(`Équipe de ${player.name} (vide = aucune)`, player.team || '');
-                    if (value !== null) hostAction(`${api}/host/teams`, { action: 'assign', id: player.id, team: value });
-                });
+                team.addEventListener('click', () => chooseTeam(player));
                 item.appendChild(team);
             }
             const kick = document.createElement('button');
@@ -129,8 +146,8 @@
             kick.className = 'icon-button danger';
             kick.setAttribute('aria-label', `Retirer ${player.name}`);
             kick.appendChild(icon('user-x'));
-            kick.addEventListener('click', () => {
-                if (confirm(`Retirer ${player.name} de la partie ?`)) hostAction(`${api}/host/kick`, { id: player.id });
+            kick.addEventListener('click', async () => {
+                if (await dialog({ title: `Retirer ${player.name} ?`, text: 'Il devra rejoindre à nouveau pour continuer.', confirm: 'Retirer', icon: 'user-x', danger: true })) hostAction(`${api}/host/kick`, { id: player.id });
             });
             item.appendChild(kick);
             list.appendChild(item);
@@ -150,11 +167,10 @@
             chip.type = 'button';
             chip.className = 'team-pick';
             label(chip, 'flag', `${team.name} · ${team.members} ${team.members > 1 ? 'joueurs' : 'joueur'} · ${team.score} pts`);
-            chip.addEventListener('click', () => {
-                const value = prompt(`Renommer l'équipe ${team.name} (vide = supprimer)`, team.name);
-                if (value === null) return;
-                if (!value.trim() && !confirm(`Supprimer l'équipe ${team.name} ? Ses joueurs restent dans la partie, sans équipe.`)) return;
-                hostAction(`${api}/host/teams`, { action: 'rename', name: team.name, to: value });
+            chip.addEventListener('click', async () => {
+                const value = await dialog({ title: `Équipe ${team.name}`, text: `${team.members} ${team.members > 1 ? 'joueurs' : 'joueur'} · ${team.score} pts. Supprimer l'équipe laisse ses joueurs dans la partie, sans équipe.`, input: { value: team.name, placeholder: 'Nom de l\'équipe', maxLength: 14 }, confirm: 'Renommer', icon: 'pencil', extra: { label: 'Supprimer', icon: 'x', value: '__delete__' } });
+                if (value === null || value === '' || value === team.name) return;
+                hostAction(`${api}/host/teams`, { action: 'rename', name: team.name, to: value === '__delete__' ? '' : value });
             });
             container.appendChild(chip);
         }
@@ -176,7 +192,7 @@
         });
         const payload = await response.json().catch(() => ({}));
         if (response.status === 403 && route.includes('/host/')) {
-            const entered = (prompt('Clé hôte ? (le code hôte de la salle de la maison, ou la clé reçue à la création de la salle)') || '').trim();
+            const entered = await askHostKey();
             if (entered && entered !== hostKey) {
                 hostKey = entered;
                 storage.set(`bt_hostkey_${room}`, hostKey);
@@ -737,9 +753,9 @@
         }
     });
 
-    function toggleHost() {
+    async function toggleHost() {
         if (!isHost && !hostKey) {
-            const entered = (prompt('Clé hôte ? (le code hôte de la salle de la maison, ou la clé reçue à la création de la salle)') || '').trim();
+            const entered = await askHostKey();
             if (!entered) return;
             hostKey = entered;
             storage.set(`bt_hostkey_${room}`, hostKey);
@@ -751,8 +767,8 @@
     }
 
     $('become-host').addEventListener('click', toggleHost);
-    $('lobby-host').addEventListener('click', () => {
-        toggleHost();
+    $('lobby-host').addEventListener('click', async () => {
+        await toggleHost();
         if (isHost) toggleHostPanel(true);
     });
     $('lobby-back').addEventListener('click', () => {
@@ -832,15 +848,15 @@
     sheetGestures($('settings-panel'), $('settings-grab'));
     $('host-speaker').addEventListener('click', () => setSpeaker(!speaker));
     $('join-team').addEventListener('input', markJoinTeam);
-    $('host-team-add').addEventListener('click', () => {
-        const value = prompt('Nom de la nouvelle équipe');
-        if (value && value.trim()) hostAction(`${api}/host/teams`, { action: 'add', name: value });
+    $('host-team-add').addEventListener('click', async () => {
+        const value = await askTeamName('Nouvelle équipe');
+        if (value) hostAction(`${api}/host/teams`, { action: 'add', name: value });
     });
-    $('host-reset').addEventListener('click', () => {
-        if (confirm('Remettre tous les scores à zéro et revenir au lobby ?')) hostAction(`${api}/host/reset`);
+    $('host-reset').addEventListener('click', async () => {
+        if (await dialog({ title: 'Remettre les scores à zéro ?', text: 'Tout le monde repart de zéro et la salle revient au lobby.', confirm: 'Remettre à zéro', icon: 'eraser', danger: true })) hostAction(`${api}/host/reset`);
     });
-    $('host-clear').addEventListener('click', () => {
-        if (confirm('Vider la salle ? Tout le monde, toi compris, devra rejoindre à nouveau.')) hostAction(`${api}/host/clear`);
+    $('host-clear').addEventListener('click', async () => {
+        if (await dialog({ title: 'Vider la salle ?', text: 'Tout le monde, toi compris, devra rejoindre à nouveau.', confirm: 'Vider la salle', icon: 'log-out', danger: true })) hostAction(`${api}/host/clear`);
     });
     for (const group of document.querySelectorAll('.segmented[data-option]')) {
         group.addEventListener('click', (event) => {
@@ -868,8 +884,8 @@
         }
         $('app-update').addEventListener('click', () => native.checkUpdate());
         $('app-settings').addEventListener('click', () => native.openSettings());
-        $('app-quit').addEventListener('click', () => {
-            if (confirm('Arrêter le serveur et fermer l\'appli ? La partie en cours sera perdue.')) native.quit();
+        $('app-quit').addEventListener('click', async () => {
+            if (await dialog({ title: 'Arrêter le serveur ?', text: 'La partie en cours sera perdue et l\'appli se ferme.', confirm: 'Arrêter', icon: 'power', danger: true })) native.quit();
         });
     }
     $('host-connect').addEventListener('click', () => {

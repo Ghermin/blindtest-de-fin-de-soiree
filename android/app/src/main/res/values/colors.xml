@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#F6F1FF</color>
+    <color name="sheet">#FFFFFF</color>
+    <color name="card">#E9E0FA</color>
+    <color name="text">#1D1233</color>
+    <color name="muted">#6A5990</color>
+    <color name="accent">#E8237C</color>
+    <color name="accent2">#0D9488</color>
+    <color name="field">#0F1D1233</color>
+    <color name="round_bg">#14000000</color>
+    <color name="round_stroke">#33000000</color>
+</resources>

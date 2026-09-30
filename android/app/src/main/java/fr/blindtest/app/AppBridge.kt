@@ -1,7 +1,6 @@
 package fr.blindtest.app
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.webkit.JavascriptInterface
 
 class AppBridge(private val activity: MainActivity) {
@@ -12,10 +11,7 @@ class AppBridge(private val activity: MainActivity) {
     fun tvUrl(): String = "${NodeService.lanUrl()}/r/${Settings.ROOM}/tv"
 
     @JavascriptInterface
-    fun theme(): String {
-        val night = activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        return if (night == Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
-    }
+    fun theme(): String = if (Theming.isNight(activity)) "dark" else "light"
 
     @JavascriptInterface
     fun checkUpdate() {

@@ -32,6 +32,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity() {
@@ -66,6 +67,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         setContentView(R.layout.activity_main)
+        Theming.apply(this)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         webView = findViewById(R.id.web)
         loading = findViewById(R.id.loading)
@@ -145,7 +147,7 @@ class MainActivity : AppCompatActivity() {
         webView.destroy()
         webView = WebView(this)
         webView.id = R.id.web
-        webView.setBackgroundColor(0xFF12081F.toInt())
+        webView.setBackgroundColor(ContextCompat.getColor(this, R.color.bg))
         parent.addView(webView, index, params)
         configureWebView()
         loaded = false
