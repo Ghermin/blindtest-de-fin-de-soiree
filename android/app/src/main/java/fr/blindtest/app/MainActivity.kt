@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         checkForUpdate(false)
     }
 
-    private fun checkForUpdate(manual: Boolean) {
+    fun checkForUpdate(manual: Boolean) {
         Thread {
             val current = AppUpdater.currentVersion(this)
             val release = try {
@@ -162,6 +162,7 @@ class MainActivity : AppCompatActivity() {
                 handler.postDelayed(poller, 1500)
             }
         }
+        webView.addJavascriptInterface(AppBridge(this), "BlindTestApp")
         webView.webChromeClient = object : WebChromeClient() {
             override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
                 AlertDialog.Builder(this@MainActivity)
@@ -240,7 +241,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun quit() {
+    fun quit() {
         startService(Intent(this, NodeService::class.java).setAction(NodeService.ACTION_STOP))
         finishAffinity()
         handler.postDelayed({ exitProcess(0) }, 300)
