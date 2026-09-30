@@ -11,7 +11,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
@@ -197,13 +199,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun showMenu() {
         val items = arrayOf(
-            getString(R.string.menu_tv),
-            getString(R.string.menu_reload),
-            getString(R.string.menu_settings),
-            getString(R.string.menu_update),
-            getString(R.string.menu_quit)
+            "📺  " + getString(R.string.menu_tv),
+            "🔄  " + getString(R.string.menu_reload),
+            "⚙️  " + getString(R.string.menu_settings),
+            "⬆️  " + getString(R.string.menu_update),
+            "⏹  " + getString(R.string.menu_quit)
         )
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.app_name)
             .setItems(items) { _, index ->
                 when (index) {
@@ -214,7 +216,13 @@ class MainActivity : AppCompatActivity() {
                     4 -> quit()
                 }
             }
-            .show()
+            .create()
+        dialog.window?.let { window ->
+            window.setGravity(Gravity.BOTTOM)
+            window.setBackgroundDrawableResource(R.drawable.bg_sheet)
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        dialog.show()
     }
 
     private fun showTvAddress() {
