@@ -17,23 +17,23 @@ TV : son navigateur ouvre une adresse.
 
 L'appli se met à jour toute seule : le contenu du jeu à chaque lancement, et
 l'appli elle-même te propose d'installer la nouvelle version quand il y en a
-une (aussi dans le menu **⋯ → Mettre à jour l'appli**).
+une (aussi dans le panneau ⚙️, section **Appli → Mettre à jour l'appli**).
 
 ## 2. À chaque soirée (30 s)
 
 1. Connecte ton téléphone au Wi-Fi du lieu, ou active ton **partage de
    connexion** et fais-y connecter la TV et les invités. Évite le réseau invité
    d'une box, qui isole souvent les appareils entre eux.
-2. Ouvre **Blind Test** : la salle s'affiche, déjà en mode hôte (la manette 🎛️
-   est là). Pseudo → **Rejoindre**.
-3. Sur la TV, ouvre le navigateur et tape l'adresse **Écran TV** affichée dans
-   le lobby (par exemple `http://192.168.1.23:3000/r/MAISON/tv`), aussi dans le
-   menu **⋯ → Adresse pour la TV**. Valide **Activer le son** avec la
-   télécommande. Mets la page en favori.
+2. Ouvre **Blind Test** : la salle s'affiche, déjà en mode hôte (le bouton ⚙️
+   en bas à droite est là). Pseudo → **Rejoindre**.
+3. Sur la TV, ouvre le navigateur et tape l'adresse de la ligne **📺 Écran TV**
+   du lobby (par exemple `http://192.168.1.23:3000/r/MAISON/tv`). Valide
+   **Activer le son** avec la télécommande. Mets la page en favori.
 4. Les invités scannent le QR code (dans le lobby de ton téléphone ou sur la
    TV), entrent un pseudo et une équipe s'ils veulent.
-5. Manette 🎛️ → colle un lien ou tape un nom de playlist → **OK** → choisis
-   dans la liste → **▶ Lancer**. Pas de manette (page ouverte depuis le QR
+5. Bouton ⚙️ → colle un lien ou tape un nom de playlist → **OK** → choisis
+   dans la liste → **▶ Lancer**. Le panneau se ferme d'un glissement vers le
+   bas, d'un tap à côté ou avec ✕. Pas de bouton ⚙️ (page ouverte depuis le QR
    code, autre navigateur) ? **Je suis l'hôte** → ton code, sur l'écran de
    connexion ou dans le lobby.
 6. Sur le podium : **🔁 Rejouer** relance avec les mêmes réglages,
@@ -55,7 +55,8 @@ Sans écran pour la TV : **🔈 Son sur ce téléphone : oui** dans le panneau h
 et une enceinte Bluetooth sur ton téléphone.
 
 La notification « Blind Test » reste affichée tant que la partie peut être
-jouée ; **Arrêter** dessus (ou **⋯ → Arrêter et quitter**) coupe le serveur.
+jouée ; **Arrêter** dessus (ou ⚙️ → **Appli → Arrêter le serveur**) coupe le
+serveur.
 
 ## 3. Spotify (optionnel, 5 min, une seule fois)
 
@@ -72,8 +73,8 @@ playlists** (privées comprises, en entier si tu les possèdes).
    `http://127.0.0.1:3000/auth/spotify/callback` (clique **Add**), **Web API**
    coché, **Save**. Dans **Settings**, copie le **Client ID** et le secret.
    Spotify exige un abonnement Premium sur le compte qui crée l'app.
-2. Dans l'appli : **⋯ → Réglages**, colle le Client ID et le secret, valide.
-   L'appli redémarre pour les appliquer.
+2. Dans l'appli : ⚙️ → **Appli → Réglages de l'appli**, colle le Client ID et
+   le secret, **Enregistrer**. L'appli se ferme : rouvre-la pour les appliquer.
 3. Dans le panneau hôte de ta salle : **🎧 Connecter mon compte Spotify** →
    ton navigateur s'ouvre, Spotify demande l'autorisation → tu reviens sur la
    salle. Le bouton **📚 Mes playlists** liste alors tes playlists.
@@ -100,7 +101,7 @@ choisit son code hôte, et a exactement la même chose que toi.
 |---|---|
 | Les invités ne voient pas la page | Même Wi-Fi que ton téléphone, pas le réseau invité ; sinon ton partage de connexion |
 | La partie se coupe écran éteint | Paramètres → Applications → Blind Test → Batterie → Non restreinte |
-| L'appli reste sur « Démarrage du serveur… » | **⋯ → Arrêter et quitter**, puis relance l'appli |
+| L'appli reste sur « Démarrage du serveur… » | Bouton **⋯** de l'écran de démarrage → **Arrêter et quitter**, puis relance l'appli |
 | « Recherche des extraits en cours » | Patiente, le compteur avance dans le panneau hôte |
 | « Pas assez d'extraits trouvés » | Titres trop rares : essaie la même playlist côté Deezer |
 | « Playlist Spotify introuvable ou privée » | Vérifie le lien ; la playlist privée d'un autre compte est inaccessible : Deezer, ou une copie dans ton compte |
@@ -111,4 +112,4 @@ choisit son code hôte, et a exactement la même chose que toi.
 | « Clé hôte incorrecte » | C'est le code hôte choisi dans les réglages de l'appli |
 | Pas reconnu comme hôte | Ouvre la salle dans l'appli (elle porte la clé), ou **Je suis l'hôte** → ton code |
 | Spotify : « INVALID_CLIENT: Invalid redirect URI » | Ajoute `http://127.0.0.1:3000/auth/spotify/callback` dans les Redirect URIs de ton app Spotify |
-| La mise à jour de l'appli ne s'installe pas | Paramètres → Applications → Blind Test → Installer des applis inconnues → autoriser, puis **⋯ → Mettre à jour l'appli** |
+| La mise à jour de l'appli ne s'installe pas | La première fois, Android demande d'autoriser Blind Test à installer des applis (**Paramètres**, active l'option) et Play Protect propose une analyse (**Installer sans analyser** convient) ; relance ensuite ⚙️ → **Appli → Mettre à jour l'appli** |

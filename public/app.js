@@ -602,7 +602,7 @@
         }
         isHost = !isHost;
         storage.set(`bt_host_${room}`, isHost ? '1' : '0');
-        $('become-host').textContent = isHost ? 'Hôte activé ✔ (re-clique pour désactiver)' : 'Je suis l\'hôte 🎛️';
+        $('become-host').textContent = isHost ? 'Hôte activé ✔ (re-clique pour désactiver)' : 'Je suis l\'hôte 🔑';
         render();
     }
 
