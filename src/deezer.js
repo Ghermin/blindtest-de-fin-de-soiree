@@ -25,14 +25,18 @@ async function call(route, retry = true) {
     return data;
 }
 
+function cover(track) {
+    return track && track.album ? track.album.cover_medium || track.album.cover || null : null;
+}
+
 function normalizeTrack(track) {
     return {
         uri: `deezer:track:${track.id}`,
         name: track.title,
         artists: track.artist ? [track.artist.name] : [],
-        image: track.album ? track.album.cover_medium || track.album.cover || null : null,
+        image: cover(track),
         durationMs: (track.duration || 0) * 1000,
-        match: { source: 'deezer', id: track.id }
+        match: { source: 'deezer', id: track.id, image: cover(track) }
     };
 }
 
@@ -59,14 +63,19 @@ async function search(query) {
         title: track.title || '',
         artist: track.artist ? track.artist.name : '',
         durationMs: (track.duration || 0) * 1000,
-        url: track.preview || ''
+        url: track.preview || '',
+        image: cover(track)
     }));
 }
 
+async function track(id) {
+    const data = await call(`/track/${id}`);
+    if (!data || !data.preview) throw new Error(`Deezer : pas d'extrait pour la piste ${id}`);
+    return { url: data.preview, image: cover(data) };
+}
+
 async function preview(id) {
-    const track = await call(`/track/${id}`);
-    if (!track || !track.preview) throw new Error(`Deezer : pas d'extrait pour la piste ${id}`);
-    return track.preview;
+    return (await track(id)).url;
 }
 
 async function searchPlaylists(query) {
@@ -83,4 +92,4 @@ async function searchPlaylists(query) {
     }));
 }
 
-module.exports = { playlist, search, searchPlaylists, preview };
+module.exports = { playlist, search, searchPlaylists, track, preview };

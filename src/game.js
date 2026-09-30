@@ -243,7 +243,6 @@ class Game extends EventEmitter {
         const generation = this.resolveGeneration;
         this.allTracks = data.tracks.map((track) => ({ ...track }));
         this.playlist = { id: data.id, source: data.source, name: data.name, image: data.image, total: this.allTracks.length, partial: Boolean(data.partial), resolved: 0, missing: 0, ready: false };
-        this.played.clear();
         this.phase = 'lobby';
         this.notice = null;
         this.log(`Playlist ${data.source} : ${data.name} (${this.allTracks.length} titres)`);
@@ -275,6 +274,14 @@ class Game extends EventEmitter {
         return this.allTracks.filter((track) => track.match);
     }
 
+    unplayed() {
+        return this.playable().filter((track) => !this.played.has(track.uri));
+    }
+
+    cover(track) {
+        return track.image || (track.match && track.match.image) || (this.playlist ? this.playlist.image : null);
+    }
+
     setOptions(patch = {}) {
         const next = { ...this.options };
         if (patch.rounds !== undefined && OPTION_VALUES.rounds.includes(Number(patch.rounds))) next.rounds = Number(patch.rounds);
@@ -297,7 +304,13 @@ class Game extends EventEmitter {
             throw new Error('Pas assez d\'extraits trouvés pour cette playlist, essaie-en une autre');
         }
         const wanted = { ...this.options, ...options };
-        const rounds = Math.max(1, Math.min(Number(wanted.rounds) || DEFAULTS.rounds, playable.length, 50));
+        let fresh = this.unplayed();
+        if (!fresh.length) {
+            for (const track of playable) this.played.delete(track.uri);
+            fresh = playable;
+            this.log('Tous les titres ont déjà été joués, l\'historique repart de zéro');
+        }
+        const rounds = Math.max(1, Math.min(Number(wanted.rounds) || DEFAULTS.rounds, fresh.length, 50));
         const guessSeconds = Math.max(10, Math.min(Number(wanted.guessSeconds) || 30, 30));
         const mode = ['title', 'artist', 'both'].includes(wanted.mode) ? wanted.mode : 'both';
         const answers = wanted.answers === 'choices' ? 'choices' : 'text';
@@ -311,10 +324,7 @@ class Game extends EventEmitter {
             play: wanted.play === 'teams' ? 'teams' : 'solo',
             hints: wanted.hints !== false && answers !== 'choices'
         };
-        const fresh = playable.filter((track) => !this.played.has(track.uri));
-        if (fresh.length < rounds) this.played.clear();
-        this.queue = shuffle(fresh.length >= rounds ? fresh : playable).slice(0, rounds);
-        for (const track of this.queue) this.played.add(track.uri);
+        this.queue = shuffle(fresh).slice(0, rounds);
         this.resetPlayers();
         this.roundIndex = 0;
         this.paused = false;
@@ -353,6 +363,7 @@ class Game extends EventEmitter {
             return;
         }
         this.track = track;
+        this.played.add(track.uri);
         this.audio = { url, startedAt: 0, durationMs: PREVIEW_MS };
         this.firstTitle = null;
         this.firstArtist = null;
@@ -709,7 +720,7 @@ class Game extends EventEmitter {
             choices: this.phase === 'guess' && this.settings.answers === 'choices' ? this.choices : null,
             correctChoice: showTrack ? this.correctChoice : null,
             audio: this.audio,
-            playlist: this.playlist,
+            playlist: this.playlist ? { ...this.playlist, remaining: this.unplayed().length } : null,
             players: players.map((player) => ({
                 id: player.id,
                 name: player.name,
@@ -726,7 +737,7 @@ class Game extends EventEmitter {
             track: showTrack && this.track ? {
                 name: this.track.name,
                 artists: this.track.artists,
-                image: this.track.image || (this.playlist ? this.playlist.image : null)
+                image: this.cover(this.track)
             } : null
         };
     }

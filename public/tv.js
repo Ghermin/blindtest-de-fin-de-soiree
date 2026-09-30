@@ -47,7 +47,9 @@
     function playlistLabel(playlist) {
         if (!playlist) return '';
         if (!playlist.ready) return `${playlist.name} · recherche des extraits ${playlist.resolved}/${playlist.total}…`;
-        return `${playlist.name} · ${playlist.resolved} titres${playlist.missing ? `, ${playlist.missing} sans extrait` : ''}`;
+        const done = playlist.resolved - playlist.remaining;
+        const played = done > 0 ? `, ${done} déjà joué${done > 1 ? 's' : ''}` : '';
+        return `${playlist.name} · ${playlist.resolved} titres${played}${playlist.missing ? `, ${playlist.missing} sans extrait` : ''}`;
     }
 
     function enableSound() {

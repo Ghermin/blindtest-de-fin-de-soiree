@@ -59,7 +59,11 @@ La précision vaut 100 % pour la réponse exacte, 90 % avec une faute de frappe
 ou les mots dans le désordre, 70 % pour un seul mot significatif ; en mode
 titre + artiste on peut donner l'un puis l'autre, et préciser une réponse
 approximative rapporte la différence.
-Deux parties de suite sur la même playlist ne rejouent pas les mêmes titres.
+Un titre déjà entendu ne revient pas, même après un changement de playlist ou
+un redémarrage de l'appli ; le lobby indique combien de titres ont déjà été
+joués. Quand tout a été entendu, l'historique de la playlist repart de zéro.
+À la révélation, c'est la pochette du titre qui s'affiche (celle de l'extrait
+trouvé si la playlist n'en fournit pas), pas celle de la playlist.
 Au podium : le plus rapide, le plus souvent premier, la réponse la plus hors
 sujet.
 
