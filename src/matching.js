@@ -51,38 +51,57 @@ function words(text) {
     return stripArticle(normalize(text)).split(' ').filter(Boolean);
 }
 
-function matchesWords(guess, target) {
+function coverage(guess, target) {
     const guessWords = words(guess);
     const targetWords = words(target);
-    if (!guessWords.length || !targetWords.length) return false;
+    if (!guessWords.length || !targetWords.length) return null;
     const used = new Set();
     let covered = 0;
     let longest = 0;
     for (const word of guessWords) {
         const index = targetWords.findIndex((candidate, i) => !used.has(i) && close(word, candidate));
-        if (index === -1) return false;
+        if (index === -1) return null;
         used.add(index);
         covered += targetWords[index].length;
         longest = Math.max(longest, targetWords[index].length);
     }
     const total = targetWords.reduce((sum, word) => sum + word.length, 0);
     const maxLength = Math.max(...targetWords.map((word) => word.length));
-    if (covered / total >= 0.5) return true;
-    return guessWords.length === 1 && longest >= 5 && longest === maxLength;
+    return { ratio: covered / total, single: guessWords.length === 1, longest, maxLength, complete: used.size === targetWords.length };
 }
 
-function matchesOne(guess, target) {
+function matchesWords(guess, target) {
+    const found = coverage(guess, target);
+    if (!found) return false;
+    if (found.ratio >= 0.5) return true;
+    return found.single && found.longest >= 5 && found.longest === found.maxLength;
+}
+
+function quality(guess, target) {
     const guesses = candidates(guess);
     const targets = candidates(target);
-    return guesses.some((g) => targets.some((t) => close(g, t))) || matchesWords(guess, target);
+    if (!guesses[0] || !targets[0]) return 0;
+    if (guesses.some((g) => targets.includes(g))) return 1;
+    if (guesses.some((g) => targets.some((t) => close(g, t)))) return 0.9;
+    const found = coverage(guess, target);
+    if (found && found.complete) return 0.9;
+    return matchesWords(guess, target) ? 0.7 : 0;
+}
+
+function titleQuality(guess, title) {
+    return quality(guess, title);
+}
+
+function artistQuality(guess, artists) {
+    return Math.max(0, ...(artists || []).map((artist) => quality(guess, artist)));
 }
 
 function matchesTitle(guess, title) {
-    return matchesOne(guess, title);
+    return titleQuality(guess, title) > 0;
 }
 
 function matchesArtist(guess, artists) {
-    return (artists || []).some((artist) => matchesOne(guess, artist));
+    return artistQuality(guess, artists) > 0;
 }
 
 function splitGuess(guess, title, artists) {
@@ -107,4 +126,4 @@ function distance(guess, target) {
     return levenshtein(a, b) / Math.max(a.length, b.length);
 }
 
-module.exports = { normalize, levenshtein, close, matchesTitle, matchesArtist, matchesWords, splitGuess, distance };
+module.exports = { normalize, levenshtein, close, matchesTitle, matchesArtist, matchesWords, titleQuality, artistQuality, splitGuess, distance };

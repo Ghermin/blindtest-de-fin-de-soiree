@@ -37,7 +37,7 @@ test('les icônes des pages existent dans le sprite', () => {
 });
 
 test('les icônes demandées par les scripts existent dans le sprite', () => {
-    for (const file of ['public/app.js', 'public/tv.js', 'index.js', 'scripts/pages.js']) {
+    for (const file of ['public/ui.js', 'public/app.js', 'public/tv.js', 'index.js', 'scripts/pages.js']) {
         const source = read(file);
         const wanted = [];
         for (const [, first] of source.matchAll(/\bicon\(([^(),]*)[,)]/g)) wanted.push(...literals(first));
@@ -50,7 +50,7 @@ test('les icônes demandées par les scripts existent dans le sprite', () => {
 });
 
 test('plus aucun émoji dans le front', () => {
-    for (const file of ['public/index.html', 'public/tv.html', 'public/install.html', 'public/app.js', 'public/tv.js']) {
+    for (const file of ['public/index.html', 'public/tv.html', 'public/install.html', 'public/ui.js', 'public/app.js', 'public/tv.js']) {
         assert.deepStrictEqual(pictos(read(file)), [], file);
     }
 });

@@ -1,5 +1,6 @@
 const { EventEmitter } = require('node:events');
 const { randomUUID } = require('node:crypto');
+const config = require('./config.js');
 const matching = require('./matching.js');
 const { hints } = require('./hints.js');
 const sources = require('./sources.js');
@@ -10,7 +11,7 @@ const OPTION_VALUES = { rounds: [5, 10, 15, 20], guessSeconds: [15, 20, 30], mod
 const POINTS = { find: 500, both: 200, first: 100, minSpeed: 0.3 };
 const MAX_PLAYERS = 60;
 const PREVIEW_MS = 30000;
-const DEFAULT_SOURCES = { loadPlaylist: sources.loadPlaylist, resolveAll: previews.resolveAll, freshUrl: previews.freshUrl };
+const DEFAULT_SOURCES = config.sourcesModule ? require(config.sourcesModule) : { loadPlaylist: sources.loadPlaylist, resolveAll: previews.resolveAll, freshUrl: previews.freshUrl };
 
 function shuffle(list) {
     const result = [...list];
@@ -30,6 +31,9 @@ function freshPlayer(base) {
         score: base.score || 0,
         gained: 0,
         found: { title: false, artist: false },
+        precision: { title: 0, artist: 0 },
+        speedAt: { title: 0, artist: 0 },
+        bothBonus: false,
         answered: false,
         lastGuess: '',
         lastGuessAt: 0,
@@ -169,7 +173,7 @@ class Game extends EventEmitter {
 
     resetPlayers() {
         for (const player of this.players.values()) {
-            Object.assign(player, { score: 0, gained: 0, found: { title: false, artist: false }, answered: false, lastGuess: '', firsts: 0, fastestMs: 0, fastestTrack: '' });
+            Object.assign(player, { score: 0, gained: 0, found: { title: false, artist: false }, precision: { title: 0, artist: 0 }, speedAt: { title: 0, artist: 0 }, bothBonus: false, answered: false, lastGuess: '', firsts: 0, fastestMs: 0, fastestTrack: '' });
         }
         this.wildest = null;
         this.stats = null;
@@ -355,6 +359,9 @@ class Game extends EventEmitter {
         for (const player of this.players.values()) {
             player.gained = 0;
             player.found = { title: false, artist: false };
+            player.precision = { title: 0, artist: 0 };
+            player.speedAt = { title: 0, artist: 0 };
+            player.bothBonus = false;
             player.lastGuess = '';
             player.answered = false;
         }
@@ -618,34 +625,16 @@ class Game extends EventEmitter {
         const mode = this.settings.mode;
         const elapsed = now - this.guessStartedAt;
         const speed = 1 - (1 - POINTS.minSpeed) * Math.min(1, elapsed / this.settings.guessMs);
-        const result = { accepted: true, title: false, artist: false, gained: 0 };
+        const result = { accepted: true, title: false, artist: false, approx: false, gained: 0 };
 
         const parts = mode === 'both' ? matching.splitGuess(cleaned, this.track.name, this.track.artists) : null;
-        if (mode !== 'artist' && !player.found.title && matching.matchesTitle(parts ? parts.title : cleaned, this.track.name)) {
-            player.found.title = true;
-            result.title = true;
-            let points = Math.round(POINTS.find * speed);
-            if (!this.firstTitle) {
-                this.firstTitle = player.token;
-                player.firsts++;
-                points += POINTS.first;
-            }
-            result.gained += points;
-        }
-        if (mode !== 'title' && !player.found.artist && matching.matchesArtist(parts ? parts.artist : cleaned, this.track.artists)) {
-            player.found.artist = true;
-            result.artist = true;
-            let points = Math.round(POINTS.find * speed);
-            if (!this.firstArtist) {
-                this.firstArtist = player.token;
-                player.firsts++;
-                points += POINTS.first;
-            }
-            result.gained += points;
-        }
-        if (mode === 'both' && result.gained && player.found.title && player.found.artist) {
+        if (mode !== 'artist') this.award(player, 'title', matching.titleQuality(parts ? parts.title : cleaned, this.track.name), speed, result);
+        if (mode !== 'title') this.award(player, 'artist', matching.artistQuality(parts ? parts.artist : cleaned, this.track.artists), speed, result);
+        if (mode === 'both' && !player.bothBonus && player.found.title && player.found.artist) {
+            player.bothBonus = true;
             result.gained += POINTS.both;
         }
+        result.precision = { ...player.precision };
         if (result.gained) {
             const ms = Math.max(1, elapsed);
             if (!player.fastestMs || ms < player.fastestMs) {
@@ -658,6 +647,29 @@ class Game extends EventEmitter {
             if (!this.paused && this.everyoneDone()) this.schedule(1500, () => this.endGuess());
         }
         return result;
+    }
+
+    award(player, part, quality, speed, result) {
+        const previous = player.precision[part];
+        if (!quality || quality <= previous) return;
+        let points;
+        if (previous) {
+            points = Math.round(POINTS.find * player.speedAt[part] * (quality - previous));
+        } else {
+            points = Math.round(POINTS.find * speed * quality);
+            player.speedAt[part] = speed;
+            const first = part === 'title' ? 'firstTitle' : 'firstArtist';
+            if (!this[first]) {
+                this[first] = player.token;
+                player.firsts++;
+                points += POINTS.first;
+            }
+        }
+        player.precision[part] = quality;
+        player.found[part] = true;
+        result[part] = true;
+        if (quality < 1) result.approx = true;
+        result.gained += points;
     }
 
     everyoneDone() {

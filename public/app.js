@@ -2,18 +2,11 @@
     'use strict';
 
     const $ = (id) => document.getElementById(id);
+    const { attempt, icon, label, formatHint, renderHint, rankMark } = window.UI;
     const screens = ['home', 'join', 'lobby', 'game', 'reveal', 'podium'];
     const roomMatch = location.pathname.match(/^\/r\/([A-Za-z0-9]{3,12})/);
     const room = roomMatch ? roomMatch[1].toUpperCase() : '';
     const api = `/api/r/${room}`;
-
-    function attempt(fn, fallback) {
-        try {
-            return fn();
-        } catch (_error) {
-            return fallback;
-        }
-    }
 
     const storage = {
         get: (key) => attempt(() => localStorage.getItem(key), '') || '',
@@ -30,7 +23,7 @@
     let state = null;
     let offset = 0;
     let lastRound = 0;
-    let myFound = { title: false, artist: false };
+    let myFound = { title: 0, artist: 0 };
     let timerFrame = null;
     let countdownTimer = null;
     let lastPhase = '';
@@ -48,46 +41,13 @@
     const player = new Audio();
     player.preload = 'auto';
 
-    const SVG_NS = 'http://www.w3.org/2000/svg';
-
-    function icon(name, extra) {
-        const element = document.createElementNS(SVG_NS, 'svg');
-        element.setAttribute('class', extra ? `icon ${extra}` : 'icon');
-        element.setAttribute('aria-hidden', 'true');
-        const use = document.createElementNS(SVG_NS, 'use');
-        use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#i-${name}`);
-        use.setAttribute('href', `#i-${name}`);
-        element.appendChild(use);
-        return element;
+    function syncTheme() {
+        const app = window.BlindTestApp;
+        if (!app) return;
+        const theme = attempt(() => (typeof app.theme === 'function' ? app.theme() : ''), '') === 'light' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
     }
-
-    function label(element, name, text) {
-        element.textContent = '';
-        if (name) element.appendChild(icon(name));
-        if (text) element.appendChild(document.createTextNode((name ? ' ' : '') + text));
-    }
-
-    function renderHint(element, lines, previous) {
-        const signature = lines.map((line) => `${line.icon}:${line.text}`).join('|');
-        if (signature === previous) return previous;
-        element.textContent = '';
-        for (const line of lines) {
-            const row = document.createElement('span');
-            row.className = 'hint-line';
-            row.appendChild(icon(line.icon));
-            row.appendChild(document.createTextNode(' ' + line.text));
-            element.appendChild(row);
-        }
-        element.classList.remove('fresh');
-        void element.offsetWidth;
-        if (lines.length) element.classList.add('fresh');
-        return signature;
-    }
-
-    function rankMark(index) {
-        if (index > 2) return document.createTextNode(`${index + 1}.`);
-        return icon(index ? 'medal' : 'crown', `medal-${index + 1}`);
-    }
+    syncTheme();
 
     function renderSpeaker() {
         label($('host-speaker'), speaker ? 'volume-2' : 'volume-x', `Son sur ce téléphone : ${speaker ? 'oui' : 'non'}`);
@@ -288,18 +248,6 @@
         syncAudio();
     }
 
-    function spaced(pattern) {
-        return pattern.split(' ').map((word) => word.split('').join(' ')).join('   ');
-    }
-
-    function formatHint(hint) {
-        if (!hint) return [];
-        const lines = [];
-        if (hint.title) lines.push({ icon: 'music', text: spaced(hint.title) });
-        if (hint.artist) lines.push({ icon: 'mic', text: spaced(hint.artist) });
-        return lines;
-    }
-
     function playlistLabel(playlist, long) {
         if (!playlist) return long ? 'Aucune playlist chargée' : '';
         const base = `${playlist.name}${playlist.partial ? ' (100 premiers titres)' : ''}`;
@@ -398,8 +346,8 @@
             const result = await post(`${api}/guess`, { token, text: id });
             if (result.correct) {
                 myChoice = { id, correct: true };
-                if (result.title) myFound.title = true;
-                if (result.artist) myFound.artist = true;
+                if (result.title) myFound.title = 1;
+                if (result.artist) myFound.artist = 1;
                 feedback(`Bonne réponse ! +${result.gained} pts`, true, 'circle-check');
                 if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
             } else if (result.accepted) {
@@ -456,8 +404,9 @@
             $('my-found').hidden = Boolean(choices);
             if (choices) renderChoices(choices);
             const chips = [];
-            if (state.mode !== 'artist') chips.push(myFound.title ? { icon: 'circle-check', text: 'Titre trouvé', done: true } : { icon: 'music', text: 'Titre ?' });
-            if (state.mode !== 'title') chips.push(myFound.artist ? { icon: 'circle-check', text: 'Artiste trouvé', done: true } : { icon: 'mic', text: 'Artiste ?' });
+            const chip = (part, name, found) => (found >= 1 ? { icon: 'circle-check', text: `${name} trouvé`, done: true } : found ? { icon: 'circle-check', text: `${name} à peu près`, done: true } : { icon: part, text: `${name} ?` });
+            if (state.mode !== 'artist') chips.push(chip('music', 'Titre', myFound.title));
+            if (state.mode !== 'title') chips.push(chip('mic', 'Artiste', myFound.artist));
             const signature = chips.map((chip) => chip.icon + chip.text).join('|');
             if (signature !== lastChips) {
                 lastChips = signature;
@@ -507,7 +456,7 @@
             const item = document.createElement('li');
             const score = document.createElement('b');
             score.textContent = entry.score;
-            item.append(rankMark(index), ` ${entry.name}${entry.team ? ` [${entry.team}]` : ''} — `, score, ' pts');
+            item.append(rankMark(index, '.'), ` ${entry.name}${entry.team ? ` [${entry.team}]` : ''} — `, score, ' pts');
             list.appendChild(item);
         });
         const stats = state.stats || {};
@@ -529,7 +478,7 @@
         if (!state) return;
         if (state.round !== lastRound) {
             lastRound = state.round;
-            myFound = { title: false, artist: false };
+            myFound = { title: 0, artist: 0 };
             myChoice = null;
             renderedChoices = '';
             lastChips = '';
@@ -539,6 +488,7 @@
         }
 
         $('host-toggle').hidden = !isHost;
+        $('more-toggle').hidden = !isHost;
         $('lobby-host').hidden = isHost;
         $('lobby-setup').hidden = !isHost;
         $('podium-actions').hidden = !isHost;
@@ -649,8 +599,9 @@
         $('host-panel').hidden = name !== 'host';
         $('settings-panel').hidden = name !== 'settings';
         $('host-backdrop').hidden = !name;
-        $('host-toggle').setAttribute('aria-expanded', String(Boolean(name)));
-        if (name === 'host') refreshHost();
+        $('host-toggle').setAttribute('aria-expanded', String(name === 'host'));
+        $('more-toggle').setAttribute('aria-expanded', String(name === 'settings'));
+        if (name) refreshHost();
     }
 
     function toggleHostPanel(open) {
@@ -763,15 +714,16 @@
         $('guess-input').value = '';
         try {
             const result = await post(`${api}/guess`, { token, text });
-            if (result.title && result.artist) feedback(`Titre + artiste ! +${result.gained} pts`, true, 'flame');
-            else if (result.title) feedback(`Titre ! +${result.gained} pts`, true, 'music');
-            else if (result.artist) feedback(`Artiste ! +${result.gained} pts`, true, 'mic');
+            const approx = result.approx ? ', à peu près' : '';
+            if (result.title && result.artist) feedback(`Titre + artiste${approx} ! +${result.gained} pts`, true, 'flame');
+            else if (result.title) feedback(`Titre${approx} ! +${result.gained} pts`, true, 'music');
+            else if (result.artist) feedback(`Artiste${approx} ! +${result.gained} pts`, true, 'mic');
             else if (result.reason === 'throttle') feedback('Doucement…', false, 'hourglass');
             else if (result.reason === 'paused') feedback('Pause', false, 'pause');
             else if (result.accepted) feedback('Non, essaie encore', false, 'circle-x');
             if (result.gained && navigator.vibrate) navigator.vibrate(result.title && result.artist ? [60, 40, 60] : 40);
-            if (result.title) myFound.title = true;
-            if (result.artist) myFound.artist = true;
+            if (result.title) myFound.title = result.precision ? result.precision.title : 1;
+            if (result.artist) myFound.artist = result.precision ? result.precision.artist : 1;
             render();
         } catch (error) {
             if (error.message.includes('inconnu')) {
@@ -813,8 +765,7 @@
     $('host-toggle').addEventListener('click', () => toggleHostPanel($('host-panel').hidden));
     $('host-close').addEventListener('click', () => toggleHostPanel(false));
     $('host-backdrop').addEventListener('click', () => showSheet(null));
-    $('open-settings').addEventListener('click', () => showSheet('settings'));
-    $('settings-back').addEventListener('click', () => showSheet('host'));
+    $('more-toggle').addEventListener('click', () => showSheet($('settings-panel').hidden ? 'settings' : null));
     $('settings-close').addEventListener('click', () => showSheet(null));
     function sheetGestures(panel, grab) {
         let pointerId = null;
@@ -1024,6 +975,7 @@
 
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState !== 'visible') return;
+        syncTheme();
         if (token) keepAwake();
         if (source && Date.now() - lastMessage > 30000) connect();
     });

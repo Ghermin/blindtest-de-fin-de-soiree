@@ -35,9 +35,9 @@ d'être sur le même Wi-Fi, ou sur le partage de connexion du téléphone.
   statistiques de la soirée. Pendant la partie l'hôte peut mettre en pause,
   passer, terminer ou revenir au lobby ; sur le podium, rejouer ou modifier.
 - L'hôte gère les équipes (créer, renommer, déplacer un joueur), retire un
-  joueur parti, remet les scores à zéro ou vide la salle. Un panneau
-  Paramètres à part regroupe ce qui concerne l'appli. Thème clair ou sombre :
-  celui du téléphone ; sur la TV, un bouton soleil ou lune.
+  joueur parti, remet les scores à zéro ou vide la salle. Le bouton « … » en
+  bas à gauche ouvre les Paramètres de l'appli. Thème clair ou sombre : celui
+  du téléphone ; sur la TV, un bouton soleil ou lune.
 
 Les réponses tolèrent accents, majuscules, ponctuation, articles, « feat. »,
 « (Remastered) », une petite faute de frappe, titre et artiste dans la même
@@ -49,12 +49,16 @@ dernières secondes.
 
 | Trouvé | Points |
 |---|---|
-| Titre | 500 × vitesse |
-| Artiste | 500 × vitesse |
+| Titre | 500 × vitesse × précision |
+| Artiste | 500 × vitesse × précision |
 | Les deux dans la manche | +200 |
 | Premier sur le titre / l'artiste | +100 |
 
 La vitesse décroît linéairement de 1.0 (immédiat) à 0.3 (dernière seconde).
+La précision vaut 100 % pour la réponse exacte, 90 % avec une faute de frappe
+ou les mots dans le désordre, 70 % pour un seul mot significatif ; en mode
+titre + artiste on peut donner l'un puis l'autre, et préciser une réponse
+approximative rapporte la différence.
 Deux parties de suite sur la même playlist ne rejouent pas les mêmes titres.
 Au podium : le plus rapide, le plus souvent premier, la réponse la plus hors
 sujet.
