@@ -68,4 +68,7 @@ test('la table embarquée reconnaît les génériques connus', () => {
     assert.strictEqual(work({ name: 'Billie Jean', artists: ['Michael Jackson'], album: 'Thriller' }), '');
     assert.strictEqual(work({ name: 'Gurenge', artists: ['Un Groupe Inconnu'] }), 'Demon Slayer: Kimetsu no Yaiba');
     assert.strictEqual(work({ name: 'Unravel', artists: ['TK from Ling tosite sigure'], album: 'Unravel' }), 'Tokyo Ghoul');
+    assert.strictEqual(work({ name: 'Gurenge -TV version-', artists: ['LiSA'] }), 'Demon Slayer: Kimetsu no Yaiba');
+    assert.match(work({ name: 'Blue Bird', artists: ['Ikimonogakari'], album: 'My song Your song' }), /Naruto/);
+    assert.match(work({ name: 'Ghostbusters (Theme from "Ghostbusters")', artists: ["80's Greatest Hits"] }), /Ghostbusters|Fantômes/);
 });

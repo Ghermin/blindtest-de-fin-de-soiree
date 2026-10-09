@@ -7,8 +7,11 @@ process.env.BLINDTEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'blindtes
 const test = require('node:test');
 const assert = require('node:assert');
 const deezer = require('../src/deezer.js');
+const http = require('../src/http.js');
 const { resolveWorks } = require('../src/previews.js');
 const { work } = require('../src/works.js');
+
+http.getJson = async () => ({ results: [] });
 
 const CANDIDATES = {
     'Zabatron zoroastre': [

@@ -6,7 +6,7 @@ const deezer = require('./deezer.js');
 const matching = require('./matching.js');
 const works = require('./works.js');
 
-const ITUNES_SPACING_MS = 3500;
+
 const FLAGS = /\b(live|remix|karaoke|instrumental|cover|acoustic|acoustique|version|edit|mix|demo|reprise)\b/i;
 let cache = null;
 let saveTimer = null;
@@ -86,7 +86,7 @@ function query(track) {
 }
 
 async function itunesSearch(track) {
-    const wait = lastItunes + ITUNES_SPACING_MS - Date.now();
+    const wait = lastItunes + config.itunesMs - Date.now();
     if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
     lastItunes = Date.now();
     const params = new URLSearchParams({ term: query(track), media: 'music', entity: 'song', limit: '10', country: config.country });
@@ -148,10 +148,8 @@ async function resolveAll(tracks, options = {}) {
     }
 }
 
-async function lookupWork(track) {
-    const wanted = matching.normalize(track.name);
-    if (!wanted) return '';
-    for (const candidate of await deezer.search(query(track))) {
+function pickWork(track, candidates, wanted) {
+    for (const candidate of candidates) {
         if (matching.normalize(candidate.title) !== wanted) continue;
         const sameArtist = matching.artistQuality(candidate.artist, track.artists) > 0;
         const found = works.work({
@@ -162,6 +160,14 @@ async function lookupWork(track) {
         if (found) return found;
     }
     return '';
+}
+
+async function lookupWork(track) {
+    const wanted = matching.normalize(track.name);
+    if (!wanted) return '';
+    const fromDeezer = pickWork(track, await deezer.search(query(track)).catch(() => []), wanted);
+    if (fromDeezer) return fromDeezer;
+    return pickWork(track, await itunesSearch(track).catch(() => []), wanted);
 }
 
 async function resolveWork(track) {
