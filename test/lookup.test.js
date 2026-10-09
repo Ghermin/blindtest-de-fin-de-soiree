@@ -77,3 +77,21 @@ test('la recherche s\'arrête à la demande', async () => {
     await resolveWorks(tracks, { cancelled: () => calls >= 1 });
     assert.strictEqual(calls, 1);
 });
+
+test('un « rien trouvé » d\'une version précédente est recherché à nouveau', async () => {
+    const file = path.join(process.env.BLINDTEST_DATA_DIR, 'previews.json');
+    const cache = JSON.parse(fs.readFileSync(file, 'utf8'));
+    cache['d:8'] = { source: 'deezer', id: 9, work: '' };
+    fs.writeFileSync(file, JSON.stringify(cache));
+    delete require.cache[require.resolve('../src/previews.js')];
+    const fresh = require('../src/previews.js');
+    let calls = 0;
+    deezer.search = async () => {
+        calls++;
+        return [{ id: 1, title: 'Zoroastre', artist: 'Cover Band', album: 'Kimetsu no Yaiba Original Soundtrack' }];
+    };
+    const tracks = [{ uri: 'd:8', name: 'Zoroastre', artists: ['Zabatron'] }];
+    await fresh.resolveWorks(tracks);
+    assert.strictEqual(calls, 1);
+    assert.strictEqual(work(tracks[0]), '');
+});
