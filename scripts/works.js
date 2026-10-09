@@ -7,7 +7,7 @@ const AGENT = 'blindtest-de-fin-de-soiree/1.0 (https://github.com/Ghermin/blindt
 const TARGET = path.join(__dirname, '..', 'src', 'works.json');
 const WIKIDATA = 'https://query.wikidata.org/sparql';
 const THEMES = 'https://api.animethemes.moe/anime?include=animethemes.song.artists&fields[anime]=name&page[size]=100';
-const MIN_SITELINKS = 5;
+const MIN_SITELINKS = 2;
 const MAX_WORK_LENGTH = 42;
 const MAX_ENTRIES = 12;
 const MAX_PAGES = 200;

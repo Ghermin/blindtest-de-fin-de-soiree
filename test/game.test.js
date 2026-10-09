@@ -277,6 +277,7 @@ test('option « titres identifiés » : seuls les titres avec un film, une séri
     game.join('Zoé');
     await game.setPlaylist('x');
     await until(() => game.playlist.ready, 2000);
+    game.playlist.name = 'Musiques de films';
     game.allTracks[0].work = 'Naruto';
     game.allTracks[2].work = 'Interstellar';
     assert.strictEqual(game.publicState().playlist.identified, 2);
@@ -414,4 +415,24 @@ test('la révélation montre la pochette du titre, celle de l\'extrait à défau
     assert.strictEqual(game.publicState().track.image, 'https://img/deezer.jpg');
     game.track = { ...TRACKS[2], match: { source: 'itunes', id: 3, url: 'https://x/3.m4a' } };
     assert.strictEqual(game.publicState().track.image, 'https://img/playlist.jpg');
+});
+
+test('hors playlist de BO, une chanson de film ne reçoit pas son œuvre', async () => {
+    const game = make();
+    game.join('Zoé');
+    await game.setPlaylist('x');
+    await until(() => game.playlist.ready, 2000);
+    game.playlist.name = 'Tubes des années 80';
+    game.allTracks[0].work = 'Top Gun';
+    assert.strictEqual(game.soundtrackPlaylist(), false);
+    assert.strictEqual(game.publicState().playlist.identified, 0);
+    game.setOptions({ answers: 'choices', mode: 'title' });
+    game.start({ rounds: 1 });
+    await until(() => game.phase === 'guess', 2000);
+    for (const choice of game.publicState().choices) assert.doesNotMatch(choice.label, /Top Gun/);
+    game.stop();
+
+    game.playlist.name = 'Musiques de films cultes';
+    assert.strictEqual(game.soundtrackPlaylist(), true);
+    assert.strictEqual(game.publicState().playlist.identified, 1);
 });

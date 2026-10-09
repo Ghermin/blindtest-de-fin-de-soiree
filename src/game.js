@@ -7,7 +7,7 @@ const sources = require('./sources.js');
 const previews = require('./previews.js');
 const works = require('./works.js');
 
-const DEFAULTS = { rounds: 10, guessMs: 30000, countdownMs: 3000, revealMs: 8000, mode: 'both', hints: true, answers: 'text', play: 'solo', known: false };
+const DEFAULTS = { rounds: 10, guessMs: 30000, countdownMs: 3000, revealMs: 8000, mode: 'both', hints: true, answers: 'text', play: 'solo', known: false, works: false };
 const OPTION_VALUES = { rounds: [5, 10, 15, 20], guessSeconds: [15, 20, 30], mode: ['both', 'title', 'artist'], answers: ['text', 'choices'], play: ['solo', 'teams'] };
 const POINTS = { find: 500, both: 200, first: 100, minSpeed: 0.3 };
 const MAX_PLAYERS = 60;
@@ -269,6 +269,7 @@ class Game extends EventEmitter {
         if (generation !== this.resolveGeneration) return;
         this.playlist.ready = true;
         this.log(`Extraits : ${this.playlist.resolved} trouvés, ${this.playlist.missing} manquants`);
+        this.applyWorksDefault();
         this.changed();
         this.resolveWorks(generation);
     }
@@ -287,6 +288,8 @@ class Game extends EventEmitter {
         }).catch(() => 0);
         if (generation !== this.resolveGeneration) return;
         this.log(`Œuvres identifiées : ${this.allTracks.filter((track) => works.work(track)).length} titres (${found} par recherche)`);
+        this.applyWorksDefault();
+        this.changed();
     }
 
     playable() {
@@ -294,7 +297,20 @@ class Game extends EventEmitter {
     }
 
     identified() {
-        return this.playable().filter((track) => works.work(track));
+        return this.soundtrackPlaylist() ? this.playable().filter((track) => works.work(track)) : [];
+    }
+
+    applyWorksDefault() {
+        this.options = { ...this.options, known: this.identified().length >= 3 };
+    }
+
+    soundtrackPlaylist() {
+        if (!this.playlist) return false;
+        if (WORK_PLAYLIST.test(this.playlist.name || '')) return true;
+        const playable = this.playable();
+        if (playable.length < 5) return false;
+        const found = playable.filter((track) => works.work(track)).length;
+        return found >= Math.max(5, Math.round(playable.length * 0.3));
     }
 
     unplayed() {
@@ -334,7 +350,8 @@ class Game extends EventEmitter {
             fresh = playable;
             this.log('Tous les titres ont déjà été joués, l\'historique repart de zéro');
         }
-        if (wanted.known) {
+        const soundtrack = this.soundtrackPlaylist();
+        if (wanted.known && soundtrack) {
             const identified = fresh.filter((track) => works.work(track));
             if (identified.length < 3) throw new Error(`Seulement ${this.identified().length} titre(s) de cette playlist ont un film, une série ou un anime identifié : désactive l'option ou choisis une autre playlist`);
             fresh = identified;
@@ -351,7 +368,8 @@ class Game extends EventEmitter {
             mode,
             answers,
             play: wanted.play === 'teams' ? 'teams' : 'solo',
-            known: Boolean(wanted.known),
+            works: soundtrack,
+            known: Boolean(wanted.known) && soundtrack,
             hints: wanted.hints !== false && answers !== 'choices'
         };
         this.queue = shuffle(fresh).slice(0, rounds);
@@ -588,16 +606,18 @@ class Game extends EventEmitter {
 
     choiceLabel(track) {
         const artist = (track.artists || [])[0] || '';
-        if (this.settings.mode === 'title') return works.withWork(track.name, track);
-        if (this.settings.mode === 'artist') return works.withWork(artist, track);
-        return works.withWork(`${track.name} — ${artist}`, track);
+        const mode = this.settings.mode;
+        const base = mode === 'title' ? track.name : (mode === 'artist' ? artist : `${track.name} — ${artist}`);
+        return this.settings.works ? works.withWork(base, track) : base;
     }
 
     distractors(track) {
+        const pool = shuffle(this.allTracks.filter((candidate) => candidate.uri !== track.uri));
+        if (!this.settings.works) return pool;
         const wanted = Boolean(works.work(track));
         const alike = [];
         const rest = [];
-        for (const entry of shuffle(this.allTracks.filter((candidate) => candidate.uri !== track.uri))) {
+        for (const entry of pool) {
             if (Boolean(works.work(entry)) === wanted) alike.push(entry);
             else rest.push(entry);
         }
@@ -761,7 +781,7 @@ class Game extends EventEmitter {
             choices: this.phase === 'guess' && this.settings.answers === 'choices' ? this.choices : null,
             correctChoice: showTrack ? this.correctChoice : null,
             audio: this.audio,
-            playlist: this.playlist ? { ...this.playlist, remaining: this.unplayed().length, identified: this.identified().length } : null,
+            playlist: this.playlist ? { ...this.playlist, remaining: this.unplayed().length, identified: this.identified().length, soundtrack: this.soundtrackPlaylist() } : null,
             players: players.map((player) => ({
                 id: player.id,
                 name: player.name,
