@@ -38,9 +38,11 @@ function clean(text) {
         .trim();
 }
 
+const PUNCTUATION = /[\s!-/:-@[-`{-~\u00a1-\u00bf\u2000-\u206f\u3000-\u303f\uff01-\uff20\uff3b-\uff40\uff5b-\uff65]+/g;
+
 function key(text) {
     const latin = matching.normalize(text);
-    return latin || String(text || '').toLowerCase().replace(/[\s\p{P}\p{S}]+/gu, '');
+    return latin || String(text || '').toLowerCase().replace(PUNCTUATION, '');
 }
 
 function simplify(text) {
@@ -48,7 +50,7 @@ function simplify(text) {
         .toLowerCase()
         .normalize('NFD')
         .replace(/[̀-ͯ]/g, '')
-        .replace(/[^\p{L}\p{N}]+/gu, ' ')
+        .replace(PUNCTUATION, ' ')
         .trim();
 }
 
