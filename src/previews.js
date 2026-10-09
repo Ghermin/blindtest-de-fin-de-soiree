@@ -4,6 +4,7 @@ const config = require('./config.js');
 const http = require('./http.js');
 const deezer = require('./deezer.js');
 const matching = require('./matching.js');
+const works = require('./works.js');
 
 const ITUNES_SPACING_MS = 3500;
 const FLAGS = /\b(live|remix|karaoke|instrumental|cover|acoustic|acoustique|version|edit|mix|demo|reprise)\b/i;
@@ -96,6 +97,7 @@ async function itunesSearch(track) {
         artist: item.artistName || '',
         durationMs: item.trackTimeMillis || 0,
         url: item.previewUrl || '',
+        album: item.collectionName || '',
         image: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '600x600bb') : null
     }));
 }
@@ -119,16 +121,16 @@ async function withCover(track, match) {
 async function resolve(track) {
     if (track.match) return withCover(track, track.match);
     const cached = loadCache()[track.uri];
-    if (cached && cached.source) return withCover(track, { source: cached.source, id: cached.id, url: cached.url, image: cached.image || null });
+    if (cached && cached.source) return withCover(track, { source: cached.source, id: cached.id, url: cached.url, image: cached.image || null, album: cached.album || '' });
     const fromDeezer = pick(track, await deezer.search(query(track)).catch(() => []));
     if (fromDeezer) {
-        const match = { source: 'deezer', id: fromDeezer.id, image: fromDeezer.image || null };
+        const match = { source: 'deezer', id: fromDeezer.id, image: fromDeezer.image || null, album: fromDeezer.album || '' };
         remember(track.uri, match);
         return match;
     }
     const fromItunes = pick(track, await itunesSearch(track).catch(() => []));
     if (fromItunes) {
-        const match = { source: 'itunes', id: fromItunes.id, url: fromItunes.url, image: fromItunes.image || null };
+        const match = { source: 'itunes', id: fromItunes.id, url: fromItunes.url, image: fromItunes.image || null, album: fromItunes.album || '' };
         remember(track.uri, match);
         return match;
     }
@@ -146,6 +148,45 @@ async function resolveAll(tracks, options = {}) {
     }
 }
 
+async function lookupWork(track) {
+    const wanted = matching.normalize(track.name);
+    if (!wanted) return '';
+    for (const candidate of await deezer.search(query(track))) {
+        if (matching.normalize(candidate.title) !== wanted) continue;
+        const sameArtist = matching.artistQuality(candidate.artist, track.artists) > 0;
+        const found = works.work({
+            name: candidate.title,
+            artists: [candidate.artist, ...(track.artists || [])],
+            album: sameArtist ? candidate.album : ''
+        });
+        if (found) return found;
+    }
+    return '';
+}
+
+async function resolveWork(track) {
+    if (works.work(track)) return;
+    const cached = loadCache()[track.uri];
+    if (cached && typeof cached.work === 'string') {
+        track.work = cached.work;
+        return;
+    }
+    const found = await lookupWork(track).catch(() => '');
+    remember(track.uri, { ...(cached || {}), work: found });
+    track.work = found;
+}
+
+async function resolveWorks(tracks, options = {}) {
+    const cancelled = options.cancelled || (() => false);
+    let found = 0;
+    for (const track of tracks) {
+        if (cancelled()) return found;
+        await resolveWork(track);
+        if (track.work) found++;
+    }
+    return found;
+}
+
 async function freshUrl(match) {
     if (!match) throw new Error('Aucun extrait pour ce titre');
     if (match.source === 'deezer') return deezer.preview(match.id);
@@ -153,4 +194,4 @@ async function freshUrl(match) {
     throw new Error('Extrait introuvable');
 }
 
-module.exports = { score, pick, query, resolve, resolveAll, freshUrl };
+module.exports = { score, pick, query, resolve, resolveAll, resolveWorks, freshUrl };

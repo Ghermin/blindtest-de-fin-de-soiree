@@ -25,6 +25,10 @@ async function call(route, retry = true) {
     return data;
 }
 
+function albumName(track) {
+    return track && track.album ? track.album.title || '' : '';
+}
+
 function cover(track) {
     return track && track.album ? track.album.cover_medium || track.album.cover || null : null;
 }
@@ -34,6 +38,7 @@ function normalizeTrack(track) {
         uri: `deezer:track:${track.id}`,
         name: track.title,
         artists: track.artist ? [track.artist.name] : [],
+        album: albumName(track),
         image: cover(track),
         durationMs: (track.duration || 0) * 1000,
         match: { source: 'deezer', id: track.id, image: cover(track) }
@@ -64,6 +69,7 @@ async function search(query) {
         artist: track.artist ? track.artist.name : '',
         durationMs: (track.duration || 0) * 1000,
         url: track.preview || '',
+        album: albumName(track),
         image: cover(track)
     }));
 }

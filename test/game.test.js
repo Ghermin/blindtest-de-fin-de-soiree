@@ -265,11 +265,28 @@ test('mode QCM : propositions, une seule réponse par joueur, points sur la bonn
 test('les options sont validées, visibles dans l\'état et conservées à la sauvegarde', () => {
     const game = make();
     game.setOptions({ rounds: 15, guessSeconds: 99, mode: 'artist', answers: 'nope', play: 'teams', hints: false });
-    assert.deepStrictEqual(game.options, { rounds: 15, guessSeconds: 30, mode: 'artist', hints: false, answers: 'text', play: 'teams' });
+    assert.deepStrictEqual(game.options, { rounds: 15, guessSeconds: 30, mode: 'artist', hints: false, answers: 'text', play: 'teams', known: false });
     assert.strictEqual(game.publicState().options.play, 'teams');
     const copy = make();
     copy.restore(JSON.parse(JSON.stringify(game.toJSON())));
     assert.strictEqual(copy.options.play, 'teams');
+});
+
+test('option « titres identifiés » : seuls les titres avec un film, une série ou un anime sont joués', async () => {
+    const game = make();
+    game.join('Zoé');
+    await game.setPlaylist('x');
+    await until(() => game.playlist.ready, 2000);
+    game.allTracks[0].work = 'Naruto';
+    game.allTracks[2].work = 'Interstellar';
+    assert.strictEqual(game.publicState().playlist.identified, 2);
+    game.setOptions({ known: true });
+    assert.throws(() => game.start(), /identifié/);
+    game.allTracks[1].work = 'Le Roi Lion';
+    game.start();
+    assert.strictEqual(game.queue.length, 3);
+    assert.ok(game.queue.every((track) => track.work));
+    game.stop();
 });
 
 test('l\'hôte peut retirer un joueur, remettre les scores à zéro et vider la salle', () => {

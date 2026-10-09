@@ -2,7 +2,7 @@
     'use strict';
 
     const $ = (id) => document.getElementById(id);
-    const { attempt, icon, label, formatHint, renderHint, rankMark } = window.UI;
+    const { attempt, icon, label, formatHint, renderHint, rankMark, clipPlayer } = window.UI;
     const screens = ['missing', 'lobby', 'countdown', 'guess', 'reveal', 'podium'];
     const roomMatch = location.pathname.match(/^\/r\/([A-Za-z0-9]{3,12})\/tv$/);
     const room = roomMatch ? roomMatch[1].toUpperCase() : '';
@@ -14,16 +14,18 @@
     let lastMessage = 0;
     let lastPhase = '';
     let audio = null;
-    let playerSrc = '';
+    let qrUrl = null;
     let renderedChoices = '';
     let lastHint = '';
     const seen = new Map();
-    const player = new Audio();
-    player.preload = 'auto';
 
     function now() {
         return Date.now() + offset;
     }
+
+    const clips = clipPlayer({ now, blocked: (flag) => {
+        $('tv-sound').hidden = !flag;
+    } });
 
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
@@ -41,6 +43,7 @@
         const parts = [options.rounds + ' manches', options.guessSeconds + ' s', { both: 'titre + artiste', title: 'titre', artist: 'artiste' }[options.mode] || ''];
         parts.push(options.answers === 'choices' ? 'QCM' : 'clavier');
         if (options.play === 'teams') parts.push('1 téléphone par équipe');
+        if (options.known) parts.push('films identifiés');
         return parts.filter(Boolean).join(' · ');
     }
 
@@ -62,38 +65,8 @@
     }
 
     function syncAudio(fromGesture) {
-        const clip = state && state.audio;
-        const active = clip && clip.url && !state.paused && ['countdown', 'guess', 'reveal'].includes(state.phase);
-        if (!active) {
-            if (!player.paused) player.pause();
-            return;
-        }
-        if (playerSrc !== clip.url) {
-            playerSrc = clip.url;
-            player.src = clip.url;
-            player.load();
-        }
-        if (!clip.startedAt) {
-            if (!player.paused) player.pause();
-            return;
-        }
-        if ((now() - clip.startedAt) / 1000 > 45) {
-            if (!player.paused) player.pause();
-            return;
-        }
-        const seek = () => {
-            const target = Math.max(0, (now() - clip.startedAt) / 1000);
-            if (Math.abs(player.currentTime - target) > 1.5) player.currentTime = target;
-        };
-        if (player.readyState >= 1) seek();
-        else player.addEventListener('loadedmetadata', seek, { once: true });
-        if (player.paused || fromGesture) {
-            player.play().then(() => {
-                $('tv-sound').hidden = true;
-            }).catch(() => {
-                $('tv-sound').hidden = false;
-            });
-        }
+        const live = state && state.audio && !state.paused && ['countdown', 'guess', 'reveal'].includes(state.phase);
+        clips.sync(live ? state.audio : null, fromGesture);
     }
 
     function tone(frequency, duration, type, when) {
@@ -266,8 +239,17 @@
         target.appendChild(document.createTextNode(text.slice(cut)));
     }
 
+    function renderQr(url) {
+        if (url === qrUrl) return;
+        qrUrl = url;
+        const source = url ? `/r/${room}/qr.svg?u=${encodeURIComponent(url)}` : `/r/${room}/qr.svg`;
+        $('tv-qr').src = source;
+        $('tv-qr-big').src = source;
+    }
+
     function render() {
         const url = state.joinUrl || '';
+        renderQr(url);
         renderJoinUrl(url.replace(/^https?:\/\//, ''));
         $('tv-code').textContent = `Code : ${state.room || room}`;
         $('tv-lobby-url').textContent = url;
@@ -294,6 +276,7 @@
             $('tv-mode').textContent = { both: 'Titre + artiste', title: 'Titre seul', artist: 'Artiste seul' }[state.mode] || '';
             const choices = state.choices || [];
             $('tv-choices').hidden = !choices.length;
+            $('tv-choices').classList.toggle('stacked', choices.some((choice) => choice.label.length > 30));
             const signature = choices.map((choice) => choice.label).join('|');
             if (signature !== renderedChoices) {
                 renderedChoices = signature;
@@ -302,8 +285,10 @@
                     const item = document.createElement('li');
                     const letter = document.createElement('b');
                     letter.textContent = 'ABCD'[index] || String(index + 1);
-                    item.appendChild(letter);
-                    item.appendChild(document.createTextNode(' ' + choice.label));
+                    const text = document.createElement('span');
+                    text.className = 'choice-label';
+                    text.textContent = choice.label;
+                    item.append(letter, text);
                     $('tv-choices').appendChild(item);
                 });
             }
@@ -346,8 +331,6 @@
             return;
         }
         seen.clear();
-        $('tv-qr').src = `/r/${room}/qr.svg`;
-        $('tv-qr-big').src = `/r/${room}/qr.svg`;
         connect();
         enableSound();
     }
