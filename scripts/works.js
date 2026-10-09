@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const https = require('node:https');
-const { key } = require('../src/works.js');
+const { key, shorten } = require('../src/works.js');
 
 const AGENT = 'blindtest-de-fin-de-soiree/1.0 (https://github.com/Ghermin/blindtest-de-fin-de-soiree)';
 const TARGET = path.join(__dirname, '..', 'src', 'works.json');
@@ -9,7 +9,7 @@ const WIKIDATA = 'https://query.wikidata.org/sparql';
 const THEMES = 'https://api.animethemes.moe/anime?include=animethemes.song.artists&fields[anime]=name&page[size]=100';
 const MIN_SITELINKS = 5;
 const MAX_WORK_LENGTH = 42;
-const MAX_ENTRIES = 4;
+const MAX_ENTRIES = 12;
 const MAX_PAGES = 200;
 
 const QUERY = `
@@ -59,7 +59,7 @@ async function fromWikidata() {
     const rows = await get(`${WIKIDATA}?format=json&query=${encodeURIComponent(QUERY)}`, 'application/sparql-results+json');
     const entries = [];
     for (const row of rows.results.bindings) {
-        const work = row.workLabel ? row.workLabel.value.trim() : '';
+        const work = shorten(row.workLabel ? row.workLabel.value : '');
         if (!work || work.length > MAX_WORK_LENGTH || /^Q\d+$/.test(work)) continue;
         const links = Number(row.links ? row.links.value : 0) || 0;
         const aliases = row.aliases && row.aliases.value ? row.aliases.value.split('|') : [];
@@ -86,7 +86,7 @@ async function fromAnimeThemes() {
         const page = await get(url, 'application/json');
         pages++;
         for (const anime of page.anime || []) {
-            const work = String(anime.name || '').trim();
+            const work = shorten(anime.name);
             if (!work || work.length > MAX_WORK_LENGTH) continue;
             for (const theme of anime.animethemes || []) {
                 const song = theme.song || {};
@@ -120,15 +120,18 @@ function merge(groups) {
         }
     }
     const table = {};
-    for (const [slot, found] of best) {
+    const named = (slot) => (slot.endsWith('\u0000') ? 0 : 1);
+    const ordered = [...best.entries()].sort((a, b) => named(b[0]) - named(a[0]));
+    for (const [slot, found] of ordered) {
         const cut = slot.indexOf('\u0000');
         const title = slot.slice(0, cut);
         const list = table[title] || (table[title] = []);
         if (list.length < MAX_ENTRIES) list.push([slot.slice(cut + 1), found.work]);
     }
     for (const [title, list] of Object.entries(table)) {
-        const named = list.filter((entry) => entry[0]);
-        if (named.length) table[title] = named;
+        const withArtist = list.filter((entry) => entry[0]);
+        if (withArtist.length) table[title] = withArtist;
+        else delete table[title];
     }
     return table;
 }
