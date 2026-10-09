@@ -831,6 +831,7 @@ class Game extends EventEmitter {
         for (const entry of data.players || []) {
             if (entry && entry.token && entry.name) this.players.set(entry.token, freshPlayer(entry));
         }
+        this.applyWorksDefault();
         const interrupted = !['lobby', 'podium'].includes(data.phase);
         this.phase = data.phase === 'podium' ? 'podium' : 'lobby';
         this.roundIndex = this.phase === 'podium' ? data.roundIndex || 0 : 0;
