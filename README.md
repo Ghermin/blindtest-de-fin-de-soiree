@@ -104,9 +104,12 @@ en cache.
   et SSE) et le front vanilla, mis à jour dans l'appli à chaque lancement.
 - `src/works.js` : reconnaît le film, la série ou l'anime d'un titre — mention
   « from … » du titre, nom de l'album, puis `src/works.json`, une table de
-  génériques connus tirée de Wikidata (`npm run works`, œuvres ayant au moins
-  cinq versions linguistiques) ; sur une playlist de bandes originales, une
-  dernière passe interroge Deezer pour les titres encore muets.
+  14 000 génériques embarquée. `npm run works` la régénère depuis Wikidata
+  (films et séries, œuvres ayant au moins cinq versions linguistiques) et
+  [animethemes.moe](https://animethemes.moe) (animes) ; en cas de conflit
+  Wikidata, plus notoire, l'emporte. Sur une playlist de bandes originales,
+  une dernière passe interroge Deezer puis Apple Music pour les titres encore
+  muets, et garde le résultat en cache.
 - `android/` : l'appli (Kotlin), qui embarque Node via
   [nodejs-mobile](https://github.com/nodejs-mobile/nodejs-mobile) et affiche la
   salle dans une WebView. L'APK est construit et signé par GitHub Actions à

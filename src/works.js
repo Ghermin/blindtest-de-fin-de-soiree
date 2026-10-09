@@ -102,15 +102,20 @@ function table() {
     return cache;
 }
 
+function bareKey(name) {
+    return key(String(name || '').replace(/\s*[([][^)\]]*[)\]]/g, ' ').replace(/\s*-[^-]*-\s*$/, ' '));
+}
+
 function fromTable(track) {
-    const wanted = key(track.name);
-    const entries = wanted.length >= 2 ? table()[wanted] : null;
-    if (!entries || !entries.length) return '';
     const artists = (track.artists || []).map((artist) => key(artist)).filter(Boolean);
-    const found = entries.find(([performer]) => performer && artists.some((artist) => artist === performer || artist.includes(performer) || performer.includes(artist)));
-    if (found) return found[1];
-    const agreed = entries.every(([, value]) => value === entries[0][1]);
-    if (agreed && wanted.length >= 6) return entries[0][1];
+    for (const wanted of [...new Set([key(track.name), bareKey(track.name)])]) {
+        const entries = wanted.length >= 2 ? table()[wanted] : null;
+        if (!entries || !entries.length) continue;
+        const found = entries.find(([performer]) => performer && artists.some((artist) => artist === performer || artist.includes(performer) || performer.includes(artist)));
+        if (found) return found[1];
+        const agreed = entries.every(([, value]) => value === entries[0][1]);
+        if (agreed && wanted.length >= 6) return entries[0][1];
+    }
     return '';
 }
 

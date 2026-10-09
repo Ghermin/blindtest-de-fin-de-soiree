@@ -28,6 +28,7 @@ module.exports = {
     trustProxy: process.env.BLINDTEST_TRUST_PROXY === '1',
     dataDir: process.env.BLINDTEST_DATA_DIR || path.join(__dirname, '..', 'data'),
     country: (process.env.BLINDTEST_COUNTRY || 'FR').toUpperCase(),
+    itunesMs: Number(process.env.BLINDTEST_ITUNES_MS) || 3500,
     repo: process.env.BLINDTEST_REPO || 'https://github.com/Ghermin/blindtest-de-fin-de-soiree',
     pagesUrl: process.env.BLINDTEST_PAGES_URL || 'https://ghermin.github.io/blindtest-de-fin-de-soiree/',
     apkUrl: process.env.BLINDTEST_APK_URL || 'https://github.com/Ghermin/blindtest-de-fin-de-soiree/releases/latest/download/blindtest.apk',
