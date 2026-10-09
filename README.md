@@ -30,13 +30,15 @@ d'être sur le même Wi-Fi, ou sur le partage de connexion du téléphone.
 - Réglages, appliqués en direct et visibles de tous dans le lobby : manches,
   durée, titre et/ou artiste, **clavier ou QCM** (quatre propositions, une
   réponse par manche), **chacun pour soi ou un téléphone par équipe**, indices.
-  En QCM, les propositions sont deux par ligne, toutes de la même taille, et
-  une musique de film, de série ou d'anime affiche l'œuvre entre parenthèses
-  (« Get Wild — TM Network (CITY HUNTER) ») quand les fiches de la playlist le
-  disent ou qu'une recherche la retrouve — et les autres propositions aussi,
-  pour ne pas vendre la mèche. Dès qu'une playlist a des titres identifiés, un
-  réglage **Titres joués** apparaît : *tous*, ou *film, série ou anime
-  identifié* pour ne tirer que ceux-là (il en faut au moins trois).
+  En QCM, les propositions sont deux par ligne et toutes de la même taille.
+- **Playlists de bandes originales** : quand la playlist en est une — son nom
+  le dit (BO, OST, anime, films, Disney…) ou au moins trois titres sur dix
+  sont reconnus — chaque proposition affiche son œuvre entre parenthèses
+  (« Get Wild — TM Network (CITY HUNTER) »), les autres propositions aussi
+  pour ne pas vendre la mèche, et le réglage **Titres joués** passe de
+  lui-même sur *film, série ou anime identifié* : on ne tire que les titres
+  reconnus. L'hôte peut revenir à *tous*. Ailleurs rien ne s'affiche : une
+  chanson qu'un film a utilisée reste une chanson, pas une bande originale.
 - Déroulé : décompte de 3 s, extrait de 30 s, réponses, révélation (la
   dernière réponse de chacun s'affiche), manche suivante, podium avec les
   statistiques de la soirée. Le son s'atténue en douceur avant de passer au
