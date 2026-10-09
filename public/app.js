@@ -2,7 +2,7 @@
     'use strict';
 
     const $ = (id) => document.getElementById(id);
-    const { attempt, icon, label, formatHint, renderHint, rankMark, dialog } = window.UI;
+    const { attempt, icon, label, formatHint, renderHint, rankMark, dialog, clipPlayer } = window.UI;
     const screens = ['home', 'join', 'lobby', 'game', 'reveal', 'podium'];
     const roomMatch = location.pathname.match(/^\/r\/([A-Za-z0-9]{3,12})/);
     const room = roomMatch ? roomMatch[1].toUpperCase() : '';
@@ -33,13 +33,11 @@
     let source = null;
     let sourceToken = null;
     let lastMessage = 0;
-    let playerSrc = '';
     let installUrl = '/install';
     let myChoice = null;
     let renderedChoices = '';
+    let qrUrl = null;
     const seen = new Map();
-    const player = new Audio();
-    player.preload = 'auto';
 
     function syncTheme() {
         const app = window.BlindTestApp;
@@ -221,40 +219,13 @@
         }
     }
 
+    const clips = clipPlayer({ now, blocked: (flag) => {
+        $('sound-help').hidden = !flag;
+    } });
+
     function syncAudio() {
-        const audio = state && state.audio;
-        const active = speaker && audio && audio.url && !state.paused && ['countdown', 'guess', 'reveal'].includes(state.phase);
-        if (!active) {
-            if (!player.paused) player.pause();
-            return;
-        }
-        if (playerSrc !== audio.url) {
-            playerSrc = audio.url;
-            player.src = audio.url;
-            player.load();
-        }
-        if (!audio.startedAt) {
-            if (!player.paused) player.pause();
-            return;
-        }
-        const position = (now() - audio.startedAt) / 1000;
-        if (position > 45) {
-            if (!player.paused) player.pause();
-            return;
-        }
-        const seek = () => {
-            const target = Math.max(0, (now() - audio.startedAt) / 1000);
-            if (Math.abs(player.currentTime - target) > 1.5) player.currentTime = target;
-        };
-        if (player.readyState >= 1) seek();
-        else player.addEventListener('loadedmetadata', seek, { once: true });
-        if (player.paused) {
-            player.play().then(() => {
-                $('sound-help').hidden = true;
-            }).catch(() => {
-                $('sound-help').hidden = false;
-            });
-        }
+        const live = speaker && state && state.audio && !state.paused && ['countdown', 'guess', 'reveal'].includes(state.phase);
+        clips.sync(live ? state.audio : null);
     }
 
     function setSpeaker(value) {
@@ -269,10 +240,11 @@
         if (!playlist) return long ? 'Aucune playlist chargée' : '';
         const base = `${playlist.name}${playlist.partial ? ' (100 premiers titres)' : ''}`;
         if (!playlist.ready) return `${base} · recherche des extraits ${playlist.resolved}/${playlist.total}…`;
+        const identified = playlist.identified ? `, ${playlist.identified} avec leur film/série` : '';
         const missing = playlist.missing ? `, ${playlist.missing} sans extrait` : '';
         const done = playlist.resolved - playlist.remaining;
         const played = done > 0 ? `, ${done} déjà joué${done > 1 ? 's' : ''}` : '';
-        return long ? `${base} · ${playlist.resolved} extraits prêts${played}${missing}` : `${base} · ${playlist.resolved} titres${played}`;
+        return long ? `${base} · ${playlist.resolved} extraits prêts${played}${identified}${missing}` : `${base} · ${playlist.resolved} titres${played}`;
     }
 
     function renderPlayers(list, element, withGains) {
@@ -320,6 +292,7 @@
         const parts = [`${options.rounds} manches`, `${options.guessSeconds} s`, { both: 'titre + artiste', title: 'titre', artist: 'artiste' }[options.mode] || ''];
         parts.push(options.answers === 'choices' ? 'QCM' : 'clavier');
         if (options.play === 'teams') parts.push('1 téléphone par équipe');
+        if (options.known) parts.push('films identifiés');
         if (options.hints && options.answers !== 'choices') parts.push('indices');
         return parts.filter(Boolean).join(' · ');
     }
@@ -335,6 +308,7 @@
             }
         }
         $('setting-hints').hidden = options.answers === 'choices';
+        $('setting-known').hidden = !state || !state.playlist || !state.playlist.identified;
     }
 
     function renderChoices(choices) {
@@ -351,7 +325,10 @@
             if (myChoice && myChoice.id === choice.id) button.classList.add(myChoice.correct ? 'right' : 'wrong');
             const letter = document.createElement('b');
             letter.textContent = 'ABCD'[index] || String(index + 1);
-            button.append(letter, ` ${choice.label}`);
+            const text = document.createElement('span');
+            text.className = 'choice-label';
+            text.textContent = choice.label;
+            button.append(letter, text);
             button.addEventListener('click', () => answerChoice(choice.id));
             container.appendChild(button);
         });
@@ -417,6 +394,7 @@
 
         if (state.phase === 'guess') {
             const choices = state.choices || null;
+            $('guess-zone').classList.toggle('with-choices', Boolean(choices));
             $('choices').hidden = !choices;
             $('guess-form').hidden = Boolean(choices);
             $('hint').hidden = Boolean(choices);
@@ -493,8 +471,15 @@
         statsList.hidden = !lines.length;
     }
 
+    function renderQr(url) {
+        if (url === qrUrl) return;
+        qrUrl = url;
+        $('lobby-qr').src = url ? `/r/${room}/qr.svg?u=${encodeURIComponent(url)}` : `/r/${room}/qr.svg`;
+    }
+
     function render() {
         if (!state) return;
+        renderQr(state.joinUrl || '');
         if (state.round !== lastRound) {
             lastRound = state.round;
             myFound = { title: 0, artist: 0 };
@@ -866,7 +851,7 @@
             if (!button) return;
             const key = group.dataset.option;
             let value = button.dataset.value;
-            if (key === 'hints') value = value === 'true';
+            if (key === 'hints' || key === 'known') value = value === 'true';
             else if (key === 'rounds' || key === 'guessSeconds') value = Number(value);
             if (navigator.vibrate) navigator.vibrate(10);
             hostAction(`${api}/host/options`, { [key]: value });
@@ -1008,7 +993,6 @@
     }, 8000);
 
     if (room) {
-        $('lobby-qr').src = `/r/${room}/qr.svg`;
         initRoom();
     } else {
         initHome();

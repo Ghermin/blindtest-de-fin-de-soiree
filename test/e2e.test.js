@@ -271,13 +271,13 @@ test('parcours complet via l\'API et les flux SSE', async (t) => {
 
         await t.test('exclusion en direct, remise à zéro, départ, vidage', async () => {
             const zoeClient = clients[clients.length - 1];
+            assert.ok(zoeClient.latest.players.some((player) => player.score > 0));
             const zoeId = zoeClient.latest.players.find((player) => player.name === 'Zoé').id;
             assert.strictEqual((await request('POST', `${api}/host/kick`, { id: zoeId }, key)).status, 200);
             await waitFor(() => zoeClient.events.includes('kicked') && zoeClient.closed, 3000, 'événement kicked');
             const watcher = listen(room);
             clients.push(watcher);
             await waitFor(() => watcher.latest, 2000, 'flux');
-            assert.ok(watcher.latest.players.some((player) => player.score > 0));
             assert.strictEqual((await request('POST', `${api}/host/reset`, {}, key)).status, 200);
             await waitFor(() => watcher.latest.players.every((player) => player.score === 0), 2000, 'remise à zéro');
             assert.strictEqual(watcher.latest.phase, 'lobby');

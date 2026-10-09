@@ -155,6 +155,96 @@
         });
     }
 
+    const FADE_OUT_MS = 450;
+    const FADE_IN_MS = 220;
+    const MAX_POSITION = 45;
+
+    function clipPlayer(hooks) {
+        const player = new Audio();
+        player.preload = 'auto';
+        let wanted = '';
+        let loaded = '';
+        let timer = null;
+        let fading = 0;
+
+        function clearFade() {
+            clearInterval(timer);
+            timer = null;
+            fading = 0;
+        }
+
+        function ramp(to, ms, done) {
+            const from = player.volume;
+            const started = Date.now();
+            clearInterval(timer);
+            fading = to < from ? -1 : 1;
+            timer = setInterval(() => {
+                const ratio = Math.min(1, (Date.now() - started) / ms);
+                player.volume = Math.max(0, Math.min(1, from + (to - from) * ratio));
+                if (ratio < 1) return;
+                clearFade();
+                if (done) done();
+            }, 25);
+        }
+
+        function load(url) {
+            loaded = url;
+            player.src = url;
+            player.load();
+        }
+
+        function stop() {
+            if (player.paused || fading === -1) return;
+            ramp(0, FADE_OUT_MS, () => player.pause());
+        }
+
+        function want(url) {
+            if (wanted === url) return;
+            wanted = url;
+            if (player.paused) {
+                clearFade();
+                player.volume = 0;
+                load(url);
+                return;
+            }
+            ramp(0, FADE_OUT_MS, () => {
+                player.pause();
+                if (wanted === url) load(url);
+            });
+        }
+
+        function blocked(flag) {
+            if (hooks.blocked) hooks.blocked(flag);
+        }
+
+        function sync(clip, force) {
+            if (!clip || !clip.url) {
+                stop();
+                return;
+            }
+            want(clip.url);
+            const position = clip.startedAt ? (hooks.now() - clip.startedAt) / 1000 : -1;
+            if (position < 0 || position > MAX_POSITION || loaded !== clip.url) {
+                stop();
+                return;
+            }
+            const seek = () => {
+                const target = Math.max(0, (hooks.now() - clip.startedAt) / 1000);
+                if (Math.abs(player.currentTime - target) > 1.5) player.currentTime = target;
+            };
+            if (player.readyState >= 1) seek();
+            else player.addEventListener('loadedmetadata', seek, { once: true });
+            if (!player.paused && !force) return;
+            if (player.paused) player.volume = 0;
+            player.play().then(() => {
+                blocked(false);
+                if (fading !== 1 && player.volume < 1) ramp(1, FADE_IN_MS);
+            }).catch(() => blocked(true));
+        }
+
+        return { sync };
+    }
+
     window.addEventListener('error', (event) => {
         const box = document.getElementById('boot-error');
         if (!box) return;
@@ -162,5 +252,5 @@
         box.textContent = `Erreur : ${event.message}`;
     });
 
-    window.UI = { attempt, icon, label, formatHint, renderHint, rankMark, dialog };
+    window.UI = { attempt, icon, label, formatHint, renderHint, rankMark, dialog, clipPlayer };
 })();

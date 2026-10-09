@@ -270,12 +270,18 @@ p {
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: min(0.8rem, 1.2vh) min(0.8rem, 1vw);
     width: min(100%, 44rem);
 }
 
+.tv-choices.stacked {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(100%, 52rem);
+}
+
 .tv-choices li {
+    min-width: 0;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 1rem;
@@ -286,6 +292,11 @@ p {
     display: flex;
     gap: 0.7em;
     align-items: center;
+}
+
+.choice-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .tv-choices b {
@@ -639,8 +650,9 @@ p {
         grid-column: 1 / -1;
     }
 
-    .tv-choices {
-        grid-template-columns: 1fr;
+    .tv-choices,
+    .tv-choices.stacked {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

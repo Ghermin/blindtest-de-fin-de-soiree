@@ -8,7 +8,7 @@ const ACCOUNTS = 'https://accounts.spotify.com';
 const SCOPES = 'playlist-read-private playlist-read-collaborative';
 const OWN_ONLY = 'Spotify refuse les titres de cette playlist : depuis mars 2026, une app en mode développement ne lit que les playlists que tu possèdes (ou collaboratives). Dans Spotify, ouvre la playlist → ⋮ → Ajouter à une playlist → Nouvelle playlist, puis charge cette copie. Ou utilise une playlist Deezer.';
 const NEED_ACCOUNT = 'Spotify ne livre plus les titres d\'une playlist sans compte connecté : connecte ton compte Spotify dans le panneau hôte et charge une de tes playlists, ou utilise une playlist Deezer.';
-const ENTRY_FIELDS = 'uri,name,duration_ms,artists(name),album(images)';
+const ENTRY_FIELDS = 'uri,name,duration_ms,artists(name),album(name,images)';
 let user;
 let app = { token: '', expiresAt: 0 };
 
@@ -158,6 +158,7 @@ async function playlist(id) {
                 uri: track.uri,
                 name: track.name,
                 artists: (track.artists || []).map((artist) => artist.name).filter(Boolean),
+                album: track.album ? track.album.name || '' : '',
                 image: track.album && track.album.images && track.album.images[0] ? track.album.images[0].url : null,
                 durationMs: track.duration_ms
             });

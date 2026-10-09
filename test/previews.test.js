@@ -55,14 +55,14 @@ test('les liens de playlist Spotify et Deezer sont reconnus', () => {
 });
 
 test('la pochette du titre vient de l\'extrait trouvé quand la playlist n\'en donne pas', async () => {
-    deezer.search = async () => [{ id: 7, title: 'Alors on danse', artist: 'Stromae', durationMs: 205000, url: 'https://x/7.mp3', image: 'https://x/cover7.jpg' }];
+    deezer.search = async () => [{ id: 7, title: 'Alors on danse', artist: 'Stromae', durationMs: 205000, url: 'https://x/7.mp3', image: 'https://x/cover7.jpg', album: 'Cheese' }];
     deezer.track = async (id) => ({ url: `https://x/${id}.mp3`, image: `https://x/cover${id}.jpg` });
     const base = { name: 'Alors on danse', artists: ['Stromae'], durationMs: 205000, image: null };
-    assert.deepStrictEqual(await resolve({ ...base, uri: 'spotify:track:cherche' }), { source: 'deezer', id: 7, image: 'https://x/cover7.jpg' });
+    assert.deepStrictEqual(await resolve({ ...base, uri: 'spotify:track:cherche' }), { source: 'deezer', id: 7, image: 'https://x/cover7.jpg', album: 'Cheese' });
     const embedded = await resolve({ ...base, uri: 'spotify:track:embed', match: { source: 'spotify', url: 'https://p.scdn.co/2.mp3' } });
     assert.deepStrictEqual(embedded, { source: 'spotify', url: 'https://p.scdn.co/2.mp3', image: 'https://x/cover7.jpg' });
     const ancien = await resolve({ ...base, uri: 'spotify:track:ancien' });
-    assert.deepStrictEqual(ancien, { source: 'deezer', id: 9, url: undefined, image: 'https://x/cover9.jpg' });
+    assert.deepStrictEqual(ancien, { source: 'deezer', id: 9, url: undefined, image: 'https://x/cover9.jpg', album: '' });
 });
 
 test('un titre qui a déjà sa pochette ne déclenche aucune recherche', async () => {
