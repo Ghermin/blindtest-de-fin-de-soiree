@@ -8,6 +8,7 @@ const works = require('./works.js');
 
 
 const FLAGS = /\b(live|remix|karaoke|instrumental|cover|acoustic|acoustique|version|edit|mix|demo|reprise)\b/i;
+const SOURCES = 'deezer+itunes';
 let cache = null;
 let saveTimer = null;
 let lastItunes = 0;
@@ -173,12 +174,12 @@ async function lookupWork(track) {
 async function resolveWork(track) {
     if (works.work(track)) return;
     const cached = loadCache()[track.uri];
-    if (cached && typeof cached.work === 'string') {
+    if (cached && typeof cached.work === 'string' && cached.workSources === SOURCES) {
         track.work = cached.work;
         return;
     }
     const found = await lookupWork(track).catch(() => '');
-    remember(track.uri, { ...(cached || {}), work: found });
+    remember(track.uri, { ...(cached || {}), work: found, workSources: SOURCES });
     track.work = found;
 }
 
