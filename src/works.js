@@ -16,19 +16,25 @@ const MARKER = new RegExp(MARKER_SOURCE, 'i');
 const MARKERS = new RegExp(MARKER_SOURCE, 'gi');
 const GENERIC = /^(?:various artists|artistes divers|compilation|soundtrack|ost|score|music|musique|musiques|songs|song|single|ep|album|deluxe|edition|bonus|anime|film|movie|serie|series|saison|season|vol|volume|the|le|la|les|a|an|opening|ending|op|ed|theme|themes|main theme|theme song|ending theme|opening theme|insert song|image song|character song|generique|vocal|instrumental|tv size|collection|best|original)$/;
 
-const BLOCKED = /^(?:the )?first take$|^(?:the )?voice$|^from\b|^extrait|^tir[ée]e? d|^best of|^classical\b|^movies?\b|\bmovies?$|^live\b|^karaoke|^cover\b|^tribute|^orgel|^instrumental|^piano|^acoustic|^remix|^radio edit|^session|^unplugged|^medley|^mashup|^\d{2,}\s|^the very best|\b(?:remix|version|edit|mix|cover|instrumental|live|karaoke|session|take)$|\b(?:anthologie|greatest hits|gold edition|classics|compilation|titres|tracks)\b/i;
+const BLOCKED = /^(?:the )?first take$|^(?:the )?voice$|^from\b|^extrait|^tir[ée]e? d|^best of|^classical\b|^movies?\b|\bmovies?$|^films?\b|^le film|^les films|^musiques?\b|^bandes?[\s-]originales?|^cin[ée]ma|\bcin[ée]ma$|^s[ée]ries?\b|^dessins? anim|^live\b|^karaoke|^cover\b|^tribute|^orgel|^instrumental|^piano|^acoustic|^remix|^radio edit|^session|^unplugged|^medley|^mashup|^\d{2,}\s|^the very best|\b(?:remix|version|edit|mix|cover|instrumental|live|karaoke|session|take)$|\b(?:anthologie|greatest hits|gold edition|classics|compilation|titres|tracks)\b/i;
 
 const FROM = /\bfrom\s+(?:the\s+)?(?:motion\s+picture|film|movie|tv\s+series|series|show|anime|video\s+game|game)?\s*["“«']?\s*([^"”»']+?)\s*["”»']?\s*$/i;
 const FROM_FR = /\b(?:extrait|tir[ée]e?|issue?)\s+d[eu]\s*(?:la\s+s[ée]rie|l['’]anime|film)?\s*["“«']?\s*([^"”»']+?)\s*["”»']?\s*$/i;
-const BO_FR = /^(?:bande[\s-]originale|b\.o\.|g[ée]n[ée]rique|musique)\s+(?:du\s+film|de\s+la\s+s[ée]rie|de\s+l['’]anime|du|de\s+la|des|de)\s+["“«']?\s*(.+?)\s*["”»']?$/i;
+const BO_FR = /^(?:bande[\s-]originale|b\.o\.|g[ée]n[ée]rique|musique|th[èe]me)\s+(?:du\s+film|de\s+la\s+s[ée]rie|de\s+l['’]anime|du|de\s+la|des|de)\s+["“«']?\s*(.+?)\s*["”»']?$/i;
 const OST_SUFFIX = /^(.+?)\s+(?:original\s+)?(?:sound\s*track|ost)\b/i;
-const THEME = /^(.+?)\s+(?:opening|ending|insert\s+song|image\s+song|character\s+song|main\s+theme|theme\s+song|op|ed)\b/i;
+const THEME = /^(.+?)\s+(?:opening|ending|insert\s+song|image\s+song|character\s+song|main\s+theme|main\s+title|titre\s+principal|theme\s+song|op|ed)\b/i;
 const RULES = [FROM, FROM_FR, BO_FR, OST_SUFFIX, THEME];
 
 let cache = null;
 
+function balanced(text) {
+    const open = (text.match(/[([]/g) || []).length;
+    const close = (text.match(/[)\]]/g) || []).length;
+    return open === close ? text : text.replace(/[([)\]]/g, ' ');
+}
+
 function clean(text) {
-    return String(text || '')
+    return balanced(String(text || ''))
         .replace(/\(\s*\)|\[\s*\]/g, ' ')
         .replace(/^(?:tv\s*アニメ|アニメ|劇場版|映画)\s*/i, '')
         .replace(/["“”«»『』「」【】]/g, '')
@@ -63,6 +69,7 @@ function segments(text) {
         match = brackets.exec(text);
     }
     for (const part of String(text || '').split(/\s+[-–—]\s+/).slice(1)) found.push(part.trim());
+    if (!found.length) found.push(String(text || '').trim());
     return found.filter(Boolean);
 }
 
@@ -113,14 +120,24 @@ function fromTable(track) {
         if (!entries || !entries.length) continue;
         const found = entries.find(([performer]) => performer && artists.some((artist) => artist === performer || artist.includes(performer) || performer.includes(artist)));
         if (found) return found[1];
-        const agreed = entries.every(([, value]) => value === entries[0][1]);
-        if (agreed && wanted.length >= 6) return entries[0][1];
     }
     return '';
 }
 
+function shorten(value) {
+    const text = String(value || '').trim();
+    if (text.length <= MAX_LENGTH) return text;
+    for (const cut of [/\s*:\s/, /\s+[-–—]\s+/]) {
+        const head = text.split(cut)[0].trim();
+        if (head.length >= 4 && head.length <= MAX_LENGTH) return head;
+    }
+    return text;
+}
+
 function accept(value, track) {
-    if (!value || value.length < 2 || value.length > MAX_LENGTH || MARKER.test(value)) return '';
+    if (!value) return '';
+    value = shorten(value);
+    if (value.length < 2 || value.length > MAX_LENGTH || MARKER.test(value)) return '';
     const wanted = key(value);
     if (!wanted || wanted.length < 2 || GENERIC.test(wanted) || BLOCKED.test(value.trim())) return '';
     if (wanted === key(track.name)) return '';
@@ -147,4 +164,4 @@ function withWork(label, track) {
     return `${label} (${value})`;
 }
 
-module.exports = { work, withWork, key };
+module.exports = { work, withWork, key, shorten };

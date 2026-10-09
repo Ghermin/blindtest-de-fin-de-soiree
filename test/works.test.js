@@ -66,9 +66,21 @@ test('la table embarquée reconnaît les génériques connus', () => {
     assert.strictEqual(work({ name: 'Magia', artists: ['Kalafina'], album: 'Magia' }), 'Puella Magi Madoka Magica');
     assert.strictEqual(work({ name: 'Gurenge - From THE FIRST TAKE', artists: ['LiSA'] }), 'Demon Slayer: Kimetsu no Yaiba');
     assert.strictEqual(work({ name: 'Billie Jean', artists: ['Michael Jackson'], album: 'Thriller' }), '');
-    assert.strictEqual(work({ name: 'Gurenge', artists: ['Un Groupe Inconnu'] }), 'Demon Slayer: Kimetsu no Yaiba');
+    assert.strictEqual(work({ name: 'Gurenge', artists: ['Un Groupe Inconnu'] }), '');
     assert.strictEqual(work({ name: 'Unravel', artists: ['TK from Ling tosite sigure'], album: 'Unravel' }), 'Tokyo Ghoul');
     assert.strictEqual(work({ name: 'Gurenge -TV version-', artists: ['LiSA'] }), 'Demon Slayer: Kimetsu no Yaiba');
     assert.match(work({ name: 'Blue Bird', artists: ['Ikimonogakari'], album: 'My song Your song' }), /Naruto/);
-    assert.match(work({ name: 'Ghostbusters (Theme from "Ghostbusters")', artists: ["80's Greatest Hits"] }), /Ghostbusters|Fantômes/);
+    assert.strictEqual(work({ name: 'Ghostbusters (Theme from "Ghostbusters")', artists: ["80's Greatest Hits"] }), '');
+});
+
+test('un titre courant ne reçoit pas l\'œuvre d\'un homonyme', () => {
+    assert.strictEqual(work({ name: 'Soleil', artists: ['GIMS'], album: 'Soleil' }), '');
+    assert.strictEqual(work({ name: 'San Francisco', artists: ['Sound Of Legend'], album: 'San Francisco' }), '');
+    assert.strictEqual(work({ name: 'Believe', artists: ['Cher'], album: 'Believe' }), '');
+});
+
+test('les noms de compilations ne passent pas pour des œuvres', () => {
+    assert.strictEqual(work({ name: 'Jurassic Park (Thème)', artists: ['Musique De Film'], album: "Films d'action - La bande originale du cinéma des années 80 et 90" }), '');
+    assert.strictEqual(work({ name: 'Speed (Thème)', artists: ['Musique De Film'], album: 'Films à suspense - La bande originale du cinéma' }), '');
+    assert.doesNotMatch(work({ name: 'Men In Black (From "Men In Black" Soundtrack)', artists: ['Will Smith'], album: 'Men In Black The Album' }), /from/i);
 });
