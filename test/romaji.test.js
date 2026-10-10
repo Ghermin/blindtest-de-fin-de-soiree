@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const { artist, title, artists, titles, japanese } = require('../src/romaji.js');
+const { artist, title, work, artists, titles, japanese } = require('../src/romaji.js');
 const { artistQuality, titleQuality } = require('../src/matching.js');
 
 test('reconnaît ce qui est écrit en japonais', () => {
@@ -24,6 +24,22 @@ test('donne le titre d\'un générique japonais en lettres romaines', () => {
     assert.ok(titles('残酷な天使のテーゼ').includes('A Cruel Angel\'s Thesis'));
     assert.strictEqual(title('Billie Jean'), '');
     assert.strictEqual(title(''), '');
+});
+
+test('donne l\'œuvre japonaise en lettres romaines', () => {
+    assert.strictEqual(work('僕のヒーローアカデミア'), 'My Hero Academia');
+    assert.strictEqual(work('鋼の錬金術師'), 'Fullmetal Alchemist');
+    assert.strictEqual(work('ヴィンランド・サガ'), 'Vinland Saga');
+    assert.strictEqual(work('Vinland Saga'), '');
+    assert.strictEqual(work(''), '');
+});
+
+test('l\'œuvre se retrouve malgré la décoration du nom d\'album', () => {
+    assert.strictEqual(work('僕のヒーローアカデミア セレクション 2016-2018'), 'My Hero Academia');
+    assert.strictEqual(work('ハイキュー!! 2'), 'Haikyu!!');
+    assert.strictEqual(work('約束のネバーランド Season 1&2'), 'The Promised Neverland');
+    assert.strictEqual(work('NARUTO -ナルト- Ⅲ'), 'Naruto');
+    assert.strictEqual(work('うたうグループの架空作品 7'), '');
 });
 
 test('la graphie lisible passe devant sans effacer la japonaise', () => {

@@ -160,6 +160,12 @@ function resolve(track, album) {
         const value = accept(candidate, track);
         if (!value) continue;
         if (!romaji.japanese(value)) return value;
+        const readable = romaji.work(value);
+        if (readable) {
+            const latin = accept(readable, track);
+            if (latin) return latin;
+            continue;
+        }
         if (!japanese) japanese = value;
     }
     return japanese;

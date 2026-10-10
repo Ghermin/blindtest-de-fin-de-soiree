@@ -129,7 +129,12 @@ en cache.
   résultat en cache.
 - `src/romaji.js` : les graphies en lettres romaines (`src/romaji.json`, relevé
   sur Wikidata par le même `npm run works`) — 13 000 chanteurs, seiyuu et
-  groupes japonais, et un millier de titres. L'artiste lisible passe devant à
+  groupes japonais, un millier de titres et 17 000 œuvres. Une bande originale
+  dont l'album s'appelle `僕のヒーローアカデミア オリジナル・サウンドトラック`
+  s'affiche donc « My Hero Academia » ; le nom est cherché en retirant un à un
+  les derniers mots, ce qui absorbe la décoration des albums
+  (`ハイキュー!! 2`, `約束のネバーランド Season 1&2`) sans jamais inventer une
+  œuvre, puisque seul un nom connu est retenu. L'artiste lisible passe devant à
   l'affichage, dans le QCM et dans les indices ; le titre garde sa graphie
   d'origine à l'écran mais donne ses indices en lettres romaines, et **les deux
   graphies valent une bonne réponse**. Ce dictionnaire sert aussi à retrouver
