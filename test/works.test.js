@@ -73,6 +73,20 @@ test('la table embarquée reconnaît les génériques connus', () => {
     assert.strictEqual(work({ name: 'Ghostbusters (Theme from "Ghostbusters")', artists: ["80's Greatest Hits"] }), '');
 });
 
+test('la table embarquée reconnaît un générique écrit en japonais', () => {
+    assert.strictEqual(work({ name: '残酷な天使のテーゼ', artists: ['高橋洋子'] }), 'Neon Genesis Evangelion');
+    assert.strictEqual(work({ name: '残酷な天使のテーゼ', artists: ['Yoko Takahashi'] }), 'Neon Genesis Evangelion');
+    assert.strictEqual(work({ name: 'A Cruel Angel\'s Thesis', artists: ['Yoko Takahashi'] }), 'Neon Genesis Evangelion');
+    assert.strictEqual(work({ name: 'ドラえもんのうた', artists: ['大杉久美子'] }), 'Doraemon');
+    assert.strictEqual(work({ name: '残酷な天使のテーゼ', artists: ['Un Groupe Inconnu'] }), '');
+});
+
+test('un titre japonais retrouve son anime par sa graphie romaine', () => {
+    assert.strictEqual(work({ name: '紅蓮の弓矢', artists: ['Linked Horizon'] }), 'Shingeki no Kyojin');
+    assert.strictEqual(work({ name: 'Guren no Yumiya', artists: ['Linked Horizon'] }), 'Shingeki no Kyojin');
+    assert.strictEqual(work({ name: '紅蓮の弓矢', artists: ['Un Groupe Inconnu'] }), '');
+});
+
 test('un titre courant ne reçoit pas l\'œuvre d\'un homonyme', () => {
     assert.strictEqual(work({ name: 'Soleil', artists: ['GIMS'], album: 'Soleil' }), '');
     assert.strictEqual(work({ name: 'San Francisco', artists: ['Sound Of Legend'], album: 'San Francisco' }), '');
@@ -83,4 +97,18 @@ test('les noms de compilations ne passent pas pour des œuvres', () => {
     assert.strictEqual(work({ name: 'Jurassic Park (Thème)', artists: ['Musique De Film'], album: "Films d'action - La bande originale du cinéma des années 80 et 90" }), '');
     assert.strictEqual(work({ name: 'Speed (Thème)', artists: ['Musique De Film'], album: 'Films à suspense - La bande originale du cinéma' }), '');
     assert.doesNotMatch(work({ name: 'Men In Black (From "Men In Black" Soundtrack)', artists: ['Will Smith'], album: 'Men In Black The Album' }), /from/i);
+});
+
+test('trouve l\'œuvre citée à la japonaise', () => {
+    assert.strictEqual(work({ name: 'スカイクラッドの観測者 (Originally Performed by いとうかなこ 「Steins;Gate」より)', artists: ['スーパー☆キラキラ'] }), 'Steins;Gate');
+    assert.strictEqual(work({ name: 'エクストラ・マジック・アワー (Originally Performed by AKINO with bless4 「甘城ブリリアントパーク」より) -オルゴール-', artists: ['オルゴール ミドリ'] }), '甘城ブリリアントパーク');
+    assert.strictEqual(work({ name: '檄！帝国華撃団', artists: ['横山智佐'], album: 'アニメ「サクラ大戦」主題歌集' }), 'サクラ大戦');
+    assert.strictEqual(work({ name: 'メインテーマ', artists: ['久石譲'], album: 'となりのトトロ サウンドトラック' }), 'となりのトトロ');
+});
+
+test('les compilations japonaises ne passent pas pour des œuvres', () => {
+    assert.strictEqual(work({ name: 'テーマ', artists: ['Various Artists'], album: '人気アニメ サントラ ベスト' }), '');
+    assert.strictEqual(work({ name: 'テーマ', artists: ['Various Artists'], album: 'アニソン名曲サントラ大全集' }), '');
+    assert.strictEqual(work({ name: 'テーマ', artists: ['Various Artists'], album: 'アニメ主題歌集' }), '');
+    assert.strictEqual(work({ name: 'オルゴール', artists: ['オルゴール ミドリ'], album: 'オルゴール アニメソングス!Vol.32' }), '');
 });

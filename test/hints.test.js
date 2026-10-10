@@ -15,6 +15,12 @@ test('le motif révèle la première lettre en majuscule', () => {
     assert.strictEqual(pattern('alors on danse', true), 'A____ __ _____');
 });
 
+test('le motif compte aussi les caractères japonais', () => {
+    assert.strictEqual(pattern('残酷な天使のテーゼ', false), '_________');
+    assert.strictEqual(pattern('残酷な天使のテーゼ', true), '残________');
+    assert.strictEqual(pattern('アイ・ウィル・サバイブ', false), '__ ___ ____');
+});
+
 test('les indices suivent le mode et le palier', () => {
     assert.strictEqual(hints(track, 'both', 0), null);
     assert.strictEqual(hints(null, 'both', 1), null);

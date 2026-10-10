@@ -90,3 +90,40 @@ test('la précision distingue réponse exacte, faute de frappe et mot-clé', () 
     assert.strictEqual(artistQuality('daft punk', ['Stromae', 'Daft Punk']), 1);
     assert.strictEqual(artistQuality('prince', ['Michael Jackson']), 0);
 });
+
+test('normalize garde le japonais au lieu de le vider', () => {
+    assert.strictEqual(normalize('残酷な天使のテーゼ'), '残酷な天使のテーゼ');
+    assert.strictEqual(normalize('紅蓮の弓矢'), '紅蓮の弓矢');
+    assert.strictEqual(normalize('ウィーゴー！'), 'ウィーゴー');
+    assert.strictEqual(normalize('アイ・ウィル・サバイブ'), 'アイ ウィル サバイブ');
+    assert.strictEqual(normalize('カワキヲアメク (feat. 美波)'), 'カワキヲアメク');
+    assert.strictEqual(normalize('ＡＢＣ１２３'), 'abc123');
+    assert.strictEqual(normalize('ｱﾆﾒ'), 'アニメ');
+});
+
+test('un générique japonais se devine et se score', () => {
+    assert.ok(matchesTitle('残酷な天使のテーゼ', '残酷な天使のテーゼ'));
+    assert.ok(matchesTitle('ウィーゴー!', 'ウィーゴー！'));
+    assert.ok(matchesArtist('高橋洋子', ['高橋洋子']));
+    assert.strictEqual(titleQuality('残酷な天使のテーゼ', '残酷な天使のテーゼ'), 1);
+    assert.strictEqual(artistQuality('やなぎなぎ', ['やなぎなぎ']), 1);
+});
+
+test('un titre accepte plusieurs graphies', () => {
+    const spellings = ['A Cruel Angel\'s Thesis', '残酷な天使のテーゼ'];
+    assert.strictEqual(titleQuality('a cruel angel\'s thesis', spellings), 1);
+    assert.strictEqual(titleQuality('残酷な天使のテーゼ', spellings), 1);
+    assert.strictEqual(titleQuality('a cruel angels thesis', spellings), 0.9);
+    assert.strictEqual(titleQuality('cruel angel', spellings), 0.7);
+    assert.strictEqual(titleQuality('thriller', spellings), 0);
+    assert.ok(matchesTitle('残酷な天使のテーゼ', spellings));
+    const { splitGuess } = require('../src/matching.js');
+    assert.deepStrictEqual(splitGuess('guren no yumiya linked horizon', ['Guren no Yumiya', '紅蓮の弓矢'], ['Linked Horizon']), { title: 'guren no yumiya', artist: 'linked horizon' });
+});
+
+test('le japonais ne crée pas de faux positifs', () => {
+    assert.ok(!matchesTitle('怪物', '残酷な天使のテーゼ'));
+    assert.ok(!matchesTitle('紅蓮の弓矢', '紅蓮の座標'));
+    assert.ok(!matchesArtist('YOASOBI', ['高橋洋子']));
+    assert.strictEqual(titleQuality('天使', '残酷な天使のテーゼ'), 0);
+});

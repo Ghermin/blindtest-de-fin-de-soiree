@@ -6,14 +6,15 @@ const { hints } = require('./hints.js');
 const sources = require('./sources.js');
 const previews = require('./previews.js');
 const works = require('./works.js');
+const romaji = require('./romaji.js');
 
-const DEFAULTS = { rounds: 10, guessMs: 30000, countdownMs: 3000, revealMs: 8000, mode: 'both', hints: true, answers: 'text', play: 'solo', known: false, works: false };
+const DEFAULTS ={ rounds: 10, guessMs: 30000, countdownMs: 3000, revealMs: 8000, mode: 'both', hints: true, answers: 'text', play: 'solo', known: false, works: false };
 const OPTION_VALUES = { rounds: [5, 10, 15, 20], guessSeconds: [15, 20, 30], mode: ['both', 'title', 'artist'], answers: ['text', 'choices'], play: ['solo', 'teams'] };
 const POINTS = { find: 500, both: 200, first: 100, minSpeed: 0.3 };
 const MAX_PLAYERS = 60;
 const PREVIEW_MS = 30000;
 const DEFAULT_SOURCES = config.sourcesModule ? require(config.sourcesModule) : { loadPlaylist: sources.loadPlaylist, resolveAll: previews.resolveAll, resolveWorks: previews.resolveWorks, freshUrl: previews.freshUrl };
-const WORK_PLAYLIST = /\b(b\.?o\.?|bandes?[\s-]originales?|soundtracks?|ost|animes?|anim[ée]s?|manga|films?|cin[ée]ma|s[ée]ries?|disney|pixar|ghibli|opening|ending|g[ée]n[ée]riques?|jeux?[\s-]vid[ée]o)\b/i;
+const WORK_PLAYLIST = /\b(b\.?o\.?|bandes?[\s-]originales?|soundtracks?|ost|animes?|anim[ée]s?|manga|films?|cin[ée]ma|s[ée]ries?|disney|pixar|ghibli|opening|ending|g[ée]n[ée]riques?|jeux?[\s-]vid[ée]o)\b|アニメ|アニソン|主題歌|サントラ|サウンドトラック|オープニング|エンディング|劇場版/i;
 
 function shuffle(list) {
     const result = [...list];
@@ -243,7 +244,7 @@ class Game extends EventEmitter {
         if (data.tracks.length < 3) throw new Error('Playlist trop courte');
         this.resolveGeneration++;
         const generation = this.resolveGeneration;
-        this.allTracks = data.tracks.map((track) => ({ ...track }));
+        this.allTracks = data.tracks.map((track) => ({ ...track, artists: romaji.artists(track.artists), titles: romaji.titles(track.name) }));
         this.playlist = { id: data.id, source: data.source, name: data.name, image: data.image, total: this.allTracks.length, partial: Boolean(data.partial), resolved: 0, missing: 0, ready: false };
         this.phase = 'lobby';
         this.notice = null;
@@ -699,8 +700,9 @@ class Game extends EventEmitter {
         const speed = 1 - (1 - POINTS.minSpeed) * Math.min(1, elapsed / this.settings.guessMs);
         const result = { accepted: true, title: false, artist: false, approx: false, gained: 0 };
 
-        const parts = mode === 'both' ? matching.splitGuess(cleaned, this.track.name, this.track.artists) : null;
-        if (mode !== 'artist') this.award(player, 'title', matching.titleQuality(parts ? parts.title : cleaned, this.track.name), speed, result);
+        const titles = this.track.titles || [this.track.name];
+        const parts = mode === 'both' ? matching.splitGuess(cleaned, titles, this.track.artists) : null;
+        if (mode !== 'artist') this.award(player, 'title', matching.titleQuality(parts ? parts.title : cleaned, titles), speed, result);
         if (mode !== 'title') this.award(player, 'artist', matching.artistQuality(parts ? parts.artist : cleaned, this.track.artists), speed, result);
         if (mode === 'both' && !player.bothBonus && player.found.title && player.found.artist) {
             player.bothBonus = true;

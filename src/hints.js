@@ -17,7 +17,8 @@ function hints(track, mode, stage) {
     if (!track || !stage) return null;
     const revealFirst = stage >= 2;
     const result = {};
-    if (mode !== 'artist') result.title = pattern(track.name, revealFirst);
+    const title = (track.titles && track.titles[0]) || track.name;
+    if (mode !== 'artist') result.title = pattern(title, revealFirst);
     if (mode !== 'title' && track.artists && track.artists.length) result.artist = pattern(track.artists[0], revealFirst);
     return result;
 }
