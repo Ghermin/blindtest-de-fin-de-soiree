@@ -9,6 +9,7 @@ const works = require('./works.js');
 
 const FLAGS = /\b(live|remix|karaoke|instrumental|cover|acoustic|acoustique|version|edit|mix|demo|reprise)\b/i;
 const SOURCES = 'deezer+itunes';
+const MAX_CACHE = 5000;
 let cache = null;
 let saveTimer = null;
 let lastItunes = 0;
@@ -27,8 +28,17 @@ function loadCache() {
     return cache;
 }
 
+function prune(store) {
+    const uris = Object.keys(store);
+    if (uris.length <= MAX_CACHE) return;
+    uris.sort((a, b) => (store[a].checkedAt || 0) - (store[b].checkedAt || 0));
+    for (const uri of uris.slice(0, uris.length - MAX_CACHE)) delete store[uri];
+}
+
 function remember(uri, match) {
-    loadCache()[uri] = { ...match, checkedAt: Date.now() };
+    const store = loadCache();
+    store[uri] = { ...match, checkedAt: Date.now() };
+    prune(store);
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
         try {
