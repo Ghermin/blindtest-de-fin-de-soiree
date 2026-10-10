@@ -53,6 +53,14 @@ d'être sur le même Wi-Fi, ou sur le partage de connexion du téléphone.
 Les réponses tolèrent accents, majuscules, ponctuation, articles, « feat. »,
 « (Remastered) », une petite faute de frappe, titre et artiste dans la même
 réponse, et un mot significatif suffit (« billie » pour Billie Jean).
+Les titres et les artistes écrits en japonais comptent comme les autres :
+残酷な天使のテーゼ se joue, s'affiche, se devine et donne ses indices comme
+Billie Jean, en kana ou en kanji, pleine chasse ou demi-chasse. Le titre
+garde sa graphie d'origine, mais **l'artiste s'affiche en lettres romaines**
+quand on le connaît — « 残酷な天使のテーゼ — Yoko Takahashi (Neon Genesis
+Evangelion) ». Au clavier, les deux graphies comptent : « a cruel angels
+thesis » vaut autant que 残酷な天使のテーゼ, et l'indice donne le nombre de
+lettres de la version romaine, celle qu'on peut taper.
 **Indices** : nombre de lettres à mi-temps, première lettre dans les 10
 dernières secondes.
 
@@ -105,15 +113,30 @@ en cache.
 - `index.js`, `src/`, `public/` : le serveur Node (zéro dépendance, `node:http`
   et SSE) et le front vanilla, mis à jour dans l'appli à chaque lancement.
 - `src/works.js` : reconnaît le film, la série ou l'anime d'un titre — mention
-  « from … » du titre, nom de l'album, puis `src/works.json`, une table de
-  8 000 génériques embarquée, chacun avec son interprète — c'est lui qui
-  tranche, un titre courant ne prend jamais l'œuvre d'un homonyme.
+  « from … » du titre et sa forme japonaise (« 「Steins;Gate」より »,
+  « TVアニメ『東京喰種』 »), nom de l'album, puis `src/works.json`, une table de
+  8 500 génériques embarquée, chacun avec son interprète — c'est lui qui
+  tranche, un titre courant ne prend jamais l'œuvre d'un homonyme. Un
+  générique y figure sous chaque graphie connue : 残酷な天使のテーゼ comme
+  Zankoku na Tenshi no Thesis mènent à Neon Genesis Evangelion.
   `npm run works` la régénère depuis Wikidata
-  (films et séries, œuvres ayant au moins cinq versions linguistiques) et
-  [animethemes.moe](https://animethemes.moe) (animes) ; en cas de conflit
-  Wikidata, plus notoire, l'emporte. Sur une playlist de bandes originales,
-  une dernière passe interroge Deezer puis Apple Music pour les titres encore
-  muets, et garde le résultat en cache.
+  (films et séries, œuvres ayant au moins deux versions linguistiques, libellés
+  japonais compris) et [animethemes.moe](https://animethemes.moe) (animes, en
+  romaji seulement : un opening que seul animethemes connaît ne se reconnaît
+  pas sous sa graphie japonaise) ; en cas de conflit Wikidata, plus notoire,
+  l'emporte. Sur une playlist de bandes originales, une dernière passe
+  interroge Deezer puis Apple Music pour les titres encore muets, et garde le
+  résultat en cache.
+- `src/romaji.js` : les graphies en lettres romaines (`src/romaji.json`, relevé
+  sur Wikidata par le même `npm run works`) — 13 000 chanteurs, seiyuu et
+  groupes japonais, et un millier de titres. L'artiste lisible passe devant à
+  l'affichage, dans le QCM et dans les indices ; le titre garde sa graphie
+  d'origine à l'écran mais donne ses indices en lettres romaines, et **les deux
+  graphies valent une bonne réponse**. Ce dictionnaire sert aussi à retrouver
+  l'œuvre : `紅蓮の弓矢` mène à `Guren no Yumiya`, donc à Shingeki no Kyojin.
+  L'interprète reste le juge, donc une graphie approximative ne peut pas
+  inventer une œuvre. Quand une œuvre est connue sous les deux graphies, c'est
+  la latine qui s'affiche.
 - `android/` : l'appli (Kotlin), qui embarque Node via
   [nodejs-mobile](https://github.com/nodejs-mobile/nodejs-mobile) et affiche la
   salle dans une WebView. L'APK est construit et signé par GitHub Actions à
@@ -124,6 +147,12 @@ en cache.
   regroupées par `npm run sprite`, qui génère aussi celles du menu Android.
 
 ```bash
-npm test        # matching, indices, œuvres, QR code, extraits, partie, salles
+npm test        # matching, indices, œuvres, tables, QR code, extraits, partie, salles
 npm start       # le serveur sur un ordinateur, pour développer (voir .env.example)
 ```
+
+Node 22 (voir `.nvmrc`) : en dessous de 20, `npm run lint` ne démarre pas.
+`test/tables.test.js` relit `works.json` et `romaji.json` à chaque `npm test` et
+échoue si une clé n'est plus atteignable — c'est le garde-fou qui prévient
+qu'un changement dans `normalize()` vient d'invalider les tables et qu'il faut
+relancer `npm run works`.

@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const { Game } = require('../src/game.js');
+const { hints } = require('../src/hints.js');
 
 const TRACKS = [
     { uri: 'spotify:track:1', name: 'Bohemian Rhapsody - Remastered 2011', artists: ['Queen'], image: null, durationMs: 354000 },
@@ -435,4 +436,64 @@ test('hors playlist de BO, une chanson de film ne reçoit pas son œuvre', async
     game.playlist.name = 'Musiques de films cultes';
     assert.strictEqual(game.soundtrackPlaylist(), true);
     assert.strictEqual(game.publicState().playlist.identified, 1);
+});
+
+test('l\'artiste japonais arrive en lettres romaines sur les tracks', async () => {
+    const game = make({
+        loadPlaylist: async () => ({
+            id: 'p2',
+            source: 'deezer',
+            name: '定番アニメ',
+            image: null,
+            tracks: [
+                { uri: 'd:1', name: '残酷な天使のテーゼ', artists: ['高橋洋子'], image: null, durationMs: 245000 },
+                { uri: 'd:2', name: '紅蓮の弓矢', artists: ['Linked Horizon'], image: null, durationMs: 300000 },
+                { uri: 'd:3', name: 'ウィーゴー！', artists: ['きただにひろし'], image: null, durationMs: 200000 }
+            ]
+        })
+    });
+    await game.setPlaylist('x');
+    assert.deepStrictEqual(game.allTracks[0].artists, ['Yoko Takahashi', '高橋洋子']);
+    assert.deepStrictEqual(game.allTracks[1].artists, ['Linked Horizon']);
+    assert.deepStrictEqual(game.allTracks[2].artists, ['Hiroshi Kitadani', 'きただにひろし']);
+    game.settings = { ...game.options, mode: 'both', works: false };
+    assert.strictEqual(game.choiceLabel(game.allTracks[0]), '残酷な天使のテーゼ — Yoko Takahashi');
+});
+
+test('un titre japonais se devine aussi en lettres romaines', () => {
+    const game = make();
+    const tom = game.join('Tom');
+    game.settings = { ...game.options, mode: 'title', hints: true };
+    game.track = { uri: 'd:1', name: '紅蓮の弓矢', artists: ['Linked Horizon'], titles: ['Guren no Yumiya', '紅蓮の弓矢'], durationMs: 300000 };
+    game.phase = 'guess';
+    game.guessStartedAt = Date.now();
+    assert.ok(game.guess(tom.token, 'guren no yumiya').title, 'la graphie romaine devrait compter');
+    const lea = game.join('Léa');
+    assert.ok(game.guess(lea.token, '紅蓮の弓矢').title, 'la graphie japonaise devrait compter');
+    assert.strictEqual(hints(game.track, 'title', 1).title, '_____ __ ______');
+});
+
+test('le QCM propose quatre titres japonais distincts', () => {
+    const game = make();
+    game.settings = { ...game.options, mode: 'both', works: false };
+    game.allTracks = [
+        { uri: 'd:1', name: '残酷な天使のテーゼ', artists: ['高橋洋子'] },
+        { uri: 'd:2', name: '紅蓮の弓矢', artists: ['Linked Horizon'] },
+        { uri: 'd:3', name: 'ウィーゴー！', artists: ['きただにひろし'] },
+        { uri: 'd:4', name: '怪物', artists: ['YOASOBI'] }
+    ];
+    const choices = game.buildChoices(game.allTracks[0]);
+    assert.strictEqual(choices.length, 4);
+    assert.strictEqual(new Set(choices.map((choice) => choice.label)).size, 4);
+});
+
+test('une playlist nommée en japonais est vue comme une playlist de BO', async () => {
+    const game = make();
+    await game.setPlaylist('x');
+    await until(() => game.playlist.ready, 2000);
+    for (const track of game.allTracks) track.work = 'Un anime';
+    game.playlist.name = 'アニソン 定番';
+    assert.strictEqual(game.soundtrackPlaylist(), true);
+    game.playlist.name = 'Tubes des années 80';
+    assert.strictEqual(game.soundtrackPlaylist(), false);
 });

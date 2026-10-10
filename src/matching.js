@@ -1,15 +1,18 @@
 const ARTICLES = /^(the|le|la|les|l|un|une|des|a|an|el|los|las|il|i)\s+/;
+const SEPARATORS = /[^a-z0-9々-〇ぁ-ゖゝ-ゟァ-ヺー-ヿ㐀-䶿一-鿿]+/g;
 
 function normalize(text) {
     return String(text || '')
+        .normalize('NFKC')
         .toLowerCase()
         .normalize('NFD')
         .replace(/[̀-ͯ]/g, '')
+        .normalize('NFC')
         .replace(/\s*[([].*?[)\]]/g, '')
         .replace(/\s+-\s+.*$/, '')
         .replace(/\s+(feat|ft|featuring|avec|with)\.?\s+.*$/, '')
         .replace(/&/g, ' and ')
-        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(SEPARATORS, ' ')
         .trim();
 }
 
@@ -70,6 +73,10 @@ function coverage(guess, target) {
     return { ratio: covered / total, single: guessWords.length === 1, longest, maxLength, complete: used.size === targetWords.length };
 }
 
+function spellings(value) {
+    return (Array.isArray(value) ? value : [value]).filter(Boolean);
+}
+
 function matchesWords(guess, target) {
     const found = coverage(guess, target);
     if (!found) return false;
@@ -88,8 +95,8 @@ function quality(guess, target) {
     return matchesWords(guess, target) ? 0.7 : 0;
 }
 
-function titleQuality(guess, title) {
-    return quality(guess, title);
+function titleQuality(guess, titles) {
+    return Math.max(0, ...spellings(titles).map((title) => quality(guess, title)));
 }
 
 function artistQuality(guess, artists) {
@@ -104,9 +111,9 @@ function matchesArtist(guess, artists) {
     return artistQuality(guess, artists) > 0;
 }
 
-function splitGuess(guess, title, artists) {
+function splitGuess(guess, titles, artists) {
     const guessWords = words(String(guess || '').replace(/\s+-\s+/g, ' '));
-    const titleWords = words(title);
+    const titleWords = spellings(titles).flatMap((title) => words(title));
     const artistWords = (artists || []).flatMap((artist) => words(artist));
     const forTitle = [];
     const forArtist = [];
