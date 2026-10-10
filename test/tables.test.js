@@ -15,14 +15,14 @@ test('toutes les clés de works.json sont atteignables par le jeu', () => {
 });
 
 test('toutes les clés de romaji.json sont atteignables par le jeu', () => {
-    for (const part of ['artists', 'titles']) {
+    for (const part of ['artists', 'titles', 'works']) {
         const broken = unreachable(Object.keys(romaji[part]));
         assert.deepStrictEqual(broken, [], `romaji.${part} : ${broken.length} clé(s) inatteignable(s)`);
     }
 });
 
 test('les tables de romanisation vont bien du japonais vers les lettres romaines', () => {
-    for (const part of ['artists', 'titles']) {
+    for (const part of ['artists', 'titles', 'works']) {
         for (const [name, value] of Object.entries(romaji[part])) {
             assert.ok(japanese(name), `romaji.${part} : la clé « ${name} » n'est pas japonaise`);
             const spellings = Array.isArray(value) ? value : [value];
@@ -42,7 +42,7 @@ test('aucun texte n\'a été coupé en route', () => {
             if (performer.includes('�') || value.includes('�')) broken.push(`${name} → ${value}`);
         }
     }
-    for (const part of ['artists', 'titles']) {
+    for (const part of ['artists', 'titles', 'works']) {
         for (const [name, value] of Object.entries(romaji[part])) {
             const spellings = [name, ...(Array.isArray(value) ? value : [value])];
             if (spellings.some((text) => text.includes('�'))) broken.push(`${part} : ${name}`);
@@ -55,6 +55,7 @@ test('les tables gardent leur forme et leur volume', () => {
     assert.ok(Object.keys(works).length > 5000, 'works.json a fondu');
     assert.ok(Object.keys(romaji.artists).length > 5000, 'romaji.artists a fondu');
     assert.ok(Object.keys(romaji.titles).length > 500, 'romaji.titles a fondu');
+    assert.ok(Object.keys(romaji.works).length > 5000, 'romaji.works a fondu');
     for (const [name, entries] of Object.entries(works)) {
         assert.ok(Array.isArray(entries) && entries.length, `${name} : entrée vide`);
         for (const entry of entries) {

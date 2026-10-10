@@ -81,6 +81,12 @@ test('la table embarquée reconnaît un générique écrit en japonais', () => {
     assert.strictEqual(work({ name: '残酷な天使のテーゼ', artists: ['Un Groupe Inconnu'] }), '');
 });
 
+test('une BO à l\'album japonais donne une œuvre lisible', () => {
+    assert.strictEqual(work({ name: '三位一体', artists: ['Yuki Hayashi'], album: '僕のヒーローアカデミア オリジナル・サウンドトラック' }), 'My Hero Academia');
+    assert.strictEqual(work({ name: '等価交換', artists: ['Akira Senju'], album: '鋼の錬金術師 オリジナル・サウンドトラック 2' }), 'Fullmetal Alchemist');
+    assert.strictEqual(work({ name: 'メインテーマ', artists: ['久石譲'], album: 'となりのトトロ サウンドトラック' }), 'My Neighbor Totoro');
+});
+
 test('un titre japonais retrouve son anime par sa graphie romaine', () => {
     assert.strictEqual(work({ name: '紅蓮の弓矢', artists: ['Linked Horizon'] }), 'Shingeki no Kyojin');
     assert.strictEqual(work({ name: 'Guren no Yumiya', artists: ['Linked Horizon'] }), 'Shingeki no Kyojin');
@@ -101,9 +107,10 @@ test('les noms de compilations ne passent pas pour des œuvres', () => {
 
 test('trouve l\'œuvre citée à la japonaise', () => {
     assert.strictEqual(work({ name: 'スカイクラッドの観測者 (Originally Performed by いとうかなこ 「Steins;Gate」より)', artists: ['スーパー☆キラキラ'] }), 'Steins;Gate');
-    assert.strictEqual(work({ name: 'エクストラ・マジック・アワー (Originally Performed by AKINO with bless4 「甘城ブリリアントパーク」より) -オルゴール-', artists: ['オルゴール ミドリ'] }), '甘城ブリリアントパーク');
-    assert.strictEqual(work({ name: '檄！帝国華撃団', artists: ['横山智佐'], album: 'アニメ「サクラ大戦」主題歌集' }), 'サクラ大戦');
-    assert.strictEqual(work({ name: 'メインテーマ', artists: ['久石譲'], album: 'となりのトトロ サウンドトラック' }), 'となりのトトロ');
+    assert.strictEqual(work({ name: 'エクストラ・マジック・アワー (Originally Performed by AKINO with bless4 「甘城ブリリアントパーク」より) -オルゴール-', artists: ['オルゴール ミドリ'] }), 'Amagi Brilliant Park');
+    assert.strictEqual(work({ name: '檄！帝国華撃団', artists: ['横山智佐'], album: 'アニメ「サクラ大戦」主題歌集' }), 'Sakura Wars');
+    assert.strictEqual(work({ name: 'メインテーマ', artists: ['久石譲'], album: 'となりのトトロ サウンドトラック' }), 'My Neighbor Totoro');
+    assert.strictEqual(work({ name: 'GLASSY SKY', artists: ['Yutaka Yamada'], album: 'TVアニメ『東京喰種』ORIGINAL SOUNDTRACK' }), '東京喰種');
 });
 
 test('les compilations japonaises ne passent pas pour des œuvres', () => {

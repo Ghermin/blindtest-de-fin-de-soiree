@@ -12,7 +12,7 @@ function table() {
         } catch (_missing) {
             loaded = {};
         }
-        cache = { artists: loaded.artists || {}, titles: loaded.titles || {} };
+        cache = { artists: loaded.artists || {}, titles: loaded.titles || {}, works: loaded.works || {} };
     }
     return cache;
 }
@@ -51,4 +51,14 @@ function titles(name) {
     return [...latin('titles', name), name];
 }
 
-module.exports = { artist, title, artists, titles, japanese };
+function work(name) {
+    if (!japanese(name)) return '';
+    const parts = String(name).trim().split(/\s+/);
+    for (let kept = parts.length; kept > 0; kept--) {
+        const found = latin('works', parts.slice(0, kept).join(' '))[0];
+        if (found) return found;
+    }
+    return '';
+}
+
+module.exports = { artist, title, work, artists, titles, japanese };

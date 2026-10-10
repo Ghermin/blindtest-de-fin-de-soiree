@@ -35,6 +35,12 @@ SELECT ?ja ?en WHERE {
   FILTER(LANG(?ja) = "ja") FILTER(LANG(?en) = "en")
 }`);
 
+const WORKS = ['wd:Q63952888', 'wd:Q20650540', 'wd:Q5398426', 'wd:Q8274'].map((type) => `
+SELECT ?ja ?en WHERE {
+  ?work wdt:P31 ${type} ; rdfs:label ?ja , ?en .
+  FILTER(LANG(?ja) = "ja") FILTER(LANG(?en) = "en")
+}`);
+
 const PERFORMERS = ['wd:Q177220', 'wd:Q639669', 'wd:Q488205', 'wd:Q2405480', 'wd:Q36834'].map((job) => `
 SELECT ?ja ?en WHERE {
   ?artist wdt:P106 ${job} ; wdt:P27 wd:Q17 ; rdfs:label ?ja , ?en .
@@ -221,17 +227,17 @@ function merge(groups) {
 function existingRomaji() {
     try {
         const loaded = JSON.parse(fs.readFileSync(ROMAJI_TARGET, 'utf8'));
-        return { artists: loaded.artists || {}, titles: loaded.titles || {} };
+        return { artists: loaded.artists || {}, titles: loaded.titles || {}, works: loaded.works || {} };
     } catch (_missing) {
-        return { artists: {}, titles: {} };
+        return { artists: {}, titles: {}, works: {} };
     }
 }
 
 async function main() {
     const onlyRomaji = process.argv.includes('--romaji');
-    const latinTitles = existingRomaji().titles;
-    const knownArtists = existingRomaji().artists;
-    const before = { artists: Object.keys(knownArtists).length, titles: Object.keys(latinTitles).length };
+    const known = existingRomaji();
+    const latinTitles = known.titles;
+    const before = { artists: Object.keys(known.artists).length, titles: Object.keys(latinTitles).length, works: Object.keys(known.works).length };
 
     if (!onlyRomaji) {
         console.log('Construction de la table des génériques…');
@@ -249,17 +255,18 @@ async function main() {
 
     console.log('Graphies en lettres romaines…');
     const romaji = {
-        artists: await fromLabels([...PERFORMERS, ...BANDS], knownArtists, rememberName),
-        titles: await fromLabels(SONGS, latinTitles, rememberTitle)
+        artists: await fromLabels([...PERFORMERS, ...BANDS], known.artists, rememberName),
+        titles: await fromLabels(SONGS, latinTitles, rememberTitle),
+        works: await fromLabels(WORKS, known.works, rememberName)
     };
-    if (Object.keys(romaji.artists).length < before.artists || Object.keys(romaji.titles).length < before.titles) {
+    if (Object.keys(romaji.artists).length < before.artists || Object.keys(romaji.titles).length < before.titles || Object.keys(romaji.works).length < before.works) {
         console.log('Moins de graphies qu\'avant, src/romaji.json laissé tel quel');
         return;
     }
     const ordered = (map) => Object.fromEntries(Object.keys(map).sort().map((name) => [name, map[name]]));
-    fs.writeFileSync(ROMAJI_TARGET, `${JSON.stringify({ artists: ordered(romaji.artists), titles: ordered(romaji.titles) })}\n`);
+    fs.writeFileSync(ROMAJI_TARGET, `${JSON.stringify({ artists: ordered(romaji.artists), titles: ordered(romaji.titles), works: ordered(romaji.works) })}\n`);
     const romajiSize = Math.round(fs.statSync(ROMAJI_TARGET).size / 1024);
-    console.log(`${Object.keys(romaji.artists).length} artistes et ${Object.keys(romaji.titles).length} titres en lettres romaines dans src/romaji.json (${romajiSize} Ko)`);
+    console.log(`${Object.keys(romaji.artists).length} artistes, ${Object.keys(romaji.titles).length} titres et ${Object.keys(romaji.works).length} œuvres en lettres romaines dans src/romaji.json (${romajiSize} Ko)`);
 }
 
 main().catch((error) => {

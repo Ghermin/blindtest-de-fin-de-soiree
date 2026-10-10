@@ -8,7 +8,7 @@ const works = require('./works.js');
 
 
 const FLAGS = /\b(live|remix|karaoke|instrumental|cover|acoustic|acoustique|version|edit|mix|demo|reprise)\b/i;
-const SOURCES = 'deezer+itunes';
+const SOURCES = 'deezer+itunes+romaji';
 const MAX_CACHE = 5000;
 let cache = null;
 let saveTimer = null;
