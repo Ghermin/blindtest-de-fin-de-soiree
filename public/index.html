@@ -65,6 +65,7 @@
             <p id="lobby-tv" class="config-line" hidden></p>
             <p class="hint">L'hôte choisit la playlist et lance la partie. Le son sort de l'écran TV ou du téléphone de l'hôte.</p>
             <div class="lobby-actions">
+                <button id="lobby-start" type="button" class="primary" hidden><svg class="icon" aria-hidden="true"><use href="#i-play" xlink:href="#i-play"></use></svg> Lancer la partie</button>
                 <button id="lobby-host" type="button" class="ghost"><svg class="icon" aria-hidden="true"><use href="#i-key-round" xlink:href="#i-key-round"></use></svg> Je suis l'hôte</button>
                 <button id="lobby-setup" type="button" class="ghost" hidden><svg class="icon" aria-hidden="true"><use href="#i-sliders-horizontal" xlink:href="#i-sliders-horizontal"></use></svg> Playlist et réglages</button>
                 <button id="lobby-back" type="button" class="ghost"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left" xlink:href="#i-arrow-left"></use></svg> Changer de pseudo</button>
@@ -151,6 +152,12 @@
         <div id="host-spotify-actions" class="host-actions" hidden>
             <button id="host-connect" type="button"><svg class="icon" aria-hidden="true"><use href="#i-headphones" xlink:href="#i-headphones"></use></svg> Connecter mon compte Spotify</button>
             <button id="host-playlists" type="button" hidden><svg class="icon" aria-hidden="true"><use href="#i-list-music" xlink:href="#i-list-music"></use></svg> Mes playlists</button>
+        </div>
+        <p id="host-spotify-help" class="hint" hidden></p>
+        <p id="host-spotify-redirect" class="hint" hidden></p>
+        <div id="host-spotify-links" class="host-actions" hidden>
+            <a class="button-link" href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#i-external-link" xlink:href="#i-external-link"></use></svg> Créer une app Spotify</a>
+            <button id="host-spotify-copy" type="button"><svg class="icon" aria-hidden="true"><use href="#i-copy" xlink:href="#i-copy"></use></svg> Copier l'URL de redirection</button>
         </div>
         <form id="playlist-form">
             <input id="playlist-url" type="text" placeholder="Lien de playlist, ou nom à chercher (années 80, rap…)" aria-label="Lien de playlist, ou nom de playlist à chercher" autocomplete="off" enterkeyhint="search">

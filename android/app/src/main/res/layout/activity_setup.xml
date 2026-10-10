@@ -84,6 +84,27 @@
             android:text="@string/spotify_help"
             android:textColor="@color/muted" />
 
+        <Button
+            android:id="@+id/spotify_dashboard"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_button_card"
+            android:stateListAnimator="@null"
+            android:text="@string/spotify_dashboard"
+            android:textColor="@color/text" />
+
+        <TextView
+            android:id="@+id/spotify_redirect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_field"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="14dp"
+            android:textColor="@color/muted" />
+
         <EditText
             android:id="@+id/spotify_id"
             android:layout_width="match_parent"

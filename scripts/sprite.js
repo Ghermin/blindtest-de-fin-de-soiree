@@ -11,7 +11,8 @@ const WEB = [
     'flame', 'headphones', 'hourglass', 'house', 'key-round', 'keyboard', 'laugh', 'list-checks', 'list-music', 'medal',
     'mic', 'moon', 'music', 'party-popper', 'pause', 'play', 'power', 'rotate-ccw', 'send-horizontal', 'settings',
     'skip-forward', 'sliders-horizontal', 'smartphone', 'sparkles', 'square', 'trophy', 'tv', 'user', 'users',
-    'volume-2', 'volume-x', 'x', 'zap', 'triangle-alert', 'eraser', 'flag', 'log-out', 'plus', 'sun', 'user-x', 'ellipsis', 'pencil'
+    'volume-2', 'volume-x', 'x', 'zap', 'triangle-alert', 'eraser', 'flag', 'log-out', 'plus', 'sun', 'user-x', 'ellipsis', 'pencil',
+    'copy', 'external-link'
 ];
 
 const ANDROID = {

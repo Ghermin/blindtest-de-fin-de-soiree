@@ -181,7 +181,7 @@ async function handleHost(request, response, room, action, body) {
     const game = room.game;
     const post = request.method === 'POST';
     if (action === '/host/status') {
-        return send(response, 200, { key: room.hostKey, presets: await presets(), spotify: spotify.status() });
+        return send(response, 200, { key: room.hostKey, presets: await presets(), spotify: { ...spotify.status(), redirectUri: redirectUri() } });
     }
     if (action === '/host/playlist' && post) return send(response, 200, { playlist: await game.setPlaylist(body.url) });
     if (action === '/host/playlists') return send(response, 200, { playlists: await spotify.myPlaylists() });
@@ -293,7 +293,10 @@ async function handleApi(request, response, url) {
     }
     if (action.startsWith('/host/')) {
         if (!ratelimit.allow(`host:${ip}`, 120, 60000)) return send(response, 429, { error: 'Trop de requêtes' });
-        if (!safeEqual(request.headers['x-host-key'] || '', room.hostKey)) return send(response, 403, { error: 'Clé hôte incorrecte' });
+        if (!safeEqual(request.headers['x-host-key'] || '', room.hostKey)) {
+            if (!ratelimit.allow(`hostkey:${ip}`, 20, 600000)) return send(response, 429, { error: 'Trop de clés hôte refusées, réessaie dans quelques minutes' });
+            return send(response, 403, { error: 'Clé hôte incorrecte' });
+        }
         return handleHost(request, response, room, action, body);
     }
     return send(response, 404, { error: 'Route inconnue' });
