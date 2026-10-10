@@ -42,5 +42,6 @@ class Settings(context: Context) {
     companion object {
         const val PORT = 3000
         const val ROOM = "MAISON"
+        const val SPOTIFY_REDIRECT_URI = "http://127.0.0.1:$PORT/auth/spotify/callback"
     }
 }

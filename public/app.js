@@ -495,6 +495,8 @@
         $('more-toggle').hidden = !isHost;
         $('lobby-host').hidden = isHost;
         $('lobby-setup').hidden = !isHost;
+        $('lobby-start').hidden = !isHost;
+        $('lobby-start').disabled = !(state.playlist && state.playlist.ready);
         $('podium-actions').hidden = !isHost;
         $('podium-guest').hidden = isHost;
         const running = ['countdown', 'guess', 'reveal'].includes(state.phase);
@@ -612,6 +614,18 @@
         showSheet(open ? 'host' : null);
     }
 
+    let spotifyRedirect = '';
+
+    function renderSpotifySetup(account) {
+        spotifyRedirect = account.redirectUri || '';
+        const show = !account.configured || !account.connected;
+        $('host-spotify-help').hidden = account.configured;
+        $('host-spotify-help').textContent = 'Pour chercher des playlists Spotify et ouvrir les tiennes, crée une app sur le tableau de bord Spotify, ajoute-lui l\'URL de redirection ci-dessous, puis reporte son Client ID et son secret dans les Réglages de l\'appli.';
+        $('host-spotify-redirect').hidden = !show || !spotifyRedirect;
+        $('host-spotify-redirect').textContent = spotifyRedirect ? `URL de redirection à ajouter dans l'app Spotify : ${spotifyRedirect}` : '';
+        $('host-spotify-links').hidden = !show;
+    }
+
     async function refreshHost() {
         try {
             const status = await post(`${api}/host/status`, null, 'GET');
@@ -622,6 +636,7 @@
             label($('host-spotify'), 'headphones', account.connected ? `Spotify : ${account.account ? account.account.name : 'compte connecté'}` : 'Spotify : compte non connecté (liens publics OK ; connecte-le pour tes playlists privées)');
             label($('host-connect'), 'headphones', account.connected ? 'Changer de compte Spotify' : 'Connecter mon compte Spotify');
             $('host-playlists').hidden = !account.connected;
+            renderSpotifySetup(account);
             const container = $('host-presets');
             container.innerHTML = '';
             container.hidden = !status.presets.length;
@@ -878,6 +893,15 @@
     $('host-connect').addEventListener('click', () => {
         location.href = `/auth/spotify?room=${encodeURIComponent(room)}&key=${encodeURIComponent(hostKey)}&back=${encodeURIComponent(location.origin)}`;
     });
+    $('host-spotify-copy').addEventListener('click', async () => {
+        if (!spotifyRedirect) return;
+        try {
+            await navigator.clipboard.writeText(spotifyRedirect);
+            hostFeedback('URL de redirection copiée');
+        } catch (_denied) {
+            hostFeedback('Copie refusée par le navigateur : sélectionne l\'adresse affichée au-dessus', true);
+        }
+    });
     function renderPlaylists(playlists, emptyMessage) {
         const list = $('host-playlist-list');
         list.innerHTML = '';
@@ -947,6 +971,9 @@
         await hostAction(`${api}/host/lobby`);
     });
     $('lobby-setup').addEventListener('click', () => toggleHostPanel(true));
+    $('lobby-start').addEventListener('click', async () => {
+        if (!(await hostAction(`${api}/host/start`))) toggleHostPanel(true);
+    });
     function pauseRoute() {
         return `${api}/host/${state && state.paused ? 'resume' : 'pause'}`;
     }

@@ -79,6 +79,10 @@ premiers titres** et leurs extraits. Les identifiants d'une app Spotify ajoutent
 les playlists Spotify à la recherche et, avec ton compte connecté, **Mes
 playlists** (privées comprises, en entier si tu les possèdes).
 
+Pas besoin de recopier ce qui suit à la main : l'écran **Réglages de l'appli**
+et le panneau hôte proposent le bouton **Créer une app Spotify** et l'URL de
+redirection à copier.
+
 1. https://developer.spotify.com/dashboard → **Create app** : nom `Blind Test`,
    description `blind test maison`, **Redirect URIs** :
    `http://127.0.0.1:3000/auth/spotify/callback` (clique **Add**), **Web API**

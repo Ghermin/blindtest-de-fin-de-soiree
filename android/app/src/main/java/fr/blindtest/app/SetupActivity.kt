@@ -1,6 +1,10 @@
 package fr.blindtest.app
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -21,6 +25,22 @@ class SetupActivity : AppCompatActivity() {
         val clientSecret = findViewById<EditText>(R.id.spotify_secret)
         val save = findViewById<Button>(R.id.save)
         val cancel = findViewById<Button>(R.id.cancel)
+        val dashboard = findViewById<Button>(R.id.spotify_dashboard)
+        val redirect = findViewById<TextView>(R.id.spotify_redirect)
+        val dashboardUrl = getString(R.string.spotify_dashboard_url)
+        dashboard.setOnClickListener {
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(dashboardUrl)))
+            } catch (ignored: Exception) {
+                Toast.makeText(this, getString(R.string.spotify_dashboard_failed, dashboardUrl), Toast.LENGTH_LONG).show()
+            }
+        }
+        redirect.text = getString(R.string.spotify_redirect, Settings.SPOTIFY_REDIRECT_URI)
+        redirect.setOnClickListener {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("redirect", Settings.SPOTIFY_REDIRECT_URI))
+            Toast.makeText(this, R.string.spotify_redirect_copied, Toast.LENGTH_SHORT).show()
+        }
         pin.setText(settings.pinOrRandom())
         clientId.setText(settings.spotifyClientId)
         clientSecret.setText(settings.spotifyClientSecret)
