@@ -1,4 +1,3 @@
-const spotify = require('./spotify.js');
 const deezer = require('./deezer.js');
 const embed = require('./embed.js');
 
@@ -22,12 +21,7 @@ async function loadPlaylist(input) {
         const data = await deezer.playlist(link.id);
         return { ...data, id: link.id, source: 'deezer' };
     }
-    let data;
-    try {
-        data = await spotify.playlist(link.id);
-    } catch (_official) {
-        data = await embed.playlist(link.id);
-    }
+    const data = await embed.playlist(link.id);
     return { ...data, id: link.id, source: 'spotify' };
 }
 

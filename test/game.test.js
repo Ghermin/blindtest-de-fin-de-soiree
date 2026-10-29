@@ -487,6 +487,33 @@ test('le QCM propose quatre titres japonais distincts', () => {
     assert.strictEqual(new Set(choices.map((choice) => choice.label)).size, 4);
 });
 
+test('le QCM ne propose pas un titre déjà joué et fait tourner les leurres', () => {
+    const game = make();
+    game.settings = { ...game.options, mode: 'title', works: false };
+    game.allTracks = Array.from({ length: 30 }, (_, index) => ({ uri: `t:${index}`, name: `Titre ${index}`, artists: [`Artiste ${index}`] }));
+    for (const track of game.allTracks.slice(0, 4)) game.played.add(track.uri);
+    const heard = new Set(game.allTracks.slice(0, 4).map((track) => track.name));
+    const decoys = [];
+    for (const track of game.allTracks.slice(4, 8)) {
+        game.played.add(track.uri);
+        heard.add(track.name);
+        const choices = game.buildChoices(track);
+        const wrong = choices.filter((choice) => choice.label !== track.name).map((choice) => choice.label);
+        assert.strictEqual(wrong.length, 3);
+        assert.ok(wrong.every((label) => !heard.has(label)), `titre déjà joué proposé : ${wrong.join(', ')}`);
+        decoys.push(...wrong);
+    }
+    assert.strictEqual(new Set(decoys).size, decoys.length, 'un leurre est revenu alors que la playlist en avait d\'autres');
+});
+
+test('le QCM se rabat sur les titres joués quand la playlist est trop courte', () => {
+    const game = make();
+    game.settings = { ...game.options, mode: 'title', works: false };
+    game.allTracks = TRACKS.map((track) => ({ ...track }));
+    for (const track of game.allTracks) game.played.add(track.uri);
+    assert.strictEqual(game.buildChoices(game.allTracks[0]).length, 3);
+});
+
 test('une playlist nommée en japonais est vue comme une playlist de BO', async () => {
     const game = make();
     await game.setPlaylist('x');

@@ -754,6 +754,9 @@ body.is-host #app {
     grid-auto-rows: 1fr;
     gap: 12px;
     width: 100%;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .choices .choice {
@@ -1093,10 +1096,6 @@ form.stack > button {
     padding: 10px 12px;
     border-radius: 10px;
     background: var(--surface-2);
-}
-
-.host-line {
-    margin: 0;
 }
 
 .host-list {

@@ -56,9 +56,7 @@ class NodeService : Service() {
             "BLINDTEST_HOST" to "0.0.0.0",
             "BLINDTEST_HOME_ROOM" to Settings.ROOM,
             "BLINDTEST_HOST_PIN" to settings.pinOrRandom(),
-            "BLINDTEST_DATA_DIR" to Updater.dataDir(this).absolutePath,
-            "SPOTIFY_CLIENT_ID" to settings.spotifyClientId,
-            "SPOTIFY_CLIENT_SECRET" to settings.spotifyClientSecret
+            "BLINDTEST_DATA_DIR" to Updater.dataDir(this).absolutePath
         )
         status = getString(R.string.status_starting)
         Thread { waitForServer() }.start()

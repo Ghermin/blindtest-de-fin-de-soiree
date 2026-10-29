@@ -330,6 +330,11 @@
             text.textContent = choice.label;
             button.append(letter, text);
             button.addEventListener('click', () => answerChoice(choice.id));
+            button.addEventListener('pointerup', (event) => {
+                if (event.pointerType === 'mouse') return;
+                const box = button.getBoundingClientRect();
+                if (event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom) answerChoice(choice.id);
+            });
             container.appendChild(button);
         });
     }
@@ -543,6 +548,7 @@
             show('game');
             renderGuess();
             if (state.phase === 'guess' && lastPhase !== 'guess' && !state.choices) $('guess-input').focus({ preventScroll: true });
+            if (state.phase === 'guess' && lastPhase !== 'guess' && state.choices) $('choices').scrollIntoView({ block: 'nearest' });
         } else if (state.phase === 'reveal') {
             show('reveal');
             renderReveal();
@@ -614,29 +620,10 @@
         showSheet(open ? 'host' : null);
     }
 
-    let spotifyRedirect = '';
-
-    function renderSpotifySetup(account) {
-        spotifyRedirect = account.redirectUri || '';
-        const show = !account.configured || !account.connected;
-        $('host-spotify-help').hidden = account.configured;
-        $('host-spotify-help').textContent = 'Pour chercher des playlists Spotify et ouvrir les tiennes, crée une app sur le tableau de bord Spotify, ajoute-lui l\'URL de redirection ci-dessous, puis reporte son Client ID et son secret dans les Réglages de l\'appli.';
-        $('host-spotify-redirect').hidden = !show || !spotifyRedirect;
-        $('host-spotify-redirect').textContent = spotifyRedirect ? `URL de redirection à ajouter dans l'app Spotify : ${spotifyRedirect}` : '';
-        $('host-spotify-links').hidden = !show;
-    }
-
     async function refreshHost() {
         try {
             const status = await post(`${api}/host/status`, null, 'GET');
             $('host-key').textContent = `Clé hôte de la salle ${room} : ${status.key}`;
-            const account = status.spotify || {};
-            $('host-spotify').hidden = !account.configured;
-            $('host-spotify-actions').hidden = !account.configured;
-            label($('host-spotify'), 'headphones', account.connected ? `Spotify : ${account.account ? account.account.name : 'compte connecté'}` : 'Spotify : compte non connecté (liens publics OK ; connecte-le pour tes playlists privées)');
-            label($('host-connect'), 'headphones', account.connected ? 'Changer de compte Spotify' : 'Connecter mon compte Spotify');
-            $('host-playlists').hidden = !account.connected;
-            renderSpotifySetup(account);
             const container = $('host-presets');
             container.innerHTML = '';
             container.hidden = !status.presets.length;
@@ -890,18 +877,6 @@
             if (await dialog({ title: 'Arrêter le serveur ?', text: 'La partie en cours sera perdue et l\'appli se ferme.', confirm: 'Arrêter', icon: 'power', danger: true })) native.quit();
         });
     }
-    $('host-connect').addEventListener('click', () => {
-        location.href = `/auth/spotify?room=${encodeURIComponent(room)}&key=${encodeURIComponent(hostKey)}&back=${encodeURIComponent(location.origin)}`;
-    });
-    $('host-spotify-copy').addEventListener('click', async () => {
-        if (!spotifyRedirect) return;
-        try {
-            await navigator.clipboard.writeText(spotifyRedirect);
-            hostFeedback('URL de redirection copiée');
-        } catch (_denied) {
-            hostFeedback('Copie refusée par le navigateur : sélectionne l\'adresse affichée au-dessus', true);
-        }
-    });
     function renderPlaylists(playlists, emptyMessage) {
         const list = $('host-playlist-list');
         list.innerHTML = '';
@@ -912,7 +887,7 @@
             const parts = [playlist.total ? `${playlist.name} (${playlist.total})` : playlist.name];
             if (playlist.owner) parts.push(playlist.owner);
             parts.push(playlist.source === 'deezer' ? 'Deezer' : 'Spotify');
-            if (playlist.source !== 'deezer' && !playlist.mine && playlist.total > 100) parts.push('100 premiers titres');
+            if (playlist.source !== 'deezer' && playlist.total > 100) parts.push('100 premiers titres');
             button.textContent = parts.join(' · ');
             button.addEventListener('click', () => {
                 list.innerHTML = '';
@@ -923,16 +898,6 @@
         }
         hostFeedback(playlists.length ? '' : emptyMessage);
     }
-
-    $('host-playlists').addEventListener('click', async () => {
-        try {
-            hostFeedback('…');
-            const { playlists } = await post(`${api}/host/playlists`, null, 'GET');
-            renderPlaylists(playlists, 'Aucune playlist sur ce compte');
-        } catch (error) {
-            hostFeedback(error.message, true);
-        }
-    });
 
 
     function looksLikeLink(text) {

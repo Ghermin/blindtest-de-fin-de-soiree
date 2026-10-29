@@ -10,8 +10,7 @@ TV : son navigateur ouvre une adresse.
    et touche **Télécharger l'appli (APK)**. Android demande d'autoriser ce
    navigateur à installer des applis : accepte, puis **Installer**.
 2. Lance **Blind Test**. Choisis un **code hôte** (les chiffres qui te donnent
-   la main sur ce téléphone), laisse Spotify vide si tu n'as pas d'identifiants
-   (voir plus bas), touche **C'est parti**.
+   la main sur ce téléphone), touche **C'est parti**.
 3. Accepte **« Toujours autoriser en arrière-plan »** : sinon Android coupe le
    serveur quand l'écran s'éteint.
 
@@ -69,40 +68,14 @@ La notification « Blind Test » reste affichée tant que la partie peut être
 jouée ; **Arrêter** dessus (ou **Paramètres → Appli → Arrêter le serveur**)
 coupe le serveur.
 
-## 3. Spotify (optionnel, 5 min, une seule fois)
+## 3. Les playlists
 
-Sans rien configurer, le champ du panneau hôte accepte le lien de n'importe
-quelle playlist Spotify **publique** (éditoriales comprises) ou Deezer, et un
+Rien à configurer : le champ du panneau hôte accepte le lien de n'importe
+quelle playlist **publique** Spotify (éditoriales comprises) ou Deezer, et un
 nom à chercher (« années 80 », « rap français ») qui interroge Deezer. Pour
 Spotify, le jeu lit la page publique du lecteur intégré : elle donne les **100
-premiers titres** et leurs extraits. Les identifiants d'une app Spotify ajoutent
-les playlists Spotify à la recherche et, avec ton compte connecté, **Mes
-playlists** (privées comprises, en entier si tu les possèdes).
-
-Pas besoin de recopier ce qui suit à la main : l'écran **Réglages de l'appli**
-et le panneau hôte proposent le bouton **Créer une app Spotify** et l'URL de
-redirection à copier.
-
-1. https://developer.spotify.com/dashboard → **Create app** : nom `Blind Test`,
-   description `blind test maison`, **Redirect URIs** :
-   `http://127.0.0.1:3000/auth/spotify/callback` (clique **Add**), **Web API**
-   coché, **Save**. Dans **Settings**, copie le **Client ID** et le secret.
-   Spotify exige un abonnement Premium sur le compte qui crée l'app.
-2. Dans l'appli : **Paramètres → Appli → Réglages de l'appli**, colle le
-   Client ID et le secret, **Enregistrer**. L'appli se ferme : rouvre-la pour
-   les appliquer.
-3. Dans le panneau hôte de ta salle : **Connecter mon compte Spotify** →
-   ton navigateur s'ouvre, Spotify demande l'autorisation → tu reviens sur la
-   salle. Le bouton **Mes playlists** liste alors tes playlists.
-
-L'autorisation dure 6 mois, puis le panneau hôte te redemande de connecter le
-compte.
-
-**Règle Spotify (mars 2026)** : l'API officielle ne livre les titres complets
-que des playlists **que tu possèdes** ou auxquelles tu collabores. Pour les
-autres, le jeu passe par la page publique du lecteur intégré, limitée aux 100
-premiers titres et susceptible de changer sans préavis. Les playlists Deezer
-publiques passent toutes, en entier.
+premiers titres** et leurs extraits, et peut changer sans préavis. Les
+playlists Deezer publiques passent toutes, en entier.
 
 ## 4. Installer sur un autre téléphone (l'hôte d'une autre maison)
 
@@ -120,12 +93,10 @@ choisit son code hôte, et a exactement la même chose que toi.
 | L'appli reste sur « Démarrage du serveur… » | Bouton **⋯** de l'écran de démarrage → **Arrêter et quitter**, puis relance l'appli |
 | « Recherche des extraits en cours » | Patiente, le compteur avance dans le panneau hôte |
 | « Pas assez d'extraits trouvés » | Titres trop rares : essaie la même playlist côté Deezer |
-| « Playlist Spotify introuvable ou privée » | Vérifie le lien ; la playlist privée d'un autre compte est inaccessible : Deezer, ou une copie dans ton compte |
-| Une playlist Spotify s'arrête à 100 titres | Limite de la page publique : copie-la dans Spotify (⋮ → Ajouter à une playlist → Nouvelle playlist) et charge la copie avec ton compte connecté |
-| « Spotify a expiré l'autorisation » | Reconnecte ton compte dans le panneau hôte, Spotify coupe l'accès au bout de 6 mois |
+| « Playlist Spotify introuvable ou privée » | Vérifie le lien, et que la playlist est bien publique dans Spotify ; sinon la même playlist côté Deezer |
+| Une playlist Spotify s'arrête à 100 titres | Limite de la page publique de Spotify : prends la même playlist côté Deezer, lue en entier |
 | Pas de son sur l'écran TV | **Activer le son** sur cet écran (les navigateurs exigent un geste) |
 | Deux appareils jouent le son | Désactive **Son sur ce téléphone** dans Paramètres |
 | « Clé hôte incorrecte » | C'est le code hôte choisi dans les réglages de l'appli |
 | Pas reconnu comme hôte | Ouvre la salle dans l'appli (elle porte la clé), ou **Je suis l'hôte** → ton code |
-| Spotify : « INVALID_CLIENT: Invalid redirect URI » | Ajoute `http://127.0.0.1:3000/auth/spotify/callback` dans les Redirect URIs de ton app Spotify |
 | La mise à jour de l'appli ne s'installe pas | La première fois, Android demande d'autoriser Blind Test à installer des applis (**Paramètres**, active l'option) et Play Protect propose une analyse (**Installer sans analyser** convient) ; relance ensuite **Paramètres → Appli → Mettre à jour l'appli** |

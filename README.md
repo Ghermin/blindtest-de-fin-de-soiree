@@ -31,6 +31,10 @@ d'être sur le même Wi-Fi, ou sur le partage de connexion du téléphone.
   durée, titre et/ou artiste, **clavier ou QCM** (quatre propositions, une
   réponse par manche), **chacun pour soi ou un téléphone par équipe**, indices.
   En QCM, les propositions sont deux par ligne et toutes de la même taille.
+  Un titre déjà joué ne sert jamais de mauvaise proposition (sinon on
+  l'éliminerait d'office), et les mauvaises propositions tournent dans toute la
+  playlist plutôt que de revenir. Un pouce qui glisse sur une proposition ne
+  fait pas défiler la page et compte comme un appui.
 - **Playlists de bandes originales** : quand la playlist en est une — son nom
   le dit (BO, OST, anime, films, Disney…) ou au moins trois titres sur dix
   sont reconnus — chaque proposition affiche son œuvre entre parenthèses
@@ -97,10 +101,9 @@ suffit ; sinon une tablette ou un portable.
 
 Deezer : toutes les playlists publiques, en entier, sans rien configurer.
 Spotify : les playlists publiques se lisent par la page de leur lecteur intégré
-(100 premiers titres, extraits Spotify inclus) ; avec des identifiants d'app
-Spotify, la recherche par nom inclut Spotify et le compte connecté donne accès
-à **Mes playlists** (en entier pour celles que tu possèdes, règle Spotify de
-mars 2026).
+(100 premiers titres, extraits Spotify inclus), sans compte ni identifiants.
+La recherche par nom interroge Deezer. Aucune connexion à un compte : on ne
+joue que des playlists publiques.
 
 Les extraits de 30 secondes sont les aperçus publics fournis par Spotify,
 Deezer et Apple Music, les mêmes que sur leurs sites. Ils sont destinés à la

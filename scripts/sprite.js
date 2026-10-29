@@ -8,11 +8,10 @@ const DRAWABLES = path.join(ROOT, 'android', 'app', 'src', 'main', 'res', 'drawa
 
 const WEB = [
     'arrow-left', 'award', 'check', 'circle-check', 'circle-x', 'code', 'corner-up-left', 'crown', 'disc-3', 'download',
-    'flame', 'headphones', 'hourglass', 'house', 'key-round', 'keyboard', 'laugh', 'list-checks', 'list-music', 'medal',
+    'flame', 'hourglass', 'house', 'key-round', 'keyboard', 'laugh', 'list-checks', 'medal',
     'mic', 'moon', 'music', 'party-popper', 'pause', 'play', 'power', 'rotate-ccw', 'send-horizontal', 'settings',
     'skip-forward', 'sliders-horizontal', 'smartphone', 'sparkles', 'square', 'trophy', 'tv', 'user', 'users',
-    'volume-2', 'volume-x', 'x', 'zap', 'triangle-alert', 'eraser', 'flag', 'log-out', 'plus', 'sun', 'user-x', 'ellipsis', 'pencil',
-    'copy', 'external-link'
+    'volume-2', 'volume-x', 'x', 'zap', 'triangle-alert', 'eraser', 'flag', 'log-out', 'plus', 'sun', 'user-x', 'ellipsis', 'pencil'
 ];
 
 const ANDROID = {

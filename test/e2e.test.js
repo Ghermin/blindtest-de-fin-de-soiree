@@ -91,9 +91,7 @@ async function startServer() {
             BLINDTEST_DATA_DIR: dataDir,
             BLINDTEST_SOURCES: path.join(__dirname, 'fixtures', 'sources.js'),
             BLINDTEST_TIMINGS: JSON.stringify({ countdownMs: 200, revealMs: 300, guessMs: 6000 }),
-            BLINDTEST_PUBLIC_URL: '',
-            SPOTIFY_CLIENT_ID: '',
-            SPOTIFY_CLIENT_SECRET: ''
+            BLINDTEST_PUBLIC_URL: ''
         },
         stdio: ['ignore', 'pipe', 'pipe']
     });
@@ -170,7 +168,7 @@ test('parcours complet via l\'API et les flux SSE', async (t) => {
             assert.strictEqual(search.status, 200);
             assert.ok(Array.isArray(search.json.playlists));
             if (search.json.playlists.length) {
-                assert.ok(search.json.playlists.every((entry) => entry.id && entry.name && ['spotify', 'deezer'].includes(entry.source)));
+                assert.ok(search.json.playlists.every((entry) => entry.id && entry.name && entry.source === 'deezer'));
             } else {
                 t.diagnostic('recherche Deezer vide (pas de réseau ?)');
             }
