@@ -2,9 +2,8 @@ const http = require('node:http');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
-const { randomBytes, timingSafeEqual } = require('node:crypto');
+const { timingSafeEqual } = require('node:crypto');
 const config = require('./src/config.js');
-const spotify = require('./src/spotify.js');
 const deezer = require('./src/deezer.js');
 const rooms = require('./src/rooms.js');
 const qr = require('./src/qr.js');
@@ -46,11 +45,6 @@ function baseUrl() {
 
 function joinUrl(room) {
     return `${baseUrl()}/r/${room.code}`;
-}
-
-function redirectUri() {
-    if (config.publicUrl.startsWith('https://')) return `${config.publicUrl}/auth/spotify/callback`;
-    return `http://127.0.0.1:${config.port}/auth/spotify/callback`;
 }
 
 function snapshot(room) {
@@ -102,11 +96,6 @@ function send(response, status, body) {
 function plain(response, status, text) {
     response.writeHead(status, { ...HEADERS, 'Content-Type': 'text/plain; charset=utf-8' });
     response.end(text);
-}
-
-function redirect(response, location) {
-    response.writeHead(302, { ...HEADERS, Location: location });
-    response.end();
 }
 
 function escapeHtml(text) {
@@ -173,33 +162,20 @@ async function presets() {
     }
 }
 
-function safeBack(value) {
-    return /^https?:\/\/[A-Za-z0-9.\-:[\]]+$/.test(String(value || '')) ? value : '';
-}
-
 async function handleHost(request, response, room, action, body) {
     const game = room.game;
     const post = request.method === 'POST';
     if (action === '/host/status') {
-        return send(response, 200, { key: room.hostKey, presets: await presets(), spotify: { ...spotify.status(), redirectUri: redirectUri() } });
+        return send(response, 200, { key: room.hostKey, presets: await presets() });
     }
     if (action === '/host/playlist' && post) return send(response, 200, { playlist: await game.setPlaylist(body.url) });
-    if (action === '/host/playlists') return send(response, 200, { playlists: await spotify.myPlaylists() });
     if (action === '/host/search' && post) {
         const query = String(body.q || '').trim().slice(0, 80);
-        const quiet = (label) => (error) => {
-            console.log(`Recherche ${label} en échec : ${error.message}`);
+        const playlists = await deezer.searchPlaylists(query).catch((error) => {
+            console.log(`Recherche Deezer en échec : ${error.message}`);
             return [];
-        };
-        const [fromSpotify, fromDeezer] = await Promise.all([
-            spotify.configured() ? spotify.searchPlaylists(query).catch(quiet('Spotify')) : [],
-            deezer.searchPlaylists(query).catch(quiet('Deezer'))
-        ]);
-        return send(response, 200, { playlists: [...fromSpotify, ...fromDeezer] });
-    }
-    if (action === '/host/spotify/forget' && post) {
-        spotify.forgetUser();
-        return send(response, 200, { ok: true });
+        });
+        return send(response, 200, { playlists });
     }
     if (action === '/host/options' && post) return send(response, 200, { options: game.setOptions(body) });
     if (action === '/host/start' && post) {
@@ -259,7 +235,7 @@ async function handleApi(request, response, url) {
     if (route === '/api/health') return send(response, 200, { ok: true, rooms: rooms.all().length, busy: rooms.busy() });
     if (route === '/api/info') {
         const home = rooms.get(config.homeRoom);
-        return send(response, 200, { home: home ? home.code : null, publicUrl: baseUrl(), spotify: spotify.configured(), pagesUrl: config.pagesUrl });
+        return send(response, 200, { home: home ? home.code : null, publicUrl: baseUrl(), pagesUrl: config.pagesUrl });
     }
     if (route === '/api/rooms' && post) {
         if (!ratelimit.allow(`rooms:${ip}`, 5, 3600000)) return send(response, 429, { error: 'Trop de salles créées, réessaie plus tard' });
@@ -302,34 +278,6 @@ async function handleApi(request, response, url) {
     return send(response, 404, { error: 'Route inconnue' });
 }
 
-async function handleAuth(request, response, url) {
-    if (url.pathname === '/auth/spotify') {
-        const room = rooms.get(url.searchParams.get('room'));
-        if (!room || !safeEqual(url.searchParams.get('key') || '', room.hostKey)) return plain(response, 403, 'Salle ou clé hôte incorrecte');
-        if (!spotify.configured()) return plain(response, 400, 'Connexion Spotify indisponible : renseigne SPOTIFY_CLIENT_ID et SPOTIFY_CLIENT_SECRET');
-        if (!ratelimit.allow(`auth:${clientIp(request)}`, 10, 600000)) return plain(response, 429, 'Trop de tentatives, réessaie dans quelques minutes');
-        const state = randomBytes(16).toString('hex');
-        room.pendingAuth = { state, expiresAt: Date.now() + 600000, back: safeBack(url.searchParams.get('back')) };
-        return redirect(response, spotify.authorizeUrl(redirectUri(), state));
-    }
-    if (url.pathname === '/auth/spotify/callback') {
-        const state = url.searchParams.get('state');
-        const room = rooms.all().find((entry) => entry.pendingAuth && entry.pendingAuth.state === state && entry.pendingAuth.expiresAt > Date.now());
-        if (!room) return plain(response, 400, 'Connexion expirée ou invalide, recommence depuis le panneau hôte');
-        const pending = room.pendingAuth;
-        room.pendingAuth = null;
-        if (url.searchParams.get('error')) return plain(response, 400, `Spotify a refusé : ${url.searchParams.get('error')}`);
-        try {
-            const account = await spotify.connect(url.searchParams.get('code'), redirectUri());
-            console.log(`Compte Spotify connecté : ${account ? account.name : '?'}`);
-            return redirect(response, `${pending.back || ''}/r/${room.code}#host=${room.hostKey}`);
-        } catch (error) {
-            return plain(response, 400, `Échec de la connexion Spotify : ${error.message}`);
-        }
-    }
-    return plain(response, 404, '404');
-}
-
 function handleEvents(request, response, url) {
     const room = rooms.get(url.searchParams.get('room'));
     if (!room) return send(response, 404, { error: 'Salle introuvable' });
@@ -362,14 +310,6 @@ const server = http.createServer(async (request, response) => {
         }
         return;
     }
-    if (route.startsWith('/auth/')) {
-        try {
-            await handleAuth(request, response, url);
-        } catch (error) {
-            plain(response, 500, `Erreur : ${error.message}`);
-        }
-        return;
-    }
     if (route === '/' || route === '/index.html') return serveFile(response, 'index.html', 'text/html; charset=utf-8');
     if (route === '/install') return serveInstall(response);
     const page = route.match(/^\/r\/([A-Za-z0-9]{3,12})(\/tv|\/qr\.svg)?$/);
@@ -399,6 +339,7 @@ function shutdown(signal) {
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
+fs.rm(path.join(config.dataDir, 'spotify-user.json'), { force: true }).catch(() => null);
 const restored = rooms.load();
 for (const room of rooms.all()) attach(room);
 const home = rooms.ensureHome();
@@ -408,5 +349,4 @@ server.listen(config.port, config.host, () => {
     console.log(`Blind test prêt : ${baseUrl()} (LAN : ${lanUrl()}, local : http://localhost:${config.port})`);
     if (restored) console.log(`${restored} salle(s) restaurée(s) depuis ${config.dataDir}`);
     if (home) console.log(`Salle de la maison : ${joinUrl(home)} — clé hôte : ${home.hostKey}`);
-    if (!spotify.configured()) console.log('ℹ Sans SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET : liens Spotify publics et Deezer OK, mais pas de recherche Spotify ni de playlists privées');
 });

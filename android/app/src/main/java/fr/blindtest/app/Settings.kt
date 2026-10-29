@@ -6,6 +6,10 @@ import kotlin.random.Random
 class Settings(context: Context) {
     private val prefs = context.getSharedPreferences("blindtest", Context.MODE_PRIVATE)
 
+    init {
+        if (prefs.contains("spotifyClientId") || prefs.contains("spotifyClientSecret")) prefs.edit().remove("spotifyClientId").remove("spotifyClientSecret").apply()
+    }
+
     var configured: Boolean
         get() = prefs.getBoolean("configured", false)
         set(value) = prefs.edit().putBoolean("configured", value).apply()
@@ -13,14 +17,6 @@ class Settings(context: Context) {
     var hostPin: String
         get() = prefs.getString("hostPin", "") ?: ""
         set(value) = prefs.edit().putString("hostPin", value).apply()
-
-    var spotifyClientId: String
-        get() = prefs.getString("spotifyClientId", "") ?: ""
-        set(value) = prefs.edit().putString("spotifyClientId", value).apply()
-
-    var spotifyClientSecret: String
-        get() = prefs.getString("spotifyClientSecret", "") ?: ""
-        set(value) = prefs.edit().putString("spotifyClientSecret", value).apply()
 
     var lastCommit: String
         get() = prefs.getString("lastCommit", "") ?: ""
@@ -42,6 +38,5 @@ class Settings(context: Context) {
     companion object {
         const val PORT = 3000
         const val ROOM = "MAISON"
-        const val SPOTIFY_REDIRECT_URI = "http://127.0.0.1:$PORT/auth/spotify/callback"
     }
 }

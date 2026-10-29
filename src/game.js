@@ -63,6 +63,7 @@ class Game extends EventEmitter {
         this.options = { rounds: 10, guessSeconds: 30, mode: 'both', hints: true, answers: 'text', play: 'solo', known: false };
         this.choices = null;
         this.correctChoice = null;
+        this.shown = new Map();
         this.phase = 'lobby';
         this.roundIndex = 0;
         this.track = null;
@@ -374,6 +375,7 @@ class Game extends EventEmitter {
             hints: wanted.hints !== false && answers !== 'choices'
         };
         this.queue = shuffle(fresh).slice(0, rounds);
+        this.shown = new Map();
         this.resetPlayers();
         this.roundIndex = 0;
         this.paused = false;
@@ -613,16 +615,22 @@ class Game extends EventEmitter {
     }
 
     distractors(track) {
-        const pool = shuffle(this.allTracks.filter((candidate) => candidate.uri !== track.uri));
-        if (!this.settings.works) return pool;
+        const key = (entry) => matching.normalize(this.choiceLabel(entry));
+        const heard = new Set(this.settings.mode === 'artist' ? [] : this.allTracks.filter((entry) => this.played.has(entry.uri)).map(key));
         const wanted = Boolean(works.work(track));
-        const alike = [];
-        const rest = [];
-        for (const entry of pool) {
-            if (Boolean(works.work(entry)) === wanted) alike.push(entry);
-            else rest.push(entry);
-        }
-        return [...alike, ...rest];
+        const ranked = shuffle(this.allTracks.filter((candidate) => candidate.uri !== track.uri)).map((entry) => {
+            const label = key(entry);
+            return {
+                entry,
+                rank: [
+                    this.played.has(entry.uri) || heard.has(label) ? 1 : 0,
+                    this.settings.works && Boolean(works.work(entry)) !== wanted ? 1 : 0,
+                    this.shown.get(label) || 0
+                ]
+            };
+        });
+        ranked.sort((a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1] || a.rank[2] - b.rank[2]);
+        return ranked.map((item) => item.entry);
     }
 
     buildChoices(track) {
@@ -638,6 +646,10 @@ class Game extends EventEmitter {
             if (others.length === 3) break;
         }
         const choices = shuffle([correct, ...others]).map((label, index) => ({ id: `c${index + 1}`, label }));
+        for (const choice of choices) {
+            const key = matching.normalize(choice.label);
+            this.shown.set(key, (this.shown.get(key) || 0) + 1);
+        }
         this.correctChoice = choices.find((choice) => choice.label === correct).id;
         return choices;
     }
