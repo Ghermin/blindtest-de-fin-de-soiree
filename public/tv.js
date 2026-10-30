@@ -27,7 +27,19 @@
         $('tv-sound').hidden = !flag;
     } });
 
-    function applyTheme(theme) {
+    const systemLight = attempt(() => window.matchMedia('(prefers-color-scheme: light)'), null);
+
+    function systemTheme() {
+        return systemLight && systemLight.matches ? 'light' : 'dark';
+    }
+
+    function savedTheme() {
+        const saved = attempt(() => localStorage.getItem('bt_tv_theme'), '');
+        return saved === 'light' || saved === 'dark' ? saved : '';
+    }
+
+    function applyTheme(choice) {
+        const theme = choice || systemTheme();
         document.documentElement.setAttribute('data-theme', theme);
         const dark = theme !== 'light';
         label($('tv-theme'), dark ? 'sun' : 'moon', '');
@@ -252,7 +264,7 @@
         renderQr(url);
         renderJoinUrl(url.replace(/^https?:\/\//, ''));
         $('tv-code').textContent = `Code : ${state.room || room}`;
-        $('tv-lobby-url').textContent = url;
+        $('tv-lobby-url').textContent = url.replace(/^https?:\/\//, '');
         label($('tv-playlist'), state.playlist ? 'disc-3' : null, playlistLabel(state.playlist));
         $('tv-config').textContent = configLabel(state.options);
         $('tv-notice').textContent = state.notice || '';
@@ -344,11 +356,16 @@
         return startRoom();
     }
 
-    applyTheme(attempt(() => localStorage.getItem('bt_tv_theme'), '') === 'light' ? 'light' : 'dark');
+    applyTheme(savedTheme());
+    if (systemLight) {
+        const follow = () => applyTheme(savedTheme());
+        if (systemLight.addEventListener) systemLight.addEventListener('change', follow);
+        else if (systemLight.addListener) systemLight.addListener(follow);
+    }
     $('tv-theme').addEventListener('click', () => {
         const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        attempt(() => localStorage.setItem('bt_tv_theme', next));
-        applyTheme(next);
+        attempt(() => (next === systemTheme() ? localStorage.removeItem('bt_tv_theme') : localStorage.setItem('bt_tv_theme', next)));
+        applyTheme(savedTheme());
     });
     $('tv-sound').addEventListener('click', enableSound);
     document.addEventListener('pointerdown', () => {

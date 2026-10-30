@@ -26,11 +26,12 @@ une (aussi dans **Paramètres → Appli → Mettre à jour l'appli**, le bouton
    d'une box, qui isole souvent les appareils entre eux.
 2. Ouvre **Blind Test** : la salle s'affiche, déjà en mode hôte (le bouton
    engrenage en bas à droite est là). Pseudo → **Rejoindre**.
-3. Sur la TV, ouvre le navigateur et tape l'adresse de la ligne **Écran TV**
-   du lobby (par exemple `http://192.168.1.23:3000/r/MAISON/tv`). Valide
+3. Sur la TV, ouvre le navigateur et tape l'adresse du cadre **Écran TV**
+   du lobby (par exemple `192.168.1.23:3000/r/MAISON/tv`). Elle est aussi
+   dans **Paramètres**, avec un bouton pour la copier. Valide
    **Activer le son** avec la télécommande. Mets la page en favori. Le
-   bouton soleil ou lune, en haut du classement, passe l'écran en clair ou en
-   sombre ; le téléphone, lui, suit le réglage du système.
+   thème clair ou sombre suit celui de chaque appareil ; sur la TV, le bouton
+   soleil ou lune, en haut du classement, le change.
 4. Les invités scannent le QR code (dans le lobby de ton téléphone ou sur la
    TV), entrent un pseudo et, s'ils veulent, rejoignent une équipe existante
    d'un tap ou en créent une.

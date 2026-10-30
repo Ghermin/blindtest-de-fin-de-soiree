@@ -56,16 +56,23 @@
             <p id="lobby-notice" class="notice" role="status" hidden></p>
             <p id="lobby-playlist" class="playlist-tag"></p>
             <p id="lobby-config" class="config-line"></p>
-            <ul id="lobby-teams" class="teams-bar" hidden></ul>
-            <ul id="lobby-players" class="chips"></ul>
+            <button id="lobby-start" type="button" class="primary wide" hidden><svg class="icon" aria-hidden="true"><use href="#i-play" xlink:href="#i-play"></use></svg> Lancer la partie</button>
+            <p id="lobby-hint" class="hint">La partie commence quand l'hôte la lance.</p>
+            <div id="lobby-tv" class="tv-card" hidden>
+                <p class="tv-card-title"><svg class="icon" aria-hidden="true"><use href="#i-tv" xlink:href="#i-tv"></use></svg> Écran TV</p>
+                <p class="tv-card-text">Ouvre cette adresse sur la TV :</p>
+                <p id="lobby-tv-url" class="tv-url"></p>
+                <button id="lobby-tv-copy" type="button" class="tv-copy"><svg class="icon" aria-hidden="true"><use href="#i-copy" xlink:href="#i-copy"></use></svg> Copier l'adresse</button>
+            </div>
             <div class="join-card">
+                <p class="join-label">Pour jouer, scanne :</p>
                 <img id="lobby-qr" alt="QR code pour rejoindre la partie">
                 <p id="lobby-url" class="join-url"></p>
             </div>
-            <p id="lobby-tv" class="config-line" hidden></p>
-            <p class="hint">L'hôte choisit la playlist et lance la partie. Le son sort de l'écran TV ou du téléphone de l'hôte.</p>
+            <p id="lobby-count" class="section-label"></p>
+            <ul id="lobby-teams" class="teams-bar" hidden></ul>
+            <ul id="lobby-players" class="chips"></ul>
             <div class="lobby-actions">
-                <button id="lobby-start" type="button" class="primary" hidden><svg class="icon" aria-hidden="true"><use href="#i-play" xlink:href="#i-play"></use></svg> Lancer la partie</button>
                 <button id="lobby-host" type="button" class="ghost"><svg class="icon" aria-hidden="true"><use href="#i-key-round" xlink:href="#i-key-round"></use></svg> Je suis l'hôte</button>
                 <button id="lobby-setup" type="button" class="ghost" hidden><svg class="icon" aria-hidden="true"><use href="#i-sliders-horizontal" xlink:href="#i-sliders-horizontal"></use></svg> Playlist et réglages</button>
                 <button id="lobby-back" type="button" class="ghost"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left" xlink:href="#i-arrow-left"></use></svg> Changer de pseudo</button>
@@ -116,7 +123,7 @@
                 <button id="podium-replay" type="button" class="primary"><svg class="icon" aria-hidden="true"><use href="#i-rotate-ccw" xlink:href="#i-rotate-ccw"></use></svg> Rejouer</button>
                 <button id="podium-setup" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sliders-horizontal" xlink:href="#i-sliders-horizontal"></use></svg> Modifier la partie</button>
             </div>
-            <p id="podium-guest" class="hint">L'hôte peut relancer une partie, ou changer la playlist et les réglages, depuis son téléphone.</p>
+            <p id="podium-guest" class="hint">L'hôte peut relancer une partie.</p>
         </section>
     </main>
 
@@ -186,7 +193,7 @@
         <div class="host-actions">
             <button id="host-team-add" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus" xlink:href="#i-plus"></use></svg> Créer une équipe</button>
         </div>
-        <p class="hint">Touche une équipe pour la renommer ou la supprimer. Les joueurs la choisissent à l'inscription, ou tu les déplaces depuis la liste des joueurs.</p>
+        <p class="hint">Touche une équipe pour la renommer ou la supprimer. Pour changer un joueur d'équipe, touche son drapeau.</p>
     </aside>
     <aside id="settings-panel" class="sheet" aria-label="Paramètres" hidden>
         <div id="settings-grab" class="sheet-grab">
@@ -202,18 +209,24 @@
             <button id="app-settings" type="button"><svg class="icon" aria-hidden="true"><use href="#i-settings" xlink:href="#i-settings"></use></svg> Réglages de l'appli</button>
             <button id="app-quit" type="button"><svg class="icon" aria-hidden="true"><use href="#i-power" xlink:href="#i-power"></use></svg> Arrêter le serveur</button>
         </div>
+        <p class="sheet-title">Écran TV</p>
+        <div id="settings-tv" class="tv-card compact" hidden>
+            <p class="tv-card-text">Adresse à ouvrir sur la TV :</p>
+            <p id="settings-tv-url" class="tv-url"></p>
+            <button id="settings-tv-copy" type="button" class="tv-copy"><svg class="icon" aria-hidden="true"><use href="#i-copy" xlink:href="#i-copy"></use></svg> Copier l'adresse</button>
+        </div>
         <p class="sheet-title">Son</p>
         <div class="host-actions">
             <button id="host-speaker" type="button"><svg class="icon" aria-hidden="true"><use href="#i-volume-x" xlink:href="#i-volume-x"></use></svg> Son sur ce téléphone : non</button>
         </div>
-        <p class="hint">Le son sort de l'écran TV de la salle. Sans écran, active-le sur ce téléphone et branche une enceinte.</p>
+        <p class="hint">Le son sort de la TV. Sans TV, active le son ici et branche une enceinte.</p>
         <p class="sheet-title">Autres téléphones</p>
         <div class="host-actions">
             <button id="host-install" type="button"><svg class="icon" aria-hidden="true"><use href="#i-smartphone" xlink:href="#i-smartphone"></use></svg> Installer sur un autre téléphone</button>
         </div>
         <p class="sheet-title">Salle et affichage</p>
         <p id="host-key" class="hint"></p>
-        <p class="hint">Le thème clair ou sombre suit le réglage du téléphone. Sur l'écran TV, le bouton soleil ou lune en haut du classement le change.</p>
+        <p class="hint">Le thème clair ou sombre suit celui du téléphone. Sur la TV, il suit celui de la TV. Le bouton soleil ou lune le change.</p>
     </aside>
 
     <script src="/ui.js"></script>
