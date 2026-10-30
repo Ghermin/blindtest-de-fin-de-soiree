@@ -9,8 +9,7 @@ TV : son navigateur ouvre une adresse.
 1. Sur le téléphone, ouvre **https://ghermin.github.io/blindtest-de-fin-de-soiree/**
    et touche **Télécharger l'appli (APK)**. Android demande d'autoriser ce
    navigateur à installer des applis : accepte, puis **Installer**.
-2. Lance **Blind Test**. Choisis un **code hôte** (les chiffres qui te donnent
-   la main sur ce téléphone), touche **C'est parti**.
+2. Lance **Blind Test** : la salle s'ouvre directement, rien à régler.
 3. Accepte **« Toujours autoriser en arrière-plan »** : sinon Android coupe le
    serveur quand l'écran s'éteint.
 
@@ -39,7 +38,7 @@ une (aussi dans **Paramètres → Appli → Mettre à jour l'appli**, le bouton
    choisis dans la liste → **Lancer**. Le panneau se ferme d'un glissement
    vers le bas, d'un tap à côté ou avec la croix. Pas de bouton engrenage
    (page ouverte depuis le QR code, autre navigateur) ? **Je suis l'hôte** →
-   ton code, sur l'écran de connexion ou dans le lobby.
+   le code hôte affiché dans **Paramètres** du téléphone de l'hôte.
 6. Sur le podium : **Rejouer** relance avec les mêmes réglages,
    **Modifier la partie** ramène au lobby avec le panneau ouvert.
 7. Pendant la partie, une barre en haut du téléphone : **Pause** (chrono,
@@ -82,8 +81,8 @@ playlists Deezer publiques passent toutes, en entier.
 
 Envoie-lui **https://ghermin.github.io/blindtest-de-fin-de-soiree/** ou, depuis
 ta salle, **Paramètres → Installer sur un autre téléphone** : la page
-affiche un QR code à scanner. L'autre téléphone (Android) télécharge l'appli,
-choisit son code hôte, et a exactement la même chose que toi.
+affiche un QR code à scanner. L'autre téléphone (Android) télécharge l'appli
+et a exactement la même chose que toi.
 
 ## Si ça coince
 
@@ -98,6 +97,6 @@ choisit son code hôte, et a exactement la même chose que toi.
 | Une playlist Spotify s'arrête à 100 titres | Limite de la page publique de Spotify : prends la même playlist côté Deezer, lue en entier |
 | Pas de son sur l'écran TV | **Activer le son** sur cet écran (les navigateurs exigent un geste) |
 | Deux appareils jouent le son | Désactive **Son sur ce téléphone** dans Paramètres |
-| « Clé hôte incorrecte » | C'est le code hôte choisi dans les réglages de l'appli |
-| Pas reconnu comme hôte | Ouvre la salle dans l'appli (elle porte la clé), ou **Je suis l'hôte** → ton code |
+| « Code hôte incorrect » | Le code est affiché dans **Paramètres**, sur le téléphone de l'hôte |
+| Pas reconnu comme hôte | Ouvre la salle dans l'appli (elle porte le code), ou **Je suis l'hôte** → le code de **Paramètres** |
 | La mise à jour de l'appli ne s'installe pas | La première fois, Android demande d'autoriser Blind Test à installer des applis (**Paramètres**, active l'option) et Play Protect propose une analyse (**Installer sans analyser** convient) ; relance ensuite **Paramètres → Appli → Mettre à jour l'appli** |

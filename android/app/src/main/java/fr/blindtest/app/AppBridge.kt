@@ -3,7 +3,6 @@ package fr.blindtest.app
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.webkit.JavascriptInterface
 
 class AppBridge(private val activity: MainActivity) {
@@ -28,11 +27,6 @@ class AppBridge(private val activity: MainActivity) {
     @JavascriptInterface
     fun checkUpdate() {
         activity.runOnUiThread { activity.checkForUpdate(true) }
-    }
-
-    @JavascriptInterface
-    fun openSettings() {
-        activity.runOnUiThread { activity.startActivity(Intent(activity, SetupActivity::class.java)) }
     }
 
     @JavascriptInterface
