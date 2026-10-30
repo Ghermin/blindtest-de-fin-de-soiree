@@ -145,7 +145,7 @@
             kick.setAttribute('aria-label', `Retirer ${player.name}`);
             kick.appendChild(icon('user-x'));
             kick.addEventListener('click', async () => {
-                if (await dialog({ title: `Retirer ${player.name} ?`, text: 'Il devra rejoindre à nouveau pour continuer.', confirm: 'Retirer', icon: 'user-x', danger: true })) hostAction(`${api}/host/kick`, { id: player.id });
+                if (await dialog({ title: `Retirer ${player.name} ?`, text: 'Il faudra rejoindre à nouveau pour continuer.', confirm: 'Retirer', icon: 'user-x', danger: true })) hostAction(`${api}/host/kick`, { id: player.id });
             });
             item.appendChild(kick);
             list.appendChild(item);
@@ -476,6 +476,50 @@
         statsList.hidden = !lines.length;
     }
 
+    function shortUrl(url) {
+        return String(url || '').replace(/^https?:\/\//, '');
+    }
+
+    function renderUrl(element, url) {
+        const text = shortUrl(url);
+        const cut = text.indexOf('/r/');
+        element.textContent = '';
+        for (const part of cut > 0 ? [text.slice(0, cut), text.slice(cut)] : [text]) {
+            const piece = document.createElement('span');
+            piece.className = 'url-part';
+            piece.textContent = part;
+            element.appendChild(piece);
+        }
+    }
+
+    async function copyText(text) {
+        const app = window.BlindTestApp;
+        if (app && typeof app.copy === 'function' && attempt(() => app.copy(text), false)) return true;
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (_denied) {
+            const area = document.createElement('textarea');
+            area.value = text;
+            area.setAttribute('readonly', '');
+            area.style.position = 'fixed';
+            area.style.opacity = '0';
+            document.body.appendChild(area);
+            area.select();
+            const done = attempt(() => document.execCommand('copy'), false);
+            area.remove();
+            return done;
+        }
+    }
+
+    async function copyTvUrl(button, target) {
+        if (!state || !state.joinUrl) return;
+        const done = await copyText(`${state.joinUrl}/tv`);
+        if (!done) attempt(() => window.getSelection().selectAllChildren(target));
+        label(button, done ? 'check' : 'copy', done ? 'Adresse copiée' : 'Copie impossible : recopie l\'adresse');
+        setTimeout(() => label(button, 'copy', 'Copier l\'adresse'), 2000);
+    }
+
     function renderQr(url) {
         if (url === qrUrl) return;
         qrUrl = url;
@@ -524,6 +568,10 @@
             renderHostPlayers();
             renderHostTeams();
         }
+        const tvUrl = state.joinUrl ? `${state.joinUrl}/tv` : '';
+        renderUrl($('lobby-tv-url'), tvUrl);
+        renderUrl($('settings-tv-url'), tvUrl);
+        $('settings-tv').hidden = !tvUrl;
 
         if (!token) {
             const teams = Boolean(state.options && state.options.play === 'teams');
@@ -539,9 +587,11 @@
             $('lobby-config').textContent = configLabel(state.options);
             $('lobby-notice').textContent = state.notice || '';
             $('lobby-notice').hidden = !state.notice;
-            $('lobby-url').textContent = state.joinUrl || '';
+            renderUrl($('lobby-url'), state.joinUrl);
             $('lobby-tv').hidden = !isHost || !state.joinUrl;
-            label($('lobby-tv'), state.joinUrl ? 'tv' : null, state.joinUrl ? `Écran TV : ${state.joinUrl}/tv` : '');
+            $('lobby-hint').hidden = isHost;
+            const count = (state.players || []).length;
+            $('lobby-count').textContent = count ? `${count} joueur${count > 1 ? 's' : ''}` : 'Personne pour l\'instant';
             renderTeams(state.teams, $('lobby-teams'));
             renderPlayers(state.players, $('lobby-players'), false);
         } else if (state.phase === 'countdown' || state.phase === 'guess') {
@@ -936,6 +986,8 @@
         await hostAction(`${api}/host/lobby`);
     });
     $('lobby-setup').addEventListener('click', () => toggleHostPanel(true));
+    $('lobby-tv-copy').addEventListener('click', () => copyTvUrl($('lobby-tv-copy'), $('lobby-tv-url')));
+    $('settings-tv-copy').addEventListener('click', () => copyTvUrl($('settings-tv-copy'), $('settings-tv-url')));
     $('lobby-start').addEventListener('click', async () => {
         if (!(await hostAction(`${api}/host/start`))) toggleHostPanel(true);
     });

@@ -1,5 +1,8 @@
 package fr.blindtest.app
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.webkit.JavascriptInterface
 
@@ -12,6 +15,15 @@ class AppBridge(private val activity: MainActivity) {
 
     @JavascriptInterface
     fun theme(): String = if (Theming.isNight(activity)) "dark" else "light"
+
+    @JavascriptInterface
+    fun copy(text: String): Boolean {
+        activity.runOnUiThread {
+            val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("Blind Test", text))
+        }
+        return true
+    }
 
     @JavascriptInterface
     fun checkUpdate() {
