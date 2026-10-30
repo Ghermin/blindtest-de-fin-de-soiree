@@ -10,10 +10,6 @@ class Settings(context: Context) {
         if (prefs.contains("spotifyClientId") || prefs.contains("spotifyClientSecret")) prefs.edit().remove("spotifyClientId").remove("spotifyClientSecret").apply()
     }
 
-    var configured: Boolean
-        get() = prefs.getBoolean("configured", false)
-        set(value) = prefs.edit().putBoolean("configured", value).apply()
-
     var hostPin: String
         get() = prefs.getString("hostPin", "") ?: ""
         set(value) = prefs.edit().putString("hostPin", value).apply()
@@ -31,7 +27,7 @@ class Settings(context: Context) {
         set(value) = prefs.edit().putBoolean("batteryAsked", value).apply()
 
     fun pinOrRandom(): String {
-        if (hostPin.isBlank()) hostPin = (1000 + Random.nextInt(9000)).toString()
+        if (hostPin.isBlank()) hostPin = (100000 + Random.nextInt(900000)).toString()
         return hostPin
     }
 

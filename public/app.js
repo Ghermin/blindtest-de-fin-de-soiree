@@ -90,7 +90,7 @@
     }
 
     function askHostKey() {
-        return dialog({ title: 'Clé hôte', text: 'Le code hôte de la salle de la maison, ou la clé reçue à la création de la salle.', input: { placeholder: 'Clé hôte', maxLength: 12 }, confirm: 'Valider', icon: 'key-round' })
+        return dialog({ title: 'Code hôte', text: 'Il est affiché dans Paramètres, sur le téléphone de l\'hôte.', input: { placeholder: 'Code hôte', maxLength: 12 }, confirm: 'Valider', icon: 'key-round' })
             .then((value) => (value || '').trim());
     }
 
@@ -673,7 +673,7 @@
     async function refreshHost() {
         try {
             const status = await post(`${api}/host/status`, null, 'GET');
-            $('host-key').textContent = `Clé hôte de la salle ${room} : ${status.key}`;
+            $('host-key').textContent = `Code hôte : ${status.key}. Il sert à piloter la partie depuis un autre appareil.`;
             const container = $('host-presets');
             container.innerHTML = '';
             container.hidden = !status.presets.length;
@@ -922,7 +922,6 @@
             label($('app-update'), 'download', 'Mettre à jour l\'appli');
         }
         $('app-update').addEventListener('click', () => native.checkUpdate());
-        $('app-settings').addEventListener('click', () => native.openSettings());
         $('app-quit').addEventListener('click', async () => {
             if (await dialog({ title: 'Arrêter le serveur ?', text: 'La partie en cours sera perdue et l\'appli se ferme.', confirm: 'Arrêter', icon: 'power', danger: true })) native.quit();
         });

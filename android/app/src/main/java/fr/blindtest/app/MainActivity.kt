@@ -61,11 +61,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settings = Settings(this)
-        if (!settings.configured) {
-            startActivity(Intent(this, SetupActivity::class.java))
-            finish()
-            return
-        }
         setContentView(R.layout.activity_main)
         Theming.apply(this)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -239,7 +234,6 @@ class MainActivity : AppCompatActivity() {
         val items = listOf(
             R.string.menu_tv to R.drawable.ic_menu_tv,
             R.string.menu_reload to R.drawable.ic_menu_reload,
-            R.string.menu_settings to R.drawable.ic_menu_settings,
             R.string.menu_update to R.drawable.ic_menu_update,
             R.string.menu_quit to R.drawable.ic_menu_power
         )
@@ -258,9 +252,8 @@ class MainActivity : AppCompatActivity() {
                 when (index) {
                     0 -> showTvAddress()
                     1 -> webView.reload()
-                    2 -> startActivity(Intent(this, SetupActivity::class.java))
-                    3 -> checkForUpdate(true)
-                    4 -> quit()
+                    2 -> checkForUpdate(true)
+                    3 -> quit()
                 }
             }
             .create()

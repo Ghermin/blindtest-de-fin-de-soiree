@@ -9,7 +9,7 @@ const DRAWABLES = path.join(ROOT, 'android', 'app', 'src', 'main', 'res', 'drawa
 const WEB = [
     'arrow-left', 'award', 'check', 'circle-check', 'circle-x', 'code', 'corner-up-left', 'crown', 'disc-3', 'download',
     'flame', 'hourglass', 'house', 'key-round', 'keyboard', 'laugh', 'list-checks', 'medal',
-    'mic', 'moon', 'music', 'party-popper', 'pause', 'play', 'power', 'rotate-ccw', 'send-horizontal', 'settings',
+    'mic', 'moon', 'music', 'party-popper', 'pause', 'play', 'power', 'rotate-ccw', 'send-horizontal',
     'skip-forward', 'sliders-horizontal', 'smartphone', 'sparkles', 'square', 'trophy', 'tv', 'user', 'users',
     'volume-2', 'volume-x', 'x', 'zap', 'triangle-alert', 'eraser', 'flag', 'log-out', 'plus', 'sun', 'user-x', 'ellipsis', 'pencil', 'copy'
 ];
@@ -17,7 +17,6 @@ const WEB = [
 const ANDROID = {
     ic_menu_tv: 'tv',
     ic_menu_reload: 'rotate-cw',
-    ic_menu_settings: 'settings',
     ic_menu_update: 'download',
     ic_menu_power: 'power'
 };

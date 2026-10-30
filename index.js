@@ -270,8 +270,8 @@ async function handleApi(request, response, url) {
     if (action.startsWith('/host/')) {
         if (!ratelimit.allow(`host:${ip}`, 120, 60000)) return send(response, 429, { error: 'Trop de requêtes' });
         if (!safeEqual(request.headers['x-host-key'] || '', room.hostKey)) {
-            if (!ratelimit.allow(`hostkey:${ip}`, 20, 600000)) return send(response, 429, { error: 'Trop de clés hôte refusées, réessaie dans quelques minutes' });
-            return send(response, 403, { error: 'Clé hôte incorrecte' });
+            if (!ratelimit.allow(`hostkey:${ip}`, 20, 600000)) return send(response, 429, { error: 'Trop de codes hôte refusés, réessaie dans quelques minutes' });
+            return send(response, 403, { error: 'Code hôte incorrect' });
         }
         return handleHost(request, response, room, action, body);
     }
@@ -348,5 +348,5 @@ if (home) attach(home);
 server.listen(config.port, config.host, () => {
     console.log(`Blind test prêt : ${baseUrl()} (LAN : ${lanUrl()}, local : http://localhost:${config.port})`);
     if (restored) console.log(`${restored} salle(s) restaurée(s) depuis ${config.dataDir}`);
-    if (home) console.log(`Salle de la maison : ${joinUrl(home)} — clé hôte : ${home.hostKey}`);
+    if (home) console.log(`Salle de la maison : ${joinUrl(home)} — code hôte : ${home.hostKey}`);
 });
