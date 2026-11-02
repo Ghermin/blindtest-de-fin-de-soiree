@@ -46,6 +46,7 @@
         document.documentElement.setAttribute('data-theme', theme);
     }
     syncTheme();
+    window.BlindTestSyncTheme = syncTheme;
 
     function renderSpeaker() {
         label($('host-speaker'), speaker ? 'volume-2' : 'volume-x', `Son sur ce téléphone : ${speaker ? 'oui' : 'non'}`);

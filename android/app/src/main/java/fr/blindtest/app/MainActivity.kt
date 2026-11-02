@@ -5,6 +5,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -28,6 +30,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -133,6 +136,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun roomUrl(): String = "http://127.0.0.1:${Settings.PORT}/r/${Settings.ROOM}#host=${settings.pinOrRandom()}"
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applyColors()
+        webView.evaluateJavascript("window.BlindTestSyncTheme && window.BlindTestSyncTheme()", null)
+    }
+
+    private fun applyColors() {
+        Theming.apply(this)
+        val bg = ContextCompat.getColor(this, R.color.bg)
+        val text = ContextCompat.getColor(this, R.color.text)
+        window.statusBarColor = bg
+        window.navigationBarColor = bg
+        window.decorView.setBackgroundColor(bg)
+        (webView.parent as? View)?.setBackgroundColor(bg)
+        webView.setBackgroundColor(bg)
+        loading.setBackgroundColor(bg)
+        val group = loading as ViewGroup
+        for (index in 0 until group.childCount) {
+            when (val child = group.getChildAt(index)) {
+                is ProgressBar -> child.indeterminateTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent2))
+                is TextView -> child.setTextColor(if (child.id == R.id.loading_text) ContextCompat.getColor(this, R.color.muted) else text)
+            }
+        }
+        findViewById<View>(R.id.menu).setBackgroundResource(R.drawable.bg_round)
+    }
 
     private fun recreateWebView() {
         val parent = webView.parent as? ViewGroup ?: return
