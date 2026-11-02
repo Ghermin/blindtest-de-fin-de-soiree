@@ -372,6 +372,7 @@
         if (!$('tv-sound').hidden) enableSound();
     }, { passive: true });
     setInterval(() => {
+        if (document.documentElement.getAttribute('data-theme') !== (savedTheme() || systemTheme())) applyTheme(savedTheme());
         if (source && Date.now() - lastMessage > 40000) connect();
         if (state) syncAudio(false);
     }, 5000);
