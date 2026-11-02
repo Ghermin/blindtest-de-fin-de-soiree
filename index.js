@@ -18,6 +18,7 @@ const ASSETS = {
     '/style.css': 'text/css; charset=utf-8',
     '/tv.css': 'text/css; charset=utf-8',
     '/favicon.svg': 'image/svg+xml',
+    '/favicon-32.png': 'image/png',
     '/manifest.webmanifest': 'application/manifest+json',
     '/apple-touch-icon.png': 'image/png',
     '/icon-192.png': 'image/png',

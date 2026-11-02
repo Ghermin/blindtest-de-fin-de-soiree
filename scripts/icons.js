@@ -3,12 +3,16 @@ const path = require('node:path');
 const zlib = require('node:zlib');
 
 const OUT = path.join(__dirname, '..', 'public');
-const FILES = { 'apple-touch-icon.png': 180, 'icon-192.png': 192, 'icon-512.png': 512 };
-const SHORTCUT = 'shortcut-icon.png';
+const FILES = {
+    'favicon-32.png': [32, true],
+    'apple-touch-icon.png': [180, false],
+    'icon-192.png': [192, true],
+    'icon-512.png': [512, false],
+    'shortcut-icon.png': [512, true]
+};
 const VIOLET = [96, 36, 168];
 const DEEP = [28, 10, 58];
 const WHITE = [255, 255, 255];
-const BG = [18, 8, 31];
 const DISC = [17, 17, 17];
 const RING = [40, 40, 40];
 const PINK = [255, 61, 139];
@@ -43,30 +47,14 @@ function coverage(distance, radius, scale) {
     return Math.min(1, Math.max(0, (radius - distance) * scale + 0.5));
 }
 
-function pixel(x, y, size) {
-    const scale = size / 100;
-    const u = x / scale;
-    const v = y / scale;
-    const r = Math.hypot(u - 50, v - 50);
-    let color = BG;
-    color = mix(color, DISC, coverage(r, 48, scale));
-    for (const radius of [40, 32, 24]) {
-        color = mix(color, RING, coverage(r, radius + 1, scale) - coverage(r, radius - 1, scale));
-    }
-    const t = Math.min(1, Math.max(0, (u + v - 70) / 60));
-    color = mix(color, mix(PINK, TEAL, t), coverage(r, 15, scale));
-    color = mix(color, BG, coverage(r, 4, scale));
-    return color.map(Math.round);
-}
-
-function shortcutPixel(x, y, size) {
+function logoPixel(x, y, size, rounded) {
     const scale = size / 100;
     const u = x / scale;
     const v = y / scale;
     const corner = 24;
     const dx = Math.max(Math.abs(u - 50) - (50 - corner), 0);
     const dy = Math.max(Math.abs(v - 50) - (50 - corner), 0);
-    const alpha = coverage(Math.hypot(dx, dy), corner, scale);
+    const alpha = rounded ? coverage(Math.hypot(dx, dy), corner, scale) : 1;
     const diagonal = Math.min(1, Math.max(0, (u + v) / 200));
     let color = mix(VIOLET, DEEP, diagonal);
     color = mix(color, PINK, 0.35 * Math.max(0, 1 - Math.hypot(u - 18, v - 14) / 60));
@@ -107,10 +95,8 @@ function png(size, render) {
     ]);
 }
 
-for (const [name, size] of Object.entries(FILES)) {
+for (const [name, [size, rounded]] of Object.entries(FILES)) {
     const file = path.join(OUT, name);
-    fs.writeFileSync(file, png(size, pixel));
+    fs.writeFileSync(file, png(size, (x, y, side) => logoPixel(x, y, side, rounded)));
     console.log(`${name} (${size}px, ${fs.statSync(file).size} octets)`);
 }
-fs.writeFileSync(path.join(OUT, SHORTCUT), png(512, shortcutPixel));
-console.log(`${SHORTCUT} (512px, ${fs.statSync(path.join(OUT, SHORTCUT)).size} octets)`);

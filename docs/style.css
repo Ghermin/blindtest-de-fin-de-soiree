@@ -1346,6 +1346,13 @@ body.paused .spinning {
     animation-play-state: paused;
 }
 
+.install .logo {
+    width: 96px;
+    height: 96px;
+    margin-top: 4dvh;
+    filter: drop-shadow(0 10px 24px var(--shadow));
+}
+
 .install .join-card svg {
     width: 200px;
     height: 200px;
