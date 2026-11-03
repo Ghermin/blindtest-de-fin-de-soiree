@@ -60,7 +60,7 @@ npm start
 - Node 22 (voir `.nvmrc`).
 - `index.js`, `src/`, `public/` : le serveur et les pages. L'appli les met à jour à chaque lancement.
 - `android/` : l'appli Android. GitHub Actions construit l'APK à chaque changement.
-- `docs/` : la page d'installation, générée par `npm run pages`.
+- `docs/` : la page GitHub, générée par `npm run pages` depuis `site/` (gabarit et kit du Bored Dev Playground).
 - `npm run works` régénère les tables d'œuvres et de noms japonais (`src/works.json`, `src/romaji.json`).
 - `npm run sprite` régénère les icônes ([Lucide](https://lucide.dev), licence ISC).
 
