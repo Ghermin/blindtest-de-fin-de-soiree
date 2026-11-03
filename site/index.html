@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12081f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f1ff" media="(prefers-color-scheme: light)">
+<meta name="color-scheme" content="light dark">
+<title>Blind Test de fin de soirée</title>
+<meta name="description" content="Un blind test à plusieurs : l'appli Android héberge la partie, les invités répondent depuis leur téléphone et la TV joue les extraits.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="playground.css">
+<style>
+  :root {
+    --pg-bg: #f6f1ff; --pg-surface: #ffffff; --pg-surface-2: #e9e0fa; --pg-text: #1d1233; --pg-muted: #6a5990;
+    --pg-line: rgba(29, 18, 51, .12); --pg-dot: rgba(29, 18, 51, .09);
+    --pg-accent: #e8237c; --pg-accent-2: #7c3aed; --pg-on-accent: #ffffff;
+    --teal: #0d9488;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --pg-bg: #12081f; --pg-surface: #1f0f38; --pg-surface-2: #2a1650; --pg-text: #f3ecff; --pg-muted: #b9a6e0;
+      --pg-line: rgba(255, 255, 255, .1); --pg-dot: rgba(243, 236, 255, .07);
+      --pg-accent: #ff3d8b; --pg-accent-2: #a46bff; --pg-on-accent: #ffffff;
+      --teal: #35e0c8;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { font-family: "Fredoka", system-ui, sans-serif; font-size: 17px; }
+  a { color: var(--pg-accent); }
+  .pg-hero h1, .pg-section h2, .pg-end h2 { font-weight: 700; letter-spacing: -.02em; }
+  .pg-brand { font-weight: 600; }
+
+  .pg-hero { position: relative; }
+  .pg-hero::before {
+    content: ""; position: absolute; inset: -80px -20vw auto; height: 560px; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(40% 55% at 20% 10%, color-mix(in srgb, var(--pg-accent) 16%, transparent), transparent 70%),
+      radial-gradient(35% 50% at 75% 20%, color-mix(in srgb, var(--teal) 14%, transparent), transparent 70%);
+  }
+  .logo { width: 88px; height: 88px; margin-bottom: 24px; filter: drop-shadow(0 12px 24px color-mix(in srgb, var(--pg-accent) 35%, transparent)); }
+
+  .roles .pg-card { display: flex; gap: 16px; }
+  .role-icon {
+    width: 44px; height: 44px; border-radius: var(--pg-radius-sm); flex: none; display: grid; place-items: center;
+    background: color-mix(in srgb, var(--teal) 15%, transparent); color: var(--teal);
+  }
+  .role-icon svg { width: 22px; height: 22px; }
+</style>
+</head>
+<body class="pg-page">
+<nav class="pg-strip" aria-label="Bored Dev Playground">
+  <div class="pg-strip__in">
+    <a class="pg-strip__home" href="https://ghermin.github.io/">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="pg-logo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#ff6b6b"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#pg-logo)"/><path d="M14 27h14M36 27h14" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><path d="M16 27a5 5 0 0 0 10 0zM38 27a5 5 0 0 0 10 0z" fill="#fff"/><rect x="24" y="41" width="16" height="4.5" rx="2.25" fill="#fff"/></svg>
+      <b>bored dev playground</b><span class="pg-strip__crumb">/ blindtest-de-fin-de-soiree</span>
+    </a>
+    <a class="pg-strip__all" href="https://ghermin.github.io/">tous les projets <span aria-hidden="true">→</span></a>
+  </div>
+</nav>
+
+<header class="pg-top">
+  <a class="pg-brand" href="./"><img src="shortcut-icon.png" alt="">Blind Test</a>
+  <nav class="pg-nav">
+    <a href="#installer">Installer</a>
+    <a class="pg-gh" href="{{REPO}}"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg> GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <section class="pg-hero">
+    <img class="logo" src="shortcut-icon.png" alt="" width="88" height="88">
+    <div class="pg-hero__tags">
+      <p class="pg-kicker">~/projets/blindtest-de-fin-de-soiree</p>
+      <ul class="pg-chips" role="list"><li>Android</li><li>Multijoueur</li><li>Musique</li></ul>
+    </div>
+    <h1>Le blind test <span class="pg-grad">de fin de soirée</span>.</h1>
+    <p class="pg-lead">L'appli Android héberge la partie, les invités répondent depuis leur téléphone et la TV joue les extraits. Playlists Spotify ou Deezer.</p>
+    <div class="pg-cta">
+      <a class="pg-btn pg-btn--primary" href="{{APK_URL}}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        Télécharger l'appli (APK)
+      </a>
+      <a class="pg-btn" href="{{REPO}}">Voir le code sur GitHub</a>
+    </div>
+    <p class="pg-meta">Android, un seul fichier · ouvre-le et autorise l'installation · le jeu se met à jour tout seul</p>
+  </section>
+
+  <section class="pg-section">
+    <p class="pg-kicker">Qui fait quoi</p>
+    <h2>Une seule appli à installer</h2>
+    <p class="pg-section__lead">Les invités n'installent rien : ils scannent le QR code de la salle.</p>
+    <div class="pg-grid roles">
+      <div class="pg-card"><div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
+        <div><h3>L'hôte</h3><p>Son téléphone Android héberge la partie et choisit la playlist.</p></div></div>
+      <div class="pg-card"><div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div><h3>Les invités</h3><p>Ils répondent depuis leur propre téléphone, dans le navigateur.</p></div></div>
+      <div class="pg-card"><div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div>
+        <div><h3>La TV</h3><p>Elle affiche la partie et joue les extraits pour tout le monde.</p></div></div>
+    </div>
+  </section>
+
+  <section class="pg-section" id="installer">
+    <p class="pg-kicker">Lancer une partie</p>
+    <h2>Prêt en quatre étapes</h2>
+    <div class="pg-grid pg-steps">
+      <div class="pg-card"><h3>Ouvre l'appli</h3><p>La salle s'ouvre directement. Autorise-la en arrière-plan, sinon Android coupe le jeu écran éteint.</p></div>
+      <div class="pg-card"><h3>Tout le monde sur le même Wi-Fi</h3><p>Ou sur ton partage de connexion.</p></div>
+      <div class="pg-card"><h3>Sur la TV</h3><p>Ouvre l'adresse du cadre <b>Écran TV</b>.</p></div>
+      <div class="pg-card"><h3>Choisis une playlist</h3><p>Avec le bouton engrenage, en bas à droite. Puis lance.</p></div>
+    </div>
+  </section>
+
+  <section class="pg-end">
+    <img src="shortcut-icon.png" alt="" width="56" height="56">
+    <h2>Que la meilleure oreille gagne.</h2>
+    <div class="pg-cta">
+      <a class="pg-btn pg-btn--primary" href="{{APK_URL}}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        Télécharger le Blind Test
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer class="pg-foot">
+  <div class="pg-foot__in">
+    <p><a href="{{REPO}}">Code source</a> · <a href="{{REPO}}/releases">Versions</a></p>
+    <p>Un projet du <a href="https://ghermin.github.io/">Bored Dev Playground</a>, par <a href="https://github.com/Ghermin">Ghermin</a></p>
+  </div>
+</footer>
+</body>
+</html>
