@@ -11,7 +11,6 @@
     "scripts": {
         "start": "node index.js",
         "test": "node --test",
-        "icons": "node scripts/icons.js",
         "sprite": "node scripts/sprite.js",
         "pages": "node scripts/pages.js",
         "works": "node scripts/works.js",

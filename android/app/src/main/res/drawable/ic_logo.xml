@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Généré par bored-dev-playground/brand/build.js, ne pas modifier à la main. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <path android:pathData="M16,0h32a16,16 0,0 1,16 16v32a16,16 0,0 1,-16 16h-32a16,16 0,0 1,-16 -16v-32a16,16 0,0 1,16 -16z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="0" android:startY="0" android:endX="64" android:endY="64">
+                <item android:offset="0" android:color="#FFFF3D8B" />
+                <item android:offset="1" android:color="#FF7C3AED" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M29 17a18 18 0 1 1 0 36a18 18 0 1 1 0-36z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M18 35a11 11 0 0 1 11-11"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="4"
+        android:strokeAlpha="0.55"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M29 30.5a4.5 4.5 0 1 1 0 9a4.5 4.5 0 1 1 0-9z"
+        android:fillColor="#FFFFFFFF" />
+    <path
+        android:pathData="M47 9Q48 15 54 16Q48 17 47 23Q46 17 40 16Q46 15 47 9z"
+        android:fillColor="#FFFFFFFF" />
+</vector>

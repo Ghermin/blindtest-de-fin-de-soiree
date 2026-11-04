@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Généré par bored-dev-playground/brand/build.js, ne pas modifier à la main. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:translateX="18" android:translateY="18" android:scaleX="1.125" android:scaleY="1.125">
+        <path
+            android:pathData="M29 17a18 18 0 1 1 0 36a18 18 0 1 1 0-36z"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M18 35a11 11 0 0 1 11-11"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="4"
+            android:strokeAlpha="0.55"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M29 30.5a4.5 4.5 0 1 1 0 9a4.5 4.5 0 1 1 0-9z"
+            android:fillColor="#FFFFFFFF" />
+        <path
+            android:pathData="M47 9Q48 15 54 16Q48 17 47 23Q46 17 40 16Q46 15 47 9z"
+            android:fillColor="#FFFFFFFF" />
+    </group>
+</vector>

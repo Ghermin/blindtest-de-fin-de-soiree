@@ -23,6 +23,7 @@ const ASSETS = {
     '/apple-touch-icon.png': 'image/png',
     '/icon-192.png': 'image/png',
     '/icon-512.png': 'image/png',
+    '/icon-maskable-512.png': 'image/png',
     '/shortcut-icon.png': 'image/png'
 };
 
