@@ -1335,6 +1335,31 @@ form.stack > button {
     color: var(--muted);
 }
 
+/* Lien discret vers le playground, en bas de page hors des manches */
+.app-foot {
+    margin-top: auto;
+    padding-top: 16px;
+    text-align: center;
+}
+
+body:has(#screen-game:not([hidden]), #screen-reveal:not([hidden])) .app-foot {
+    display: none;
+}
+
+.app-sig {
+    font: 500 11px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
+    color: var(--muted);
+    opacity: 0.7;
+    text-decoration: none;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.app-sig:hover,
+.app-sig:focus-visible {
+    opacity: 1;
+    color: var(--text);
+}
+
 .lobby-actions {
     display: flex;
     justify-content: center;
