@@ -13,42 +13,38 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="playground.css">
 <style>
   :root {
     --pg-bg: #f6f1ff; --pg-surface: #ffffff; --pg-surface-2: #e9e0fa; --pg-text: #1d1233; --pg-muted: #6a5990;
     --pg-line: rgba(29, 18, 51, .12); --pg-dot: rgba(29, 18, 51, .09);
     --pg-accent: #e8237c; --pg-accent-2: #7c3aed; --pg-on-accent: #ffffff;
-    --teal: #0d9488;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --pg-bg: #12081f; --pg-surface: #1f0f38; --pg-surface-2: #2a1650; --pg-text: #f3ecff; --pg-muted: #b9a6e0;
       --pg-line: rgba(255, 255, 255, .1); --pg-dot: rgba(243, 236, 255, .07);
       --pg-accent: #ff3d8b; --pg-accent-2: #a46bff; --pg-on-accent: #ffffff;
-      --teal: #35e0c8;
     }
   }
   * { box-sizing: border-box; }
-  body { font-family: "Fredoka", system-ui, sans-serif; font-size: 17px; }
+  body { font-size: 17px; }
   a { color: var(--pg-accent); }
-  .pg-hero h1, .pg-section h2, .pg-end h2 { font-weight: 700; letter-spacing: -.02em; }
-  .pg-brand { font-weight: 600; }
 
   .pg-hero { position: relative; }
   .pg-hero::before {
     content: ""; position: absolute; inset: -80px -20vw auto; height: 560px; z-index: -1; pointer-events: none;
     background:
       radial-gradient(40% 55% at 20% 10%, color-mix(in srgb, var(--pg-accent) 16%, transparent), transparent 70%),
-      radial-gradient(35% 50% at 75% 20%, color-mix(in srgb, var(--teal) 14%, transparent), transparent 70%);
+      radial-gradient(35% 50% at 75% 20%, color-mix(in srgb, var(--pg-accent-2) 16%, transparent), transparent 70%);
   }
   .logo { width: 88px; height: 88px; margin-bottom: 24px; filter: drop-shadow(0 12px 24px color-mix(in srgb, var(--pg-accent) 35%, transparent)); }
 
   .roles .pg-card { display: flex; gap: 16px; }
   .role-icon {
     width: 44px; height: 44px; border-radius: var(--pg-radius-sm); flex: none; display: grid; place-items: center;
-    background: color-mix(in srgb, var(--teal) 15%, transparent); color: var(--teal);
+    background: color-mix(in srgb, var(--pg-accent-2) 15%, transparent); color: var(--pg-accent-2);
   }
   .role-icon svg { width: 22px; height: 22px; }
 </style>
