@@ -183,7 +183,8 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebView() {
-        WebView.setWebContentsDebuggingEnabled(true)
+        // Inspection Chrome (chrome://inspect) seulement sur un build de debug : la page porte le code hôte.
+        WebView.setWebContentsDebuggingEnabled((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0)
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true

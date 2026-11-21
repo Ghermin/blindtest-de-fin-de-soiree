@@ -70,7 +70,7 @@ jobs:
             echo "Pas de clé de signature : APK signé en debug"
           fi
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
         with:
           gradle-version: '8.9'
 
@@ -96,7 +96,7 @@ jobs:
           path: blindtest.apk
 
       - name: Publish the release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: apk
           name: Blind Test — appli Android
