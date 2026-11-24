@@ -249,30 +249,61 @@ button:disabled {
     margin-top: 10dvh;
 }
 
+/* Tourne-disque : .vinyl est la platine (fixe), .disc le disque qui tourne, ::after le bras de lecture. */
 .vinyl {
     width: 160px;
     height: 160px;
-    border-radius: 50%;
-    background: repeating-radial-gradient(circle, #111 0 3px, #1c1c1c 3px 6px);
-    border: 4px solid #000;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    flex-shrink: 0;
 }
 
+.vinyl .disc {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    border-radius: 50%;
+    background: repeating-radial-gradient(circle, #111 0 3px, #1c1c1c 3px 6px);
+    border: 4px solid #000;
+}
+
+/* Étiquette en dégradé (on la voit tourner) et trou central */
+.vinyl .disc::after {
+    content: "";
+    position: absolute;
+    inset: 31%;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, #0b0b0f 0 9%, transparent 10%),
+        linear-gradient(135deg, var(--accent), var(--accent2));
+}
+
+/* Reflet fixe : la lumière ne tourne pas avec le disque */
+.vinyl::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 50%;
+    pointer-events: none;
+    background: conic-gradient(from 290deg, transparent 0 5%, rgba(255, 255, 255, 0.11) 10%, transparent 15% 50%, rgba(255, 255, 255, 0.07) 55%, transparent 60%);
+}
+
+/* Bras de lecture : pivot en haut à droite, tête posée sur les sillons */
 .vinyl::after {
     content: "";
     position: absolute;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    inset: -10%;
+    z-index: 3;
+    pointer-events: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 120 120'%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M91 7l6-8' stroke='%23000' stroke-opacity='.45' stroke-width='10'/%3E%3Cpath d='M91 7l6-8' stroke='%23aeb4ba' stroke-width='8'/%3E%3Cpath d='M90 10L82 56L68 70' stroke='%23000' stroke-opacity='.45' stroke-width='5'/%3E%3Cpath d='M90 10L82 56L68 70' stroke='%23d5d9dd' stroke-width='3'/%3E%3Cpath d='M70 67l-7 8' stroke='%23000' stroke-opacity='.5' stroke-width='9'/%3E%3Cpath d='M70 67l-7 8' stroke='%23eceff1' stroke-width='7'/%3E%3C/g%3E%3Ccircle cx='90' cy='10' r='8' fill='%23aeb4ba' stroke='%23000' stroke-opacity='.45' stroke-width='2'/%3E%3Ccircle cx='90' cy='10' r='3' fill='%23545a60'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
 }
 
 .vinyl span {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     font-size: 1.6rem;
     font-weight: 800;
     color: #12081f;
@@ -808,11 +839,6 @@ body.has-bar {
 #guess-zone.with-choices .vinyl {
     width: 96px;
     height: 96px;
-}
-
-#guess-zone.with-choices .vinyl::after {
-    width: 26px;
-    height: 26px;
 }
 
 #guess-zone.with-choices .vinyl span {
