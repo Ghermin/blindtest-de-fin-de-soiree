@@ -738,7 +738,7 @@
         if (!code) return;
         try {
             await post(`/api/r/${encodeURIComponent(code)}`, null, 'GET');
-            location.href = `/r/${code}`;
+            location.href = `/r/${encodeURIComponent(code)}`;
         } catch (error) {
             $('home-feedback').textContent = error.message === 'Salle introuvable' ? `Aucune salle ${code}` : error.message;
         }
