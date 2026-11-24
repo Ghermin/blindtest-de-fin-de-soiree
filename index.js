@@ -78,8 +78,10 @@ function clientIp(request) {
     if (config.trustProxy) {
         const cloudflare = request.headers['cf-connecting-ip'];
         if (cloudflare) return String(cloudflare);
+        // Le proxy ajoute l'IP qu'il voit à la fin : les entrées de gauche viennent du client et
+        // pourraient être inventées pour contourner les limites (codes hôte, création de salles).
         const forwarded = request.headers['x-forwarded-for'];
-        if (forwarded) return String(forwarded).split(',')[0].trim();
+        if (forwarded) return String(forwarded).split(',').pop().trim();
     }
     return request.socket.remoteAddress || '';
 }
